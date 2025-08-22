@@ -1,0 +1,164 @@
+/* ============================
+   About Page - iCensus
+   ============================ */
+
+/* Page Layout */
+.about-page {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column; /* Stack vertically */
+    gap: 1.5rem; /* Space between cards */
+}
+
+/* ============================
+   Card Styling
+   ============================ */
+.about-card {
+    background: #2C3E50;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+}
+
+.about-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* ============================
+   Icons
+   ============================ */
+.about-icon {
+    font-size: 36px;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+}
+
+/* ============================
+   Titles
+   ============================ */
+.about-card h2, 
+.about-card h3 {
+    margin: 0.5rem 0;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+/* ============================
+   Collapsible Content
+   ============================ */
+.about-content {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease, opacity 0.3s ease;
+}
+
+/* Expanded state */
+.about-card.active .about-content {
+    max-height: 500px; /* Large enough to fit content */
+    opacity: 1;
+}
+
+/* ============================
+   Text & Description
+   ============================ */
+.about-desc,
+.about-card p,
+.about-card ul {
+    color: #ffffff;
+    margin: 0.25rem 0;
+    line-height: 1.5;
+}
+
+.about-card ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0.5rem 0;
+}
+
+.about-card ul li {
+    margin: 0.4rem 0;
+    padding-left: 1.25rem;
+    position: relative;
+}
+
+.about-card ul li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+/* ============================
+   Responsive Design
+   ============================ */
+@media (max-width: 600px) {
+    .about-page {
+        padding: 0.5rem;
+    }
+
+    .about-card {
+        padding: 1rem;
+    }
+
+    .about-icon {
+        font-size: 28px;
+    }
+
+    .about-card h2, 
+    .about-card h3 {
+        font-size: 1.2rem;
+    }
+}
+
+/* ============================
+   Dark Mode Support
+   ============================ */
+body.dark .about-card {
+    background: #1e1e1e;
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.05);
+}
+
+body.dark .about-card h2, 
+body.dark .about-card h3 {
+    color: #f1f1f1;
+}
+
+body.dark .about-desc,
+body.dark .about-card p,
+body.dark .about-card ul {
+    color: #ccc;
+}
+
+body.dark .about-card ul li::before {
+    color: #4da3ff;
+}
+
+body.dark .about-icon {
+    color: #4da3ff;
+}
+
+.about-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+}
+
+.chevron {
+    transition: transform 0.3s ease;
+}
+
+.chevron.rotated {
+    transform: rotate(180deg);
+}

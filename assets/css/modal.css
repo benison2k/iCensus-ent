@@ -1,0 +1,63 @@
+/* Modal Overlay */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
+    transition: opacity 0.3s ease;
+}
+
+/* Modal Container */
+.modal-content {
+    background: #fff;
+    margin: 10% auto;
+    padding: 2rem 1.5rem;
+    border-radius: 12px;
+    max-width: 450px;
+    width: 90%;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    text-align: center;
+    position: relative;
+    animation: modalFadeIn 0.3s ease;
+}
+
+/* Close Button */
+.close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #888;
+    transition: color 0.2s ease;
+}
+.close:hover {
+    color: #333;
+}
+
+/* Message Text */
+.modal-content p {
+    margin: 1rem 0 0;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #333;
+}
+
+/* Types: success & error */
+.modal-content.success {
+    border-left: 6px solid #28a745;
+}
+.modal-content.error {
+    border-left: 6px solid #dc3545;
+}
+
+/* Animation */
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
