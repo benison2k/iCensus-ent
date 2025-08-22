@@ -5,25 +5,25 @@
     justify-content: center;
     align-items: center;
     padding: 2rem;
+    transition: background 0.3s;
 }
 
 .card-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* Default: 2 columns */
+    grid-template-columns: repeat(2, 1fr);
     gap: 2rem;
     width: 80%;
     max-width: 1200px;
 }
 
 .card {
-    background: #2C3E50;
     padding: 3rem 2rem;
     border-radius: 12px;
     box-shadow: 0 6px 15px rgba(0,0,0,0.1);
     text-align: center;
     min-height: 250px;
     min-width: 250px;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s, background 0.3s, color 0.3s;
 }
 
 .card:hover {
@@ -38,13 +38,11 @@
 /* Card Elements */
 .card-icon {
     font-size: 4rem;
-    color: #ffffff; /* Accent color */
     margin-bottom: 1rem;
     display: block;
 }
 
 .card-title {
-    color:#ffffff;
     font-size: 1.4rem;
     font-weight: 600;
     margin-bottom: 0.5rem;
@@ -52,13 +50,52 @@
 
 .card-desc {
     font-size: 0.9rem;
+}
+
+/* Theme-specific colors */
+
+/* Light Mode */
+body.light-mode {
+    background-color: #f4f6f8; /* main background */
+    color: #333;
+}
+
+body.light-mode .dashboard {
+    background-color: #f4f6f8; /* dashboard background */
+}
+
+body.light-mode .card {
+    background: #ffffff;
+    color: #2C3E50;
+}
+
+body.light-mode .card-icon {
+    color: #2C3E50;
+}
+
+/* Dark Mode */
+body.dark-mode {
+    background-color: #1e1e2f; /* main background */
+    color: #fff;
+}
+
+body.dark-mode .dashboard {
+    background-color: #1e1e2f; /* dashboard background */
+}
+
+body.dark-mode .card {
+    background: #2C3E50;
     color: #ffffff;
 }
 
-/* 🔹 Responsive Layouts */
+body.dark-mode .card-icon {
+    color: #ffffff;
+}
+
+/* Responsive Layouts */
 @media (max-width: 900px) {
     .card-grid {
-        grid-template-columns: 1fr; /* Single column on tablets/small laptops */
+        grid-template-columns: 1fr;
         width: 90%;
     }
     .card {
@@ -71,7 +108,7 @@
         padding: 2rem 1rem;
     }
     .card-icon {
-        font-size: 3rem; /* Slightly smaller on mobile */
+        font-size: 3rem;
     }
     .card-title {
         font-size: 1.2rem;

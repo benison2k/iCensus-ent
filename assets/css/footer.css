@@ -1,11 +1,20 @@
-/* components/css/footer.css */
-
 .footer {
-    background-color: #2C3E50;
-    color: #ffffff;
     text-align: center;
     padding: 1rem 2rem;
     margin-top: 2rem;
     font-size: 0.9rem;
     box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+    transition: background 0.3s, color 0.3s;
+}
+
+/* Light Mode Footer */
+body.light-mode .footer {
+    background-color: #ffffff;
+    color: #2C3E50;
+}
+
+/* Dark Mode Footer */
+body.dark-mode .footer {
+    background-color: #2C3E50;
+    color: #ffffff;
 }

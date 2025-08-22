@@ -2,7 +2,6 @@
 class Auth {
     private $pdo;
 
-    // Constructor receives Database instance
     public function __construct($db) {
         $this->pdo = $db->getPdo();
     }
@@ -12,20 +11,51 @@ class Auth {
         $stmt->execute([$username]);
         $user = $stmt->fetch();
 
-        if (!$user) {
-            die("❌ Username not found: " . htmlspecialchars($username));
-        }
-
-        if (!password_verify($password, $user['password'])) {
-            die("❌ Password mismatch for user: " . htmlspecialchars($username));
-        }
+        if (!$user) die("❌ Username not found.");
+        if (!password_verify($password, $user['password'])) die("❌ Password mismatch.");
 
         $_SESSION['user'] = [
             'id' => $user['id'],
             'username' => $user['username'],
             'role_id' => $user['role_id'],
-            'full_name' => $user['full_name']
+            'full_name' => $user['full_name'],
+            'theme' => $user['theme'] ?? 'light',
+            'language' => $user['language'] ?? 'en',
+            'two_fa' => $user['two_fa'] ?? 0
         ];
         return true;
+    }
+
+    public function refreshUserSession($userId) {
+        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE id=?");
+        $stmt->execute([$userId]);
+        $user = $stmt->fetch();
+        if ($user) {
+            $_SESSION['user']['username'] = $user['username'];
+            $_SESSION['user']['theme'] = $user['theme'] ?? 'light';
+            $_SESSION['user']['language'] = $user['language'] ?? 'en';
+            $_SESSION['user']['two_fa'] = $user['two_fa'] ?? 0;
+        }
+    }
+
+    // ------------------------
+    // New Methods
+    // ------------------------
+    public function updateUsername($userId, $username) {
+        $stmt = $this->pdo->prepare("UPDATE users SET username=? WHERE id=?");
+        $stmt->execute([$username, $userId]);
+        $this->refreshUserSession($userId);
+    }
+
+    public function updatePassword($userId, $password) {
+        $hashed = password_hash($password, PASSWORD_DEFAULT);
+        $stmt = $this->pdo->prepare("UPDATE users SET password=? WHERE id=?");
+        $stmt->execute([$hashed, $userId]);
+    }
+
+    public function updateTwoFA($userId, $twoFA) {
+        $stmt = $this->pdo->prepare("UPDATE users SET two_fa=? WHERE id=?");
+        $stmt->execute([$twoFA, $userId]);
+        $this->refreshUserSession($userId);
     }
 }

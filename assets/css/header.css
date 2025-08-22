@@ -2,8 +2,6 @@
    Header Styles
 ======================== */
 .header {
-    background-color: #2C3E50;
-    color: #ffffff;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -12,6 +10,41 @@
     position: sticky;
     top: 0;
     z-index: 100;
+    transition: background 0.3s, color 0.3s; /* smooth theme transition */
+}
+
+/* Light Mode Header */
+body.light-mode .header {
+    background-color: #ffffff;
+    color: #2C3E50;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+body.light-mode .back-button,
+body.light-mode .logout-icon,
+body.light-mode .brand {
+    color: #2C3E50;
+}
+
+body.light-mode .brand:hover {
+    opacity: 0.8;
+}
+
+/* Dark Mode Header */
+body.dark-mode .header {
+    background-color: #2C3E50;
+    color: #ffffff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+body.dark-mode .back-button,
+body.dark-mode .logout-icon,
+body.dark-mode .brand {
+    color: #ffffff;
+}
+
+body.dark-mode .brand:hover {
+    opacity: 0.8;
 }
 
 /* Back Button */
@@ -20,12 +53,11 @@
     border: none;
     cursor: pointer;
     font-size: 28px;
-    color: #fff;
     display: flex;
     align-items: center;
     margin-right: 1rem;
     padding: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.3s ease, color 0.3s;
 }
 
 .back-button:hover {
@@ -42,18 +74,8 @@
     display: flex;
     align-items: center;
     gap: 1rem;
-    text-decoration: none;   /* remove underline */
-    color: #fff;             /* force white text */
-    transition: opacity 0.3s ease;
-}
-
-.brand:hover {
-    opacity: 0.8;
-}
-
-.brand:visited,
-.brand:active {
-    color: #fff;             /* keep text white when clicked/visited */
+    text-decoration: none; 
+    transition: opacity 0.3s ease, color 0.3s;
 }
 
 .brand .logo {
@@ -66,17 +88,15 @@
 .brand h1 {
     font-size: 1.8rem;
     margin: 0;
-    color: #fff;             /* keep text white */
 }
 
 /* Logout Icon */
 .logout-icon {
-    color: #fff;
     text-decoration: none;
     font-size: 28px;
     display: flex;
     align-items: center;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.3s ease, color 0.3s;
 }
 
 .logout-icon:hover {

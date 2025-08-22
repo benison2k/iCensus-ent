@@ -4,16 +4,16 @@
     padding: 0;
     box-sizing: border-box;
 }
+
+/* Base body styling without hardcoded background/color */
 body {
     font-family: Arial, sans-serif;
-    background: #f4f6f9;
-    color: #333;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
 }
 
-/* WELCOME */
+/* Welcome section */
 .welcome {
     text-align: center;
     margin: 2rem 0;
@@ -23,24 +23,16 @@ body {
     font-weight: 500;
 }
 
-.alert {
-    padding: 0.8rem 1rem;
-    margin-bottom: 1rem;
-    border-radius: 0.5rem;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
+/* Theme-specific colors */
+
+/* Light Mode */
+body.light-mode {
+    background-color: #f4f6f8;
+    color: #333;
 }
 
-.alert.success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
+/* Dark Mode */
+body.dark-mode {
+    background-color: #1e1e2f;
+    color: #fff;
 }
-
-.alert.error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
-
