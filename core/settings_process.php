@@ -4,7 +4,7 @@ $config = require __DIR__ . '/config.php';
 require __DIR__ . '/Database.php';
 require __DIR__ . '/Auth.php';
 
-if (!isset($_SESSION['user'])) {
+if(!isset($_SESSION['user'])) {
     header("Location: ../pages/login.php");
     exit;
 }
@@ -14,35 +14,30 @@ $auth = new Auth($db);
 $userId = $_SESSION['user']['id'];
 
 try {
-    // ---------------------------
-    // Update Username
-    // ---------------------------
     if(isset($_POST['update_username'])) {
         $username = trim($_POST['username']);
         if($username === '') throw new Exception('Username cannot be empty');
-
-        $auth->updateUsername($userId, $username);  // <-- use Auth method
+        $auth->updateUsername($userId, $username);
         $_SESSION['modal'] = ['message'=>'Username updated successfully','type'=>'success'];
     }
 
-    // ---------------------------
-    // Update Password
-    // ---------------------------
     if(isset($_POST['update_password'])) {
-        $password = $_POST['password'];
-        $confirm = $_POST['confirm_password'];
+        $current = $_POST['current_password'] ?? '';
+        $password = $_POST['password'] ?? '';
+        $confirm = $_POST['confirm_password'] ?? '';
+
+        if(!$auth->verifyPassword($userId, $current)) {
+            throw new Exception('Current password is incorrect');
+        }
         if($password !== $confirm) throw new Exception('Passwords do not match');
 
-        $auth->updatePassword($userId, $password);  // <-- use Auth method
+        $auth->updatePassword($userId, $password);
         $_SESSION['modal'] = ['message'=>'Password updated successfully','type'=>'success'];
     }
 
-    // ---------------------------
-    // Update Security (2FA)
-    // ---------------------------
     if(isset($_POST['update_security'])) {
         $twoFA = isset($_POST['2fa']) ? 1 : 0;
-        $auth->updateTwoFA($userId, $twoFA); // <-- use Auth method
+        $auth->updateTwoFA($userId, $twoFA);
         $_SESSION['modal'] = ['message'=>'Security settings updated','type'=>'success'];
     }
 
@@ -50,6 +45,5 @@ try {
     $_SESSION['modal'] = ['message'=>$e->getMessage(),'type'=>'error'];
 }
 
-// Redirect back to settings page
 header("Location: ../pages/settings.php");
 exit;
