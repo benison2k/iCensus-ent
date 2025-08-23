@@ -9,7 +9,7 @@ class Auth {
     public function login($username, $password) {
         $stmt = $this->pdo->prepare("SELECT * FROM users WHERE username = ?");
         $stmt->execute([$username]);
-        $user = $stmt->fetch();
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$user) die("❌ Username not found.");
         if (!password_verify($password, $user['password'])) die("❌ Password mismatch.");
@@ -29,7 +29,7 @@ class Auth {
     public function refreshUserSession($userId) {
         $stmt = $this->pdo->prepare("SELECT * FROM users WHERE id=?");
         $stmt->execute([$userId]);
-        $user = $stmt->fetch();
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($user) {
             $_SESSION['user']['username'] = $user['username'];
             $_SESSION['user']['theme'] = $user['theme'] ?? 'light';
@@ -38,9 +38,6 @@ class Auth {
         }
     }
 
-    // ------------------------
-    // New Methods
-    // ------------------------
     public function updateUsername($userId, $username) {
         $stmt = $this->pdo->prepare("UPDATE users SET username=? WHERE id=?");
         $stmt->execute([$username, $userId]);
@@ -57,5 +54,14 @@ class Auth {
         $stmt = $this->pdo->prepare("UPDATE users SET two_fa=? WHERE id=?");
         $stmt->execute([$twoFA, $userId]);
         $this->refreshUserSession($userId);
+    }
+
+    public function verifyPassword($userId, $password) {
+        $stmt = $this->pdo->prepare("SELECT password FROM users WHERE id=? LIMIT 1");
+        $stmt->execute([$userId]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$user || empty($user['password'])) return false;
+
+        return password_verify((string)$password, (string)$user['password']);
     }
 }

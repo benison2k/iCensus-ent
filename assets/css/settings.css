@@ -6,32 +6,42 @@
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1.5rem;
     margin-top: 2rem;
+
+    /* Prevent touching screen edges */
+    padding: 0 2rem;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .settings-card {
-    background-color: var(--card-bg);
     border-radius: 12px;
     padding: 1.5rem;
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     transition: transform 0.2s, background-color 0.4s, color 0.4s;
+
+    /* Animation */
+    opacity: 0;
+    animation: cardFadeUp 0.6s ease forwards;
 }
 
 .settings-card:hover {
     transform: translateY(-3px);
 }
 
+/* Card content */
 .settings-card .card-icon {
     font-size: 36px;
-    color: #2e7d32;
     display: block;
     margin-bottom: 0.5rem;
+    transition: color 0.4s;
 }
 
 .settings-card .card-title {
     font-size: 1.3rem;
     font-weight: 600;
     margin-bottom: 1rem;
-    color: #2e7d32;
+    transition: color 0.4s;
 }
 
 /* Forms */
@@ -43,7 +53,7 @@
 .settings-card label {
     font-weight: 500;
     margin: 0.5rem 0 0.3rem 0;
-    color: #555;
+    transition: color 0.4s;
 }
 
 .settings-card input[type="text"],
@@ -70,18 +80,12 @@
     align-items: center;
     justify-content: center;
     gap: 0.4rem;
-    background-color: var(--button-bg);
-    color: var(--button-text);
     border: none;
     padding: 0.6rem 1rem;
     border-radius: 8px;
     font-size: 1rem;
     cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.settings-card button:hover {
-    background-color: var(--button-hover-bg);
+    transition: background-color 0.2s, color 0.2s;
 }
 
 /* Checkbox */
@@ -90,34 +94,7 @@
 }
 
 /* =========================
-   Dark Mode Variables
-========================= */
-:root {
-    --bg-color: #ffffff;
-    --text-color: #222222;
-    --card-bg: #ffffff;
-    --button-bg: #2e7d32;
-    --button-hover-bg: #1b5e20;
-    --button-text: #ffffff;
-}
-
-body.dark-mode {
-    --bg-color: #1e1e2f;
-    --text-color: #eeeeee;
-    --card-bg: #2C3E50;
-    --button-bg: #2e7d32;
-    --button-hover-bg: #1b5e20;
-    --button-text: #ffffff;
-}
-
-body {
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    transition: all 0.3s ease;
-}
-
-/* =========================
-   Toggle Switch Styles (Updated)
+   Toggle Switch Styles
 ========================= */
 .switch {
     position: relative;
@@ -154,16 +131,14 @@ body {
     border-radius: 50%;
 }
 
-/* Checked state */
 input:checked + .slider {
-    background-color: #2e7d32;
+    background-color: #1e1e2f;
 }
 
 input:checked + .slider:before {
     transform: translateX(26px);
 }
 
-/* Sun/Moon icons inside slider */
 .slider .icon {
     position: absolute;
     font-size: 14px;
@@ -179,3 +154,71 @@ input:checked + .slider:before {
 .slider .moon {
     right: 6px;
 }
+
+/* =========================
+   Card Animations
+========================= */
+@keyframes cardFadeUp {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.settings-card:nth-child(1) { animation-delay: 0.1s; }
+.settings-card:nth-child(2) { animation-delay: 0.2s; }
+.settings-card:nth-child(3) { animation-delay: 0.3s; }
+.settings-card:nth-child(4) { animation-delay: 0.4s; }
+.settings-card:nth-child(5) { animation-delay: 0.5s; }
+
+/* =========================
+   Dark Mode
+========================= */
+body.dark-mode .settings-card {
+    background-color: #2C3E50;  /* same as header */
+    color: #ffffff;
+}
+
+body.dark-mode .settings-card button {
+    background-color: #1e1e2f;
+    color: #ffffff;
+}
+
+body.dark-mode .settings-card button:hover {
+    background-color: #1b5e20;
+}
+
+body.dark-mode .settings-card .card-icon,
+body.dark-mode .settings-card .card-title,
+body.dark-mode .settings-card label {
+    color: #ffffff;
+}
+
+/* =========================
+   Light Mode
+========================= */
+body.light-mode .settings-card {
+    background-color: #ffffff;
+    color: #2C3E50;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+body.light-mode .settings-card button {
+    background-color: #2e7d32;
+    color: #ffffff;
+}
+
+body.light-mode .settings-card button:hover {
+    background-color: #1b5e20;
+}
+
+body.light-mode .settings-card .card-icon,
+body.light-mode .settings-card .card-title,
+body.light-mode .settings-card label {
+    color: #2C3E50;
+}
+

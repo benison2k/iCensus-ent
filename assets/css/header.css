@@ -6,11 +6,26 @@
     justify-content: space-between;
     align-items: center;
     padding: 1rem 2rem;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     position: sticky;
     top: 0;
     z-index: 100;
-    transition: background 0.3s, color 0.3s; /* smooth theme transition */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+
+    /* Animation */
+    animation: slideDown 0.6s ease forwards;
+    transition: background 0.3s, color 0.3s;
+}
+
+/* Slide down animation */
+@keyframes slideDown {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 /* Light Mode Header */
@@ -22,12 +37,9 @@ body.light-mode .header {
 
 body.light-mode .back-button,
 body.light-mode .logout-icon,
-body.light-mode .brand {
-    color: #2C3E50;
-}
-
-body.light-mode .brand:hover {
-    opacity: 0.8;
+body.light-mode .brand,
+body.light-mode .brand h1 {
+    color: #2C3E50 !important; /* override global a reset */
 }
 
 /* Dark Mode Header */
@@ -39,12 +51,9 @@ body.dark-mode .header {
 
 body.dark-mode .back-button,
 body.dark-mode .logout-icon,
-body.dark-mode .brand {
-    color: #ffffff;
-}
-
-body.dark-mode .brand:hover {
-    opacity: 0.8;
+body.dark-mode .brand,
+body.dark-mode .brand h1 {
+    color: #ffffff !important; /* override global a reset */
 }
 
 /* Back Button */
@@ -74,7 +83,7 @@ body.dark-mode .brand:hover {
     display: flex;
     align-items: center;
     gap: 1rem;
-    text-decoration: none; 
+    text-decoration: none;
     transition: opacity 0.3s ease, color 0.3s;
 }
 
@@ -88,6 +97,7 @@ body.dark-mode .brand:hover {
 .brand h1 {
     font-size: 1.8rem;
     margin: 0;
+    transition: color 0.3s;
 }
 
 /* Logout Icon */

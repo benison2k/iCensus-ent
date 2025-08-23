@@ -32,12 +32,56 @@ $themeClass = ($user['theme'] ?? 'light') === 'dark' ? 'dark-mode' : 'light-mode
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/css/about.css">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+/* =========================
+   About Card Animations
+========================= */
+.about-card {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: aboutCardFadeUp 0.7s ease forwards;
+}
+
+/* Staggered animation using nth-child */
+.about-card:nth-child(1) { animation-delay: 0.1s; }
+.about-card:nth-child(2) { animation-delay: 0.2s; }
+.about-card:nth-child(3) { animation-delay: 0.3s; }
+.about-card:nth-child(4) { animation-delay: 0.4s; }
+.about-card:nth-child(5) { animation-delay: 0.5s; }
+.about-card:nth-child(6) { animation-delay: 0.6s; }
+.about-card:nth-child(7) { animation-delay: 0.7s; }
+.about-card:nth-child(8) { animation-delay: 0.8s; }
+.about-card:nth-child(9) { animation-delay: 0.9s; }
+
+@keyframes aboutCardFadeUp {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Add spacing from edges */
+.about-page {
+    padding: 2rem;
+    max-width: 900px;
+    margin: 2rem auto;
+}
+
+/* Optional: prevent scrollbar during animation */
+.about-page.animating {
+    overflow: hidden;
+}
+</style>
 </head>
 <body class="<?= $themeClass; ?>">
 
 <?php include __DIR__ . '/../components/header.php'; ?>
 
-<main class="about-page">
+<main class="about-page animating">
 
     <!-- About Card Template -->
     <?php
@@ -146,6 +190,15 @@ $themeClass = ($user['theme'] ?? 'light') === 'dark' ? 'dark-mode' : 'light-mode
             card.classList.toggle('active');
             chevron.classList.toggle('rotated');
         });
+    });
+
+    // Remove animating class after all cards finished animation
+    const aboutPage = document.querySelector('.about-page');
+    const totalDuration = 1000; // total animation time in ms
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            aboutPage.classList.remove('animating');
+        }, totalDuration);
     });
 </script>
 </body>

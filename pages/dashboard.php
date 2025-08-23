@@ -29,6 +29,7 @@ $theme = $user['theme'] ?? 'light';
 <title>iCensus - Dashboard</title>
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/css/dashboard.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body class="<?= $theme==='dark' ? 'dark-mode' : 'light-mode'; ?>">
@@ -65,5 +66,18 @@ $theme = $user['theme'] ?? 'light';
 </main>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // Disable scroll initially
+    document.body.style.overflow = "hidden";
+
+    // Re-enable after animations (cards + header ~0.8s)
+    setTimeout(() => {
+        document.body.style.overflow = "";
+    }, 1000); // adjust time if needed
+});
+</script>
+
 </body>
 </html>

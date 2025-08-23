@@ -1,8 +1,10 @@
 <?php
 session_start();
-$config = require __DIR__ . '/config.php';  // <-- assign returned array
+$config = require __DIR__ . '/config.php';
 require __DIR__ . '/Database.php';
 require __DIR__ . '/Auth.php';
+
+header('Content-Type: application/json');
 
 if (!isset($_SESSION['user'])) {
     http_response_code(403);
@@ -21,7 +23,7 @@ try {
     $stmt = $conn->prepare("UPDATE users SET theme=? WHERE id=?");
     $stmt->execute([$theme, $userId]);
 
-    // Refresh session data
+    // Refresh session
     $auth = new Auth($db);
     $auth->refreshUserSession($userId);
 
