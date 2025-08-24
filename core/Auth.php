@@ -6,14 +6,26 @@ class Auth {
         $this->pdo = $db->getPdo();
     }
 
+    /**
+     * Attempt login and return structured result
+     * @param string $username
+     * @param string $password
+     * @return array ['success' => bool, 'message' => string|null]
+     */
     public function login($username, $password) {
         $stmt = $this->pdo->prepare("SELECT * FROM users WHERE username = ?");
         $stmt->execute([$username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$user) die("❌ Username not found.");
-        if (!password_verify($password, $user['password'])) die("❌ Password mismatch.");
+        // Return generic error for any invalid credentials
+        if (!$user || !password_verify($password, $user['password'])) {
+            return [
+                'success' => false,
+                'message' => 'Invalid credentials'
+            ];
+        }
 
+        // Successful login
         $_SESSION['user'] = [
             'id' => $user['id'],
             'username' => $user['username'],
@@ -23,7 +35,8 @@ class Auth {
             'language' => $user['language'] ?? 'en',
             'two_fa' => $user['two_fa'] ?? 0
         ];
-        return true;
+
+        return ['success' => true, 'message' => null];
     }
 
     public function refreshUserSession($userId) {
