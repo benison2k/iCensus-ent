@@ -5,55 +5,19 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 2rem;
+    padding: 0.8rem 1.5rem;
     position: sticky;
     top: 0;
     z-index: 100;
+    background-color: #ffffff;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-
-    /* Animation */
-    animation: slideDown 0.6s ease forwards;
     transition: background 0.3s, color 0.3s;
 }
 
-/* Slide down animation */
-@keyframes slideDown {
-    from {
-        transform: translateY(-100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
-/* Light Mode Header */
-body.light-mode .header {
-    background-color: #ffffff;
-    color: #2C3E50;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
-
-body.light-mode .back-button,
-body.light-mode .logout-icon,
-body.light-mode .brand,
-body.light-mode .brand h1 {
-    color: #2C3E50 !important; /* override global a reset */
-}
-
-/* Dark Mode Header */
+/* Dark Mode */
 body.dark-mode .header {
     background-color: #2C3E50;
     color: #ffffff;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-body.dark-mode .back-button,
-body.dark-mode .logout-icon,
-body.dark-mode .brand,
-body.dark-mode .brand h1 {
-    color: #ffffff !important; /* override global a reset */
 }
 
 /* Back Button */
@@ -64,73 +28,35 @@ body.dark-mode .brand h1 {
     font-size: 28px;
     display: flex;
     align-items: center;
-    margin-right: 1rem;
-    padding: 0;
-    transition: opacity 0.3s ease, color 0.3s;
 }
+.back-button:hover { opacity: 0.8; }
 
-.back-button:hover {
-    opacity: 0.8;
-}
-
-/* Brand (Logo + Text) */
-.header-center {
+/* Centered Header Logo */
+.header-logo {
+    flex: 1;
     display: flex;
+    justify-content: center;
     align-items: center;
 }
-
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    text-decoration: none;
-    transition: opacity 0.3s ease, color 0.3s;
-}
-
-.brand .logo {
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-    border-radius: 50%;
-}
-
-.brand h1 {
-    font-size: 1.8rem;
-    margin: 0;
-    transition: color 0.3s;
+.header-logo .logo {
+    width: 120px;       /* adjust width as needed */
+    height: auto;
+    max-width: 100%;
+    object-fit: contain;
+    border-radius: 0;
+    display: block;
 }
 
 /* Logout Icon */
 .logout-icon {
-    text-decoration: none;
     font-size: 28px;
     display: flex;
     align-items: center;
-    transition: opacity 0.3s ease, color 0.3s;
 }
+.logout-icon:hover { opacity: 0.8; }
 
-.logout-icon:hover {
-    opacity: 0.8;
-}
-
-/* ========================
-   Responsive Adjustment
-======================== */
+/* Responsive */
 @media (max-width: 600px) {
-    .header {
-        padding: 0.8rem 1rem;
-    }
-
-    .brand h1 {
-        font-size: 1.4rem;
-    }
-
-    .back-button, .logout-icon {
-        font-size: 24px;
-    }
-
-    .brand .logo {
-        width: 40px;
-        height: 40px;
-    }
+    .back-button, .logout-icon { font-size: 24px; }
+    .header-logo .logo { width: 90px; }
 }
