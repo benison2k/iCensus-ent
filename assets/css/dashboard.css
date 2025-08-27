@@ -1,33 +1,58 @@
-/* DASHBOARD SPECIFIC STYLES */
+/* =========================
+   DASHBOARD STYLES
+========================= */
 .dashboard {
     flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 2rem;
+    transition: background 0.3s;
+    overflow: hidden; /* Prevents scrollbars during animation */
 }
 
 .card-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* Default: 2 columns */
+    grid-template-columns: repeat(2, 1fr);
     gap: 2rem;
     width: 80%;
     max-width: 1200px;
 }
 
+/* Animate cards on load */
 .card {
-    background: #2C3E50;
     padding: 3rem 2rem;
     border-radius: 12px;
     box-shadow: 0 6px 15px rgba(0,0,0,0.1);
     text-align: center;
     min-height: 250px;
     min-width: 250px;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s, color 0.3s;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: cardFadeIn 0.6s ease forwards;
 }
 
+/* Stagger effect for each card */
+.card:nth-child(1) { animation-delay: 0.1s; }
+.card:nth-child(2) { animation-delay: 0.2s; }
+.card:nth-child(3) { animation-delay: 0.3s; }
+.card:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes cardFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Hover interaction */
 .card:hover {
-    transform: translateY(-7px);
+    transform: translateY(-7px) scale(1.02);
     box-shadow: 0 10px 25px rgba(0,0,0,0.15);
 }
 
@@ -35,16 +60,21 @@
     cursor: pointer;
 }
 
-/* Card Elements */
+/* =========================
+   Card Elements
+========================= */
 .card-icon {
     font-size: 4rem;
-    color: #ffffff; /* Accent color */
     margin-bottom: 1rem;
     display: block;
+    transition: transform 0.3s ease;
+}
+
+.card:hover .card-icon {
+    transform: scale(1.1) rotate(3deg);
 }
 
 .card-title {
-    color:#ffffff;
     font-size: 1.4rem;
     font-weight: 600;
     margin-bottom: 0.5rem;
@@ -52,13 +82,53 @@
 
 .card-desc {
     font-size: 0.9rem;
+}
+
+/* =========================
+   THEME COLORS
+========================= */
+body.light-mode {
+    background-color: #f4f6f8; /* main background */
+    color: #333;
+}
+
+body.light-mode .dashboard {
+    background-color: #f4f6f8; /* dashboard background */
+}
+
+body.light-mode .card {
+    background: #ffffff;
+    color: #2C3E50;
+}
+
+body.light-mode .card-icon {
+    color: #2C3E50;
+}
+
+body.dark-mode {
+    background-color: #1e1e2f; /* main background */
+    color: #fff;
+}
+
+body.dark-mode .dashboard {
+    background-color: #1e1e2f; /* dashboard background */
+}
+
+body.dark-mode .card {
+    background: #2C3E50;
     color: #ffffff;
 }
 
-/* 🔹 Responsive Layouts */
+body.dark-mode .card-icon {
+    color: #ffffff;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
 @media (max-width: 900px) {
     .card-grid {
-        grid-template-columns: 1fr; /* Single column on tablets/small laptops */
+        grid-template-columns: 1fr;
         width: 90%;
     }
     .card {
@@ -71,7 +141,7 @@
         padding: 2rem 1rem;
     }
     .card-icon {
-        font-size: 3rem; /* Slightly smaller on mobile */
+        font-size: 3rem;
     }
     .card-title {
         font-size: 1.2rem;
@@ -80,3 +150,4 @@
         font-size: 0.8rem;
     }
 }
+

@@ -1,0 +1,98 @@
+/* ========================
+   Header Styles
+======================== */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem 1.5rem; /* more vertical padding for taller header */
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: #ffffff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: background-color 0.3s, color 0.3s;
+    font-family: 'Inter', sans-serif;
+    height: auto; /* let padding define total height */
+}
+
+/* Dark Mode Header */
+body.dark-mode .header {
+    background-color: #2C3E50 !important;
+    color: #ffffff !important;
+}
+
+/* Back + Logout Buttons */
+.back-button,
+.logout-icon {
+    all: unset; /* removes default button styles */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;  /* slightly bigger for better vertical alignment */
+    height: 50px;
+    font-size: 28px;
+    cursor: pointer;
+    line-height: 1;
+    transition: opacity 0.3s;
+}
+
+/* Light Mode Icon Colors */
+.back-button .material-icons,
+.logout-icon .material-icons {
+    color: #000000 !important;
+    transition: color 0.3s;
+}
+
+/* Dark Mode Icon Colors */
+body.dark-mode .back-button .material-icons,
+body.dark-mode .logout-icon .material-icons {
+    color: #ffffff !important;
+}
+
+/* Hover */
+.back-button:hover,
+.logout-icon:hover {
+    opacity: 0.8;
+}
+
+/* Centered Header Logo */
+.header-logo {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.header-logo .logo {
+    width: 120px; /* keep original size */
+    height: auto;
+    max-width: 100%;
+    object-fit: contain;
+    border-radius: 0;
+    display: block;
+}
+
+/* Placeholder to keep logo centered when back button hidden */
+.header-slot {
+    width: 50px;  /* match button width */
+    height: 50px; /* match button height */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .back-button,
+    .logout-icon,
+    .header-slot {
+        width: 36px;
+        height: 36px;
+        font-size: 24px;
+    }
+
+    .header-logo .logo {
+        width: 120px; /* keep same size on mobile too */
+    }
+}
