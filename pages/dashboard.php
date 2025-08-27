@@ -1,24 +1,24 @@
 <?php
 session_start();
 
-// Include config properly to get $config
+// Include config + core
 $config = require __DIR__ . '/../core/config.php';
 require __DIR__ . '/../core/Database.php';
 require __DIR__ . '/../core/Auth.php';
 
+// Auth check
 if (!isset($_SESSION['user'])) {
     header("Location: login.php");
     exit;
 }
 
-// Initialize DB and Auth
-$db = new Database($config);
+$db   = new Database($config);
 $auth = new Auth($db);
 
-// Refresh session to get latest theme and other user data
+// Refresh session to get latest user data (theme, etc.)
 $auth->refreshUserSession($_SESSION['user']['id']);
 
-$user = $_SESSION['user'];
+$user  = $_SESSION['user'];
 $theme = $user['theme'] ?? 'light';
 ?>
 <!DOCTYPE html>
@@ -32,7 +32,7 @@ $theme = $user['theme'] ?? 'light';
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
-<body class="<?= $theme==='dark' ? 'dark-mode' : 'light-mode'; ?>">
+<body class="<?= $theme === 'dark' ? 'dark-mode' : 'light-mode'; ?>">
 
 <?php include __DIR__ . '/../components/header.php'; ?>
 
@@ -42,21 +42,24 @@ $theme = $user['theme'] ?? 'light';
 
 <main class="dashboard">
     <div class="card-grid">
-        <div class="card clickable-card">
+        <a href="../pages/users.php" class="card clickable-card">
             <span class="material-icons card-icon">person</span>
             <h3 class="card-title">Users</h3>
             <p class="card-desc">Manage and view registered users</p>
-        </div>
-        <div class="card clickable-card">
+        </a>
+
+        <a href="../pages/analytics.php" class="card clickable-card">
             <span class="material-icons card-icon">analytics</span>
             <h3 class="card-title">Analytics</h3>
             <p class="card-desc">View reports and insights</p>
-        </div>
+        </a>
+
         <a href="../pages/settings.php" class="card clickable-card">
             <span class="material-icons card-icon">settings</span>
             <h3 class="card-title">Settings</h3>
             <p class="card-desc">Adjust system preferences</p>
         </a>
+
         <a href="../pages/about.php" class="card clickable-card">
             <span class="material-icons card-icon">info</span>
             <h3 class="card-title">About</h3>
@@ -69,13 +72,11 @@ $theme = $user['theme'] ?? 'light';
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    // Disable scroll initially
+    // Prevent scrolling until animations finish
     document.body.style.overflow = "hidden";
-
-    // Re-enable after animations (cards + header ~0.8s)
     setTimeout(() => {
         document.body.style.overflow = "";
-    }, 1000); // adjust time if needed
+    }, 1000); // match animation duration
 });
 </script>
 

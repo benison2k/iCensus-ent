@@ -1,12 +1,24 @@
+<?php
+// Detect current page
+$currentFile = basename($_SERVER['PHP_SELF']);
+?>
+
 <!-- Absolute paths preferred -->
-<link rel="stylesheet" href="../assets/css/header.css">
+<head>
+<link rel="stylesheet" href="../assets/css/header2.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
 
 <header class="header">
-    <!-- Back Button -->
-    <button class="back-button" id="backButton" title="Go Back">
-        <span class="material-icons">arrow_back</span>
-    </button>
+    <!-- Back Button (hidden on dashboard, replaced by placeholder) -->
+    <?php if ($currentFile !== 'dashboard.php'): ?>
+        <button class="back-button" id="backButton" title="Go Back">
+            <span class="material-icons">arrow_back</span>
+        </button>
+    <?php else: ?>
+        <div class="header-slot"></div>
+    <?php endif; ?>
 
     <!-- Centered Header Logo -->
     <div class="header-logo">
@@ -16,10 +28,12 @@
     </div>
 
     <!-- Logout Icon -->
-    <a href="logout.php" class="logout-icon" title="Logout">
+    <button id="logoutBtn" class="logout-icon" title="Logout">
         <span class="material-icons">logout</span>
-    </a>
+    </button>
 </header>
+
+<?php include __DIR__ . "/../components/LogOutModal.php"; ?>
 
 <script>
 (function() {
@@ -42,6 +56,7 @@
       }
     });
   }
+
   window.addEventListener('pageshow', function(e) {
     if (e.persisted) window.location.reload();
   });
