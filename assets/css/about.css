@@ -1,103 +1,6 @@
-/* ========================
-   Header Styles
-======================== */
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem 1.5rem; /* taller header */
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background-color: #ffffff;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    transition: background-color 0.3s, color 0.3s;
-    font-family: 'Inter', sans-serif;
-    height: auto; /* height controlled by padding */
-}
-
-/* Dark Mode Header */
-body.dark-mode .header {
-    background-color: #2C3E50 !important;
-    color: #ffffff !important;
-}
-
-/* Back + Logout Buttons */
-.back-button,
-.logout-icon {
-    all: unset;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 50px;
-    height: 50px;
-    font-size: 28px;
-    cursor: pointer;
-    line-height: 1;
-    transition: opacity 0.3s;
-}
-
-/* Light Mode Icon Colors */
-.back-button .material-icons,
-.logout-icon .material-icons {
-    color: #000000 !important;
-    transition: color 0.3s;
-}
-
-/* Dark Mode Icon Colors */
-body.dark-mode .back-button .material-icons,
-body.dark-mode .logout-icon .material-icons {
-    color: #ffffff !important;
-}
-
-/* Hover */
-.back-button:hover,
-.logout-icon:hover {
-    opacity: 0.8;
-}
-
-/* Centered Header Logo */
-.header-logo {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.header-logo .logo {
-    width: 120px; /* fixed logo size */
-    height: auto;
-    object-fit: contain;
-    display: block;
-}
-
-/* Placeholder to keep logo centered when back button hidden */
-.header-slot {
-    width: 50px; /* same width as buttons */
-    height: 50px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-/* Responsive Header */
-@media (max-width: 600px) {
-    .back-button,
-    .logout-icon,
-    .header-slot {
-        width: 36px;
-        height: 36px;
-        font-size: 24px;
-    }
-
-    .header-logo .logo {
-        width: 120px; /* logo size fixed, does not shrink */
-    }
-}
-
 /* ============================
-   About Page - Dashboard Theme
-============================ */
+   About Page - iCensus
+   ============================ */
 
 /* Page Layout */
 .about-page {
@@ -105,98 +8,75 @@ body.dark-mode .logout-icon .material-icons {
     margin: 2rem auto;
     padding: 1rem;
     display: flex;
-    flex-direction: column;
-    gap: 1.75rem;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    transition: background 0.3s, color 0.3s;
+    flex-direction: column; /* Stack vertically */
+    gap: 1.5rem; /* Space between cards */
 }
 
-/* Card Styling */
+/* ============================
+   Card Styling
+   ============================ */
 .about-card {
-    border-radius: 16px;
-    padding: 1.75rem 2rem;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    background: #2C3E50;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease, color 0.3s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
     overflow: hidden;
-    position: relative;
-    opacity: 0;
-    transform: translateY(30px);
-    animation: aboutCardFadeUp 0.7s ease forwards;
-}
-
-.about-card:nth-child(1) { animation-delay: 0.1s; }
-.about-card:nth-child(2) { animation-delay: 0.3s; }
-.about-card:nth-child(3) { animation-delay: 0.5s; }
-.about-card:nth-child(4) { animation-delay: 0.7s; }
-.about-card:nth-child(5) { animation-delay: 0.9s; }
-
-@keyframes aboutCardFadeUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
 }
 
 .about-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
 }
 
-/* Card Header */
-.about-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    cursor: pointer;
+/* ============================
+   Icons
+   ============================ */
+.about-icon {
+    font-size: 36px;
+    color: #ffffff;
     margin-bottom: 0.5rem;
 }
 
-.about-icon {
-    font-size: 40px;
-    margin-right: 0.75rem;
-    transition: transform 0.3s ease, color 0.3s ease;
-}
-
-.about-card:hover .about-icon {
-    transform: scale(1.2) rotate(-5deg);
-}
-
-.about-card h2,
+/* ============================
+   Titles
+   ============================ */
+.about-card h2, 
 .about-card h3 {
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    margin: 0;
-    flex: 1;
+    margin: 0.5rem 0;
+    font-weight: 600;
+    color: #ffffff;
 }
 
-.chevron {
-    font-size: 28px;
-    transition: transform 0.3s ease, color 0.3s ease;
-}
-
-.chevron.rotated { transform: rotate(180deg); }
-
+/* ============================
+   Collapsible Content
+   ============================ */
 .about-content {
     max-height: 0;
     opacity: 0;
     overflow: hidden;
-    transition: max-height 0.5s ease, opacity 0.4s ease;
-    width: 100%;
+    transition: max-height 0.4s ease, opacity 0.3s ease;
 }
 
+/* Expanded state */
 .about-card.active .about-content {
-    max-height: 1000px;
+    max-height: 500px; /* Large enough to fit content */
     opacity: 1;
 }
 
+/* ============================
+   Text & Description
+   ============================ */
+.about-desc,
 .about-card p,
-.about-card ul,
-.about-card li {
-    margin: 0.35rem 0;
-    line-height: 1.6;
-    font-size: 0.95rem;
+.about-card ul {
+    color: #ffffff;
+    margin: 0.25rem 0;
+    line-height: 1.5;
 }
 
 .about-card ul {
@@ -206,7 +86,7 @@ body.dark-mode .logout-icon .material-icons {
 }
 
 .about-card ul li {
-    margin: 0.5rem 0;
+    margin: 0.4rem 0;
     padding-left: 1.25rem;
     position: relative;
 }
@@ -215,61 +95,70 @@ body.dark-mode .logout-icon .material-icons {
     content: "•";
     position: absolute;
     left: 0;
+    color: #ffffff;
     font-weight: bold;
 }
 
-.developer-card { border: 2px solid; }
-
+/* ============================
+   Responsive Design
+   ============================ */
 @media (max-width: 600px) {
-    .about-page { padding: 0.5rem; }
-    .about-card { padding: 1.25rem 1.5rem; }
-    .about-icon { font-size: 32px; }
-    .about-card h2, .about-card h3 { font-size: 1.1rem; }
-    .about-card p, .about-card ul li { font-size: 0.9rem; }
+    .about-page {
+        padding: 0.5rem;
+    }
+
+    .about-card {
+        padding: 1rem;
+    }
+
+    .about-icon {
+        font-size: 28px;
+    }
+
+    .about-card h2, 
+    .about-card h3 {
+        font-size: 1.2rem;
+    }
 }
 
-/* Light Mode */
-body.light-mode {
-    background-color: #f4f6f8;
-    color: #333;
+/* ============================
+   Dark Mode Support
+   ============================ */
+body.dark .about-card {
+    background: #1e1e1e;
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.05);
 }
 
-body.light-mode .about-page { background-color: #f4f6f8; }
-body.light-mode .about-card {
-    background-color: #ffffff;
-    color: #2C3E50;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-}
-body.light-mode .about-card:hover { background-color: #f0f3f7; }
-body.light-mode .about-icon,
-body.light-mode .about-card ul li::before,
-body.light-mode .chevron { color: #2C3E50; }
-body.light-mode .about-card h2,
-body.light-mode .about-card h3,
-body.light-mode .about-card p,
-body.light-mode .about-card ul,
-body.light-mode .about-card li { color: #2C3E50; }
-body.light-mode .developer-card { border-color: #2C3E50; }
-
-/* Dark Mode */
-body.dark-mode {
-    background-color: #1e1e2f;
-    color: #fff;
+body.dark .about-card h2, 
+body.dark .about-card h3 {
+    color: #f1f1f1;
 }
 
-body.dark-mode .about-page { background-color: #1e1e2f; }
-body.dark-mode .about-card {
-    background-color: #2C3E50;
-    color: #ffffff;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+body.dark .about-desc,
+body.dark .about-card p,
+body.dark .about-card ul {
+    color: #ccc;
 }
-body.dark-mode .about-card:hover { background-color: #34495e; }
-body.dark-mode .about-icon,
-body.dark-mode .about-card ul li::before,
-body.dark-mode .chevron { color: #ffffff; }
-body.dark-mode .about-card h2,
-body.dark-mode .about-card h3,
-body.dark-mode .about-card p,
-body.dark-mode .about-card ul,
-body.dark-mode .about-card li { color: #ffffff; }
-body.dark-mode .developer-card { border-color: #4da3ff; }
+
+body.dark .about-card ul li::before {
+    color: #4da3ff;
+}
+
+body.dark .about-icon {
+    color: #4da3ff;
+}
+
+.about-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+}
+
+.chevron {
+    transition: transform 0.3s ease;
+}
+
+.chevron.rotated {
+    transform: rotate(180deg);
+}

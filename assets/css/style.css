@@ -4,59 +4,43 @@
     padding: 0;
     box-sizing: border-box;
 }
-
-/* Base body styling */
 body {
-    font-family: 'Poppins', sans-serif;
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+    color: #333;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    line-height: 1.6; /* better readability */
 }
 
-/* Welcome section */
+/* WELCOME */
 .welcome {
     text-align: center;
     margin: 2rem 0;
 }
 .welcome h2 {
-    font-size: 1.6rem;
-    font-weight: 600; /* bolder for Poppins */
-    letter-spacing: 0.3px;
+    font-size: 1.5rem;
+    font-weight: 500;
 }
 
-/* Headings for consistency */
-h1, h2, h3, h4, h5, h6 {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 600;
-    line-height: 1.3;
+.alert {
+    padding: 0.8rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
 }
 
-/* Theme-specific colors */
-
-/* Light Mode */
-body.light-mode {
-    background-color: #f4f6f8;
-    color: #333;
+.alert.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
 }
 
-/* Dark Mode */
-body.dark-mode {
-    background-color: #1e1e2f;
-    color: #fff;
+.alert.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
 }
 
-/* Global link reset */
-a {
-    color: inherit;            /* use the parent’s text color */
-    text-decoration: none;     /* remove underline */
-}
-
-a:visited {
-    color: inherit;            /* prevent purple visited links */
-}
-
-a:hover, a:active, a:focus {
-    color: inherit;            /* keep consistent */
-    text-decoration: none;     /* no underline on hover or focus */
-}

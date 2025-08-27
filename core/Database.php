@@ -3,7 +3,6 @@ class Database {
     private $pdo;
 
     public function __construct($config) {
-        if(!$config) die("Database config missing.");
         try {
             $dsn = "mysql:host={$config['host']};dbname={$config['dbname']};charset={$config['charset']}";
             $this->pdo = new PDO($dsn, $config['user'], $config['password'], [
