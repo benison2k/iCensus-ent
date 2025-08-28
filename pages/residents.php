@@ -69,10 +69,19 @@ endif; ?>
         <span class="material-icons">person_add</span> Add Resident
     </button>
 
+    <!-- Total Residents -->
+    <p style="margin: 1rem 0; font-weight: 500;">
+        Total Residents in Database: <?= count($residents); ?>
+    </p>
+
+    <!-- Filtered Results -->
+    <p style="margin: 0.5rem 0; font-weight: 500; display:none;" id="filteredResults">
+         Filtered search results: <span id="filteredCount">0</span>
+    </p>
+
     <!-- Filters -->
     <div style="margin-top:1rem; display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
         <input type="text" id="searchInput" placeholder="Search by name or address" style="padding:0.5rem; flex:1;">
-
         <select id="statusFilter" style="padding:0.5rem;">
             <option value="">All Status</option>
             <option value="Active">Active</option>
@@ -80,16 +89,13 @@ endif; ?>
             <option value="Moved">Moved</option>
             <option value="Deceased">Deceased</option>
         </select>
-
         <select id="genderFilter" style="padding:0.5rem;">
             <option value="">All Genders</option>
             <option value="Male">Male</option>
             <option value="Female">Female</option>
         </select>
-
         <input type="number" id="ageMin" placeholder="Min Age" style="padding:0.5rem; width:100px;">
         <input type="number" id="ageMax" placeholder="Max Age" style="padding:0.5rem; width:100px;">
-
         <select id="purokFilter" style="padding:0.5rem;">
             <option value="">All Puroks</option>
             <?php
@@ -98,7 +104,6 @@ endif; ?>
             foreach($puroks as $p) echo "<option value=\"".htmlspecialchars($p)."\">$p</option>";
             ?>
         </select>
-
         <select id="barangayFilter" style="padding:0.5rem;">
             <option value="">All Barangays</option>
             <?php
@@ -107,11 +112,28 @@ endif; ?>
             foreach($barangays as $b) echo "<option value=\"".htmlspecialchars($b)."\">$b</option>";
             ?>
         </select>
-
-        <!-- Clear Filters Button -->
         <button id="clearFiltersBtn" style="padding:0.5rem; background:#ccc; border:none; border-radius:5px; cursor:pointer;">
             Clear Filters
         </button>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div style="margin: 1rem 0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+        <div>
+            <label>Show
+                <select id="pageSizeSelect" style="padding:0.3rem;">
+                    <option value="5">5</option>
+                    <option value="10" selected>10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                </select>
+            entries</label>
+        </div>
+        <div>
+            <button id="prevPageBtn" style="padding:0.3rem 0.5rem; margin-right:0.5rem;">Prev</button>
+            <span id="pageInfo">Page 1</span>
+            <button id="nextPageBtn" style="padding:0.3rem 0.5rem; margin-left:0.5rem;">Next</button>
+        </div>
     </div>
 
     <!-- Residents Table -->
@@ -149,16 +171,17 @@ endif; ?>
     </table>
 </div>
 
-<!-- Add/Edit/View Resident Modal -->
+<!-- Modal -->
 <div id="residentModal" class="modal">
     <div class="modal-content modal-landscape">
         <span class="close"><span class="material-icons">close</span></span>
         <h3 id="modalTitle">Resident Info</h3>
 
         <form id="residentForm" method="POST" action="../core/residents_process.php">
+            <input type="hidden" name="resident_id" id="resident_id">
             <div class="modal-columns">
 
-                <!-- Left Column: Personal & Contact Info -->
+                <!-- Left Column -->
                 <div class="modal-col">
                     <h4>Personal Info</h4>
                     <div class="form-group">
@@ -209,7 +232,7 @@ endif; ?>
                     </div>
                 </div>
 
-                <!-- Right Column: Address & Residency Info -->
+                <!-- Right Column -->
                 <div class="modal-col">
                     <h4>Address</h4>
                     <div class="form-group">
@@ -228,14 +251,6 @@ endif; ?>
                         <label><span class="material-icons">location_city</span> Barangay</label>
                         <input type="text" name="barangay" required>
                     </div>
-                    <div class="form-group">
-                        <label><span class="material-icons">house</span> Head of Household</label>
-                        <input type="text" name="head_of_household">
-                    </div>
-                    <div class="form-group">
-                        <label><span class="material-icons">groups</span> Relationship</label>
-                        <input type="text" name="relationship">
-                    </div>
 
                     <h4>Residency Info</h4>
                     <div class="form-group">
@@ -248,10 +263,8 @@ endif; ?>
                         </select>
                     </div>
                 </div>
-
             </div>
 
-            <!-- Modal Footer -->
             <div class="modal-footer">
                 <button type="button" class="editBtn material-icons">edit</button>
                 <button type="button" class="deleteBtn material-icons">delete</button>
@@ -264,9 +277,10 @@ endif; ?>
 </div>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>
+
+<!-- JS Files -->
 <script src="../assets/js/residents.js"></script>
-<script>
-window.addEventListener('load',()=>{document.body.style.overflow='';});
-</script>
+<script src="../assets/js/residents_table.js"></script>
+
 </body>
 </html>

@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveBtn = document.getElementById('saveBtn');
     const editBtn = modal.querySelector('.editBtn');
     const deleteBtn = modal.querySelector('.deleteBtn');
+    const hiddenId = document.getElementById('resident_id');
 
     const tableBody = document.getElementById('residentsTableBody');
 
@@ -18,12 +19,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const barangayFilter = document.getElementById('barangayFilter');
     const clearBtn = document.getElementById('clearFiltersBtn');
 
+    const pageSizeSelect = document.getElementById('pageSizeSelect');
+    const prevPageBtn = document.getElementById('prevPageBtn');
+    const nextPageBtn = document.getElementById('nextPageBtn');
+    const pageInfo = document.getElementById('pageInfo');
+
+    const shownCountEl = document.getElementById('shownCount');
+    const totalCountEl = document.getElementById('totalCount');
+
+    let currentPage = 1;
+    let pageSize = parseInt(pageSizeSelect.value);
+    let currentResidents = [];
+
     const setFormEditable = (editable) => {
         form.querySelectorAll('input, select').forEach(input => input.disabled = !editable);
         saveBtn.style.display = editable ? 'inline-flex' : 'none';
     };
 
-    // Open modal on "more" button
     const openModal = async (id) => {
         try {
             const res = await fetch(`../core/residents_process.php?action=get&resident_id=${id}`);
@@ -35,13 +47,28 @@ document.addEventListener('DOMContentLoaded', () => {
             modalTitle.textContent = `Resident Info - ${data.first_name} ${data.last_name}`;
             modal.style.display = 'block';
             form.dataset.id = id;
+            hiddenId.value = id;
         } catch(err) { console.error(err); alert('Failed to fetch resident data.'); }
     };
 
-    document.querySelectorAll('.moreBtn').forEach(btn => btn.addEventListener('click', () => openModal(btn.dataset.id)));
+    const attachModalButtons = () => {
+        document.querySelectorAll('.moreBtn').forEach(btn => btn.addEventListener('click', () => openModal(btn.dataset.id)));
+    };
 
-    closeModal.addEventListener('click', () => { modal.style.display='none'; setFormEditable(false); form.reset(); });
-    window.addEventListener('click', (e) => { if(e.target===modal){ modal.style.display='none'; setFormEditable(false); form.reset(); } });
+    closeModal.addEventListener('click', () => { 
+        modal.style.display='none'; 
+        setFormEditable(false); 
+        form.reset(); 
+        hiddenId.value = ''; 
+    });
+    window.addEventListener('click', (e) => { 
+        if(e.target===modal){
+            modal.style.display='none'; 
+            setFormEditable(false); 
+            form.reset(); 
+            hiddenId.value = ''; 
+        } 
+    });
 
     editBtn.addEventListener('click', () => { setFormEditable(true); modalTitle.textContent='Edit Resident'; });
 
@@ -64,19 +91,69 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('addResidentBtn').addEventListener('click', () => {
         form.reset();
         delete form.dataset.id;
+        hiddenId.value = ''; 
         setFormEditable(true);
         modalTitle.textContent = 'Add New Resident';
         modal.style.display = 'block';
     });
 
-    // Clear filters
     clearBtn.addEventListener('click', () => {
         searchInput.value=''; statusFilter.value=''; genderFilter.value='';
         ageMin.value=''; ageMax.value=''; purokFilter.value=''; barangayFilter.value='';
         fetchFilteredResidents();
     });
 
-    // Fetch filtered residents via AJAX
+    pageSizeSelect.addEventListener('change', () => {
+        pageSize = parseInt(pageSizeSelect.value);
+        currentPage = 1;
+        renderTable();
+    });
+
+    prevPageBtn.addEventListener('click', () => {
+        if(currentPage > 1) currentPage--;
+        renderTable();
+    });
+
+    nextPageBtn.addEventListener('click', () => {
+        const totalPages = Math.ceil(currentResidents.length / pageSize);
+        if(currentPage < totalPages) currentPage++;
+        renderTable();
+    });
+
+    const renderTable = () => {
+        tableBody.innerHTML = '';
+        const start = (currentPage - 1) * pageSize;
+        const end = start + pageSize;
+        const slice = currentResidents.slice(start, end);
+
+        slice.forEach(r => {
+            const middleInitial = r.middle_name ? r.middle_name[0].toUpperCase()+'.' : '';
+            const fullName = `${r.first_name} ${middleInitial} ${r.last_name}`.trim();
+            const address = `${r.house_no} ${r.street}, Purok ${r.purok}, ${r.barangay}`;
+            tableBody.innerHTML += `<tr data-id="${r.id}" data-status="${r.status}" data-gender="${r.gender}" data-age="${r.age}" data-purok="${r.purok}" data-barangay="${r.barangay}">
+                <td>${fullName}</td>
+                <td>${r.age}</td>
+                <td>${r.gender}</td>
+                <td>${address}</td>
+                <td><span class="status-label status-${r.status.toLowerCase()}">${r.status}</span></td>
+                <td><button class="moreBtn material-icons" data-id="${r.id}" title="View Resident Info">more_vert</button></td>
+            </tr>`;
+        });
+
+        attachModalButtons();
+
+        const totalPages = Math.ceil(currentResidents.length / pageSize) || 1;
+        pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+
+        prevPageBtn.disabled = currentPage === 1;
+        nextPageBtn.disabled = currentPage === totalPages;
+
+        // Update filtered count display
+        const startNum = currentResidents.length === 0 ? 0 : start + 1;
+        const endNum = Math.min(end, currentResidents.length);
+        shownCountEl.textContent = startNum + '–' + endNum;
+    };
+
     const fetchFilteredResidents = async () => {
         const params = new URLSearchParams({
             search: searchInput.value,
@@ -91,21 +168,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch(`../core/residents_process.php?action=filter&${params.toString()}`);
             const result = await res.json();
             if(result.status!=='success') return;
-            tableBody.innerHTML='';
-            result.residents.forEach(r=>{
-                const middleInitial = r.middle_name ? r.middle_name[0].toUpperCase()+'.' : '';
-                const fullName = `${r.first_name} ${middleInitial} ${r.last_name}`.trim();
-                const address = `${r.house_no} ${r.street}, Purok ${r.purok}, ${r.barangay}`;
-                tableBody.innerHTML += `<tr data-id="${r.id}" data-status="${r.status}" data-gender="${r.gender}" data-age="${r.age}" data-purok="${r.purok}" data-barangay="${r.barangay}">
-                    <td>${fullName}</td>
-                    <td>${r.age}</td>
-                    <td>${r.gender}</td>
-                    <td>${address}</td>
-                    <td><span class="status-label status-${r.status.toLowerCase()}">${r.status}</span></td>
-                    <td><button class="moreBtn material-icons" data-id="${r.id}" title="View Resident Info">more_vert</button></td>
-                </tr>`;
-            });
-            document.querySelectorAll('.moreBtn').forEach(btn => btn.addEventListener('click', ()=>openModal(btn.dataset.id)));
+            // calculate age for each resident
+            currentResidents = result.residents.map(r => ({
+                ...r,
+                age: r.age || new Date().getFullYear() - new Date(r.dob).getFullYear()
+            }));
+            currentPage = 1;
+            renderTable();
         } catch(err){ console.error(err); }
     };
 
