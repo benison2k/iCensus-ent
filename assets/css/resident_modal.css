@@ -1,0 +1,176 @@
+/* ========================
+   MODAL BASE STYLES
+======================== */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    background-color: rgba(0,0,0,0.5);
+    transition: opacity 0.3s ease;
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 2% auto;
+    padding: 1.5rem;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 1100px;
+    position: relative;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.6rem;
+    text-align: center;
+}
+
+/* Close Button */
+.modal .close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    cursor: pointer;
+    font-size: 2rem;
+    color: #333;
+    transition: color 0.2s;
+}
+
+.modal .close:hover {
+    color: #ff0000;
+}
+
+/* ========================
+   LANDSCAPE LAYOUT
+======================== */
+.modal-landscape .modal-columns {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.modal-col {
+    flex: 1 1 45%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+/* Headings in modal columns */
+.modal-col h4 {
+    margin-bottom: 0.5rem;
+    color: #555;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.2rem;
+    font-size: 1.1rem;
+}
+
+/* Form group styling */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0.7rem;
+}
+
+.form-group label {
+    font-weight: 500;
+    margin-bottom: 0.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: #333;
+}
+
+.form-group input,
+.form-group select {
+    padding: 0.4rem 0.6rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #4caf50;
+}
+
+/* ========================
+   MODAL FOOTER
+======================== */
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1.2rem;
+}
+
+/* Footer buttons */
+.modal-footer button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.95rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.modal-footer .editBtn {
+    background-color: #2196f3;
+    color: #fff;
+}
+
+.modal-footer .editBtn:hover {
+    background-color: #1976d2;
+}
+
+.modal-footer .deleteBtn {
+    background-color: #f44336;
+    color: #fff;
+}
+
+.modal-footer .deleteBtn:hover {
+    background-color: #c62828;
+}
+
+.modal-footer #saveBtn {
+    background-color: #4caf50;
+    color: #fff;
+}
+
+.modal-footer #saveBtn:hover {
+    background-color: #388e3c;
+}
+
+/* ========================
+   RESPONSIVE
+======================== */
+@media (max-width: 900px) {
+    .modal-landscape .modal-columns {
+        flex-direction: column;
+    }
+
+    .modal-col {
+        flex: 1 1 100%;
+    }
+}
+
+/* ========================
+   ANIMATIONS
+======================== */
+@keyframes fadeIn {
+    from {opacity: 0; transform: translateY(-10px);}
+    to {opacity: 1; transform: translateY(0);}
+}

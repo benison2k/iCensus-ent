@@ -42,7 +42,7 @@ $theme = $user['theme'] ?? 'light';
 
 <main class="dashboard">
     <div class="card-grid">
-        <a href="../pages/users.php" class="card clickable-card">
+        <a href="../pages/residents.php" class="card clickable-card">
             <span class="material-icons card-icon">person</span>
             <h3 class="card-title">Users</h3>
             <p class="card-desc">Manage and view registered users</p>
