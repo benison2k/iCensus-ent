@@ -1,12 +1,6 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const tableBody = document.getElementById('residentsTableBody');
-    const rows = Array.from(tableBody.querySelectorAll('tr'));
-
-    const pageSizeSelect = document.getElementById('pageSizeSelect');
-    const prevPageBtn = document.getElementById('prevPageBtn');
-    const nextPageBtn = document.getElementById('nextPageBtn');
-    const pageInfo = document.getElementById('pageInfo');
-
+// residents_table.js
+// Only updates filtered results message
+(() => {
     const filteredResults = document.getElementById('filteredResults');
     const filteredCount = document.getElementById('filteredCount');
 
@@ -18,93 +12,44 @@ document.addEventListener('DOMContentLoaded', () => {
     const purokFilter = document.getElementById('purokFilter');
     const barangayFilter = document.getElementById('barangayFilter');
     const clearBtn = document.getElementById('clearFiltersBtn');
+    const tableBody = document.getElementById('residentsTableBody');
 
-    let currentPage = 1;
-    let pageSize = parseInt(pageSizeSelect.value);
-    let filteredRows = [...rows];
+    const updateFilteredCount = () => {
+        const rows = Array.from(tableBody.querySelectorAll('tr'));
+        let count = 0;
 
-    const applyFilters = () => {
-        filteredRows = rows.filter(row => {
-            const name = row.cells[0].textContent.toLowerCase();
-            const age = parseInt(row.dataset.age);
-            const gender = row.dataset.gender;
-            const status = row.dataset.status;
-            const purok = row.dataset.purok;
-            const barangay = row.dataset.barangay;
-            const search = searchInput.value.toLowerCase();
+        rows.forEach(row => {
+            const name = row.cells[0]?.textContent.toLowerCase() || '';
+            const address = row.cells[3]?.textContent.toLowerCase() || '';
+            const age = parseInt(row.dataset.age) || 0;
+            const gender = (row.dataset.gender || '').toLowerCase();
+            const status = (row.dataset.status || '').toLowerCase();
+            const purok = (row.dataset.purok || '').toLowerCase();
+            const barangay = (row.dataset.barangay || '').toLowerCase();
 
-            if (search && !name.includes(search) && !row.cells[3].textContent.toLowerCase().includes(search)) return false;
-            if (statusFilter.value && status !== statusFilter.value) return false;
-            if (genderFilter.value && gender !== genderFilter.value) return false;
-            if (ageMin.value && age < parseInt(ageMin.value)) return false;
-            if (ageMax.value && age > parseInt(ageMax.value)) return false;
-            if (purokFilter.value && purok !== purokFilter.value) return false;
-            if (barangayFilter.value && barangay !== barangayFilter.value) return false;
+            if (searchInput.value && !name.includes(searchInput.value.toLowerCase()) && !address.includes(searchInput.value.toLowerCase())) return;
+            if (statusFilter.value && status !== statusFilter.value.toLowerCase()) return;
+            if (genderFilter.value && gender !== genderFilter.value.toLowerCase()) return;
+            if (ageMin.value && age < parseInt(ageMin.value)) return;
+            if (ageMax.value && age > parseInt(ageMax.value)) return;
+            if (purokFilter.value && purok !== purokFilter.value.toLowerCase()) return;
+            if (barangayFilter.value && barangay !== barangayFilter.value.toLowerCase()) return;
 
-            return true;
+            count++;
         });
 
-        filteredCount.textContent = filteredRows.length;
-        filteredResults.style.display = (
-            filteredRows.length !== rows.length ||
-            searchInput.value ||
-            statusFilter.value ||
-            genderFilter.value ||
-            ageMin.value ||
-            ageMax.value ||
-            purokFilter.value ||
-            barangayFilter.value
-        ) ? 'block' : 'none';
-
-        currentPage = 1;
-        renderTable();
+        filteredCount.textContent = count;
+        filteredResults.style.display = (count !== rows.length || searchInput.value || statusFilter.value || genderFilter.value || ageMin.value || ageMax.value || purokFilter.value || barangayFilter.value) ? 'block' : 'none';
     };
 
-    const renderTable = () => {
-        const start = (currentPage - 1) * pageSize;
-        const end = start + pageSize;
-
-        filteredRows.forEach((row, idx) => {
-            row.style.display = (idx >= start && idx < end) ? '' : 'none';
-        });
-
-        const totalPages = Math.ceil(filteredRows.length / pageSize) || 1;
-        pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-
-        prevPageBtn.disabled = currentPage === 1;
-        nextPageBtn.disabled = currentPage === totalPages;
-    };
-
-    // Event listeners
-    pageSizeSelect.addEventListener('change', () => {
-        pageSize = parseInt(pageSizeSelect.value);
-        currentPage = 1;
-        renderTable();
+    // Listen to all filter changes
+    [searchInput, statusFilter, genderFilter, ageMin, ageMax, purokFilter, barangayFilter].forEach(el => {
+        el.addEventListener('input', updateFilteredCount);
+        el.addEventListener('change', updateFilteredCount);
     });
 
-    prevPageBtn.addEventListener('click', () => {
-        if (currentPage > 1) currentPage--;
-        renderTable();
-    });
+    clearBtn.addEventListener('click', updateFilteredCount);
 
-    nextPageBtn.addEventListener('click', () => {
-        const totalPages = Math.ceil(filteredRows.length / pageSize);
-        if (currentPage < totalPages) currentPage++;
-        renderTable();
-    });
-
-    [searchInput, statusFilter, genderFilter, ageMin, ageMax, purokFilter, barangayFilter].forEach(el => el.addEventListener('input', applyFilters));
-
-    clearBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        statusFilter.value = '';
-        genderFilter.value = '';
-        ageMin.value = '';
-        ageMax.value = '';
-        purokFilter.value = '';
-        barangayFilter.value = '';
-        applyFilters();
-    });
-
-    applyFilters();
-});
+    // Initial count
+    updateFilteredCount();
+})();
