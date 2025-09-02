@@ -69,10 +69,19 @@ endif; ?>
         <span class="material-icons">person_add</span> Add Resident
     </button>
 
+    <!-- Total Residents -->
+    <p style="margin: 1rem 0; font-weight: 500;">
+        Total Residents in Database: <?= count($residents); ?>
+    </p>
+
+    <!-- Filtered Results -->
+    <p style="margin: 0.5rem 0; font-weight: 500; display:none;" id="filteredResults">
+         Filtered search results: <span id="filteredCount">0</span>
+    </p>
+
     <!-- Filters -->
     <div style="margin-top:1rem; display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
         <input type="text" id="searchInput" placeholder="Search by name or address" style="padding:0.5rem; flex:1;">
-
         <select id="statusFilter" style="padding:0.5rem;">
             <option value="">All Status</option>
             <option value="Active">Active</option>
@@ -80,16 +89,13 @@ endif; ?>
             <option value="Moved">Moved</option>
             <option value="Deceased">Deceased</option>
         </select>
-
         <select id="genderFilter" style="padding:0.5rem;">
             <option value="">All Genders</option>
             <option value="Male">Male</option>
             <option value="Female">Female</option>
         </select>
-
         <input type="number" id="ageMin" placeholder="Min Age" style="padding:0.5rem; width:100px;">
         <input type="number" id="ageMax" placeholder="Max Age" style="padding:0.5rem; width:100px;">
-
         <select id="purokFilter" style="padding:0.5rem;">
             <option value="">All Puroks</option>
             <?php
@@ -98,7 +104,6 @@ endif; ?>
             foreach($puroks as $p) echo "<option value=\"".htmlspecialchars($p)."\">$p</option>";
             ?>
         </select>
-
         <select id="barangayFilter" style="padding:0.5rem;">
             <option value="">All Barangays</option>
             <?php
@@ -107,11 +112,32 @@ endif; ?>
             foreach($barangays as $b) echo "<option value=\"".htmlspecialchars($b)."\">$b</option>";
             ?>
         </select>
-
-        <!-- Clear Filters Button -->
         <button id="clearFiltersBtn" style="padding:0.5rem; background:#ccc; border:none; border-radius:5px; cursor:pointer;">
             Clear Filters
         </button>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div style="margin: 1rem 0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+        <div>
+            <label>Show
+                <select id="pageSizeSelect" style="padding:0.3rem;">
+                    <option value="5">5</option>
+                    <option value="10" selected>10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                </select>
+            entries</label>
+        </div>
+        <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+            <button id="prevPageBtn" style="padding:0.3rem 0.5rem;">Prev</button>
+            <span id="pageInfo">Page 1 of 1</span>
+            <button id="nextPageBtn" style="padding:0.3rem 0.5rem;">Next</button>
+
+            <!-- Go To Page -->
+            <input type="number" id="gotoPage" min="1" style="width:70px; padding:0.3rem;" placeholder="Page">
+            <button id="gotoPageBtn" style="padding:0.3rem 0.5rem;">Go</button>
+        </div>
     </div>
 
     <!-- Residents Table -->
@@ -149,124 +175,11 @@ endif; ?>
     </table>
 </div>
 
-<!-- Add/Edit/View Resident Modal -->
-<div id="residentModal" class="modal">
-    <div class="modal-content modal-landscape">
-        <span class="close"><span class="material-icons">close</span></span>
-        <h3 id="modalTitle">Resident Info</h3>
-
-        <form id="residentForm" method="POST" action="../core/residents_process.php">
-            <div class="modal-columns">
-
-                <!-- Left Column: Personal & Contact Info -->
-                <div class="modal-col">
-                    <h4>Personal Info</h4>
-                    <div class="form-group">
-                        <label><span class="material-icons">person</span> First Name</label>
-                        <input type="text" name="first_name" required>
-                    </div>
-                    <div class="form-group">
-                        <label><span class="material-icons">badge</span> Middle Name</label>
-                        <input type="text" name="middle_name">
-                    </div>
-                    <div class="form-group">
-                        <label><span class="material-icons">badge</span> Last Name</label>
-                        <input type="text" name="last_name" required>
-                    </div>
-                    <div class="form-group">
-                        <label><span class="material-icons">cake</span> Date of Birth</label>
-                        <input type="date" name="dob" required>
-                    </div>
-                    <div class="form-group">
-                        <label><span class="material-icons">wc</span> Gender</label>
-                        <select name="gender" required>
-                            <option value="">Select Gender</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                        </select>
-                    </div>
-
-                    <h4>Contact Info</h4>
-                    <div class="form-group">
-                        <label><span class="material-icons">phone</span> Contact Number</label>
-                        <input type="text" name="contact_number">
-                    </div>
-                    <div class="form-group">
-                        <label><span class="material-icons">email</span> Email</label>
-                        <input type="email" name="email">
-                    </div>
-                    <div class="form-group">
-                        <label><span class="material-icons">person_add</span> Emergency Name</label>
-                        <input type="text" name="emergency_name">
-                    </div>
-                    <div class="form-group">
-                        <label><span class="material-icons">supervised_user_circle</span> Relation</label>
-                        <input type="text" name="emergency_relation">
-                    </div>
-                    <div class="form-group">
-                        <label><span class="material-icons">phone_in_talk</span> Emergency Number</label>
-                        <input type="text" name="emergency_number">
-                    </div>
-                </div>
-
-                <!-- Right Column: Address & Residency Info -->
-                <div class="modal-col">
-                    <h4>Address</h4>
-                    <div class="form-group">
-                        <label><span class="material-icons">home</span> House No.</label>
-                        <input type="text" name="house_no" required>
-                    </div>
-                    <div class="form-group">
-                        <label><span class="material-icons">streetview</span> Street</label>
-                        <input type="text" name="street" required>
-                    </div>
-                    <div class="form-group">
-                        <label><span class="material-icons">apartment</span> Purok</label>
-                        <input type="text" name="purok" required>
-                    </div>
-                    <div class="form-group">
-                        <label><span class="material-icons">location_city</span> Barangay</label>
-                        <input type="text" name="barangay" required>
-                    </div>
-                    <div class="form-group">
-                        <label><span class="material-icons">house</span> Head of Household</label>
-                        <input type="text" name="head_of_household">
-                    </div>
-                    <div class="form-group">
-                        <label><span class="material-icons">groups</span> Relationship</label>
-                        <input type="text" name="relationship">
-                    </div>
-
-                    <h4>Residency Info</h4>
-                    <div class="form-group">
-                        <label><span class="material-icons">assignment_ind</span> Status</label>
-                        <select name="status">
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
-                            <option value="Moved">Moved</option>
-                            <option value="Deceased">Deceased</option>
-                        </select>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Modal Footer -->
-            <div class="modal-footer">
-                <button type="button" class="editBtn material-icons">edit</button>
-                <button type="button" class="deleteBtn material-icons">delete</button>
-                <button type="submit" name="saveResident" id="saveBtn" style="display:none;">
-                    <span class="material-icons">save</span> Save
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
+<?php include __DIR__ . '/../components/resident_modal2.php'; ?>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>
+
 <script src="../assets/js/residents.js"></script>
-<script>
-window.addEventListener('load',()=>{document.body.style.overflow='';});
-</script>
+<script src="../assets/js/residents3.js"></script>
 </body>
 </html>
