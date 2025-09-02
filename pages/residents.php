@@ -129,10 +129,14 @@ endif; ?>
                 </select>
             entries</label>
         </div>
-        <div>
-            <button id="prevPageBtn" style="padding:0.3rem 0.5rem; margin-right:0.5rem;">Prev</button>
-            <span id="pageInfo">Page 1</span>
-            <button id="nextPageBtn" style="padding:0.3rem 0.5rem; margin-left:0.5rem;">Next</button>
+        <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+            <button id="prevPageBtn" style="padding:0.3rem 0.5rem;">Prev</button>
+            <span id="pageInfo">Page 1 of 1</span>
+            <button id="nextPageBtn" style="padding:0.3rem 0.5rem;">Next</button>
+
+            <!-- Go To Page -->
+            <input type="number" id="gotoPage" min="1" style="width:70px; padding:0.3rem;" placeholder="Page">
+            <button id="gotoPageBtn" style="padding:0.3rem 0.5rem;">Go</button>
         </div>
     </div>
 
@@ -176,6 +180,6 @@ endif; ?>
 <?php include __DIR__ . '/../components/footer.php'; ?>
 
 <script src="../assets/js/residents.js"></script>
-<script src="../assets/js/residents2.js"></script>
+<script src="../assets/js/residents3.js"></script>
 </body>
 </html>
