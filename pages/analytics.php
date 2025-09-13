@@ -1,0 +1,108 @@
+<?php
+session_start();
+
+// Include config + core
+$config = require __DIR__ . '/../core/config.php';
+require __DIR__ . '/../core/Database.php';
+require __DIR__ . '/../core/Auth.php';
+
+// Auth check
+if (!isset($_SESSION['user'])) {
+    header("Location: login.php");
+    exit;
+}
+
+$db   = new Database($config);
+$auth = new Auth($db);
+
+// Refresh session to get latest user data (theme, etc.)
+$auth->refreshUserSession($_SESSION['user']['id']);
+
+$user  = $_SESSION['user'];
+$theme = $user['theme'] ?? 'light';
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>iCensus - Analytics</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/css/analytics.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="<?= $theme === 'dark' ? 'dark-mode' : 'light-mode'; ?>">
+
+<?php include __DIR__ . '/../components/header.php'; ?>
+
+<div class="welcome">
+    <h2>Analytics Dashboard</h2>
+</div>
+
+<main class="analytics-dashboard">
+    <div class="analytics-grid">
+        <div class="stat-card">
+            <div class="stat-icon"><span class="material-icons">people</span></div>
+            <div class="stat-info">
+                <p>Total Residents</p>
+                <h3 id="totalResidents">...</h3>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><span class="material-icons">male</span></div>
+            <div class="stat-info">
+                <p>Male</p>
+                <h3 id="maleCount">...</h3>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><span class="material-icons">female</span></div>
+            <div class="stat-info">
+                <p>Female</p>
+                <h3 id="femaleCount">...</h3>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><span class="material-icons">elderly</span></div>
+            <div class="stat-info">
+                <p>Seniors (60+)</p>
+                <h3 id="seniorCount">...</h3>
+            </div>
+        </div>
+
+
+        <div class="chart-card">
+            <h3>Gender Distribution</h3>
+            <canvas id="genderChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Age Distribution</h3>
+            <canvas id="ageChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Population by Purok</h3>
+            <canvas id="purokChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Population by Barangay</h3>
+            <canvas id="barangayChart"></canvas>
+        </div>
+         <div class="chart-card">
+            <h3>Resident Status</h3>
+            <canvas id="statusChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Civil Status</h3>
+            <canvas id="civilStatusChart"></canvas>
+        </div>
+    </div>
+</main>
+
+<?php include __DIR__ . '/../components/footer.php'; ?>
+
+<script src="../assets/js/analytics.js"></script>
+
+</body>
+</html>

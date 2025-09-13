@@ -1,0 +1,90 @@
+/* =========================
+   ANALYTICS DASHBOARD STYLES
+========================= */
+.analytics-dashboard {
+    padding: 2rem;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Stat Cards */
+.stat-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.stat-icon .material-icons {
+    font-size: 3rem;
+    color: #2C3E50;
+}
+
+.stat-info p {
+    margin: 0;
+    font-size: 1rem;
+    color: #6c757d;
+}
+
+.stat-info h3 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+/* Chart Cards */
+.chart-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    grid-column: span 1;
+}
+
+.chart-card h3 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-size: 1.2rem;
+}
+
+/* Make some charts take up more space */
+.chart-card:nth-child(5),
+.chart-card:nth-child(6) {
+    grid-column: span 2;
+}
+
+
+/* Dark Mode */
+body.dark-mode .stat-card,
+body.dark-mode .chart-card {
+    background-color: #2C3E50;
+}
+
+body.dark-mode .stat-icon .material-icons {
+    color: #ffffff;
+}
+
+body.dark-mode .stat-info p {
+    color: #bdc3c7;
+}
+
+body.dark-mode .stat-info h3,
+body.dark-mode .chart-card h3 {
+    color: #ffffff;
+}
