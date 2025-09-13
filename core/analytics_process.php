@@ -23,6 +23,11 @@ try {
     $chartSettingsStmt = $pdo->query("SELECT metric, chart_type FROM chart_settings");
     $chartSettingsData = $chartSettingsStmt->fetchAll(PDO::FETCH_KEY_PAIR);
 
+    // Fetch user layout
+    $layoutStmt = $pdo->prepare("SELECT layout FROM user_analytics_layouts WHERE user_id = ?");
+    $layoutStmt->execute([$_SESSION['user']['id']]);
+    $userLayout = $layoutStmt->fetchColumn();
+
     // Initialize the complete analytics data structure
     $analyticsData = [
         'totalResidents' => count($residents),
@@ -132,7 +137,8 @@ try {
     $response = [
         'status' => 'success',
         'data' => $analyticsData,
-        'chartSettings' => $chartSettingsData
+        'chartSettings' => $chartSettingsData,
+        'layout' => $userLayout ? json_decode($userLayout) : null
     ];
 
     echo json_encode($response);

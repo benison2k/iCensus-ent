@@ -1,16 +1,37 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const analyticsGrid = document.getElementById('analyticsGrid');
+    const saveLayoutBtn = document.getElementById('saveLayoutBtn');
+
     fetch('../core/analytics_process.php')
         .then(response => response.json())
         .then(result => {
             if (result.status === 'success') {
                 const data = result.data;
+                const layout = result.layout;
+
+                if (layout) {
+                    reorderGrid(layout);
+                }
+
                 populateStatCards(data);
                 renderCharts(data);
+                initializeSortable();
             } else {
                 console.error('Failed to fetch analytics data:', result.message);
             }
         })
         .catch(error => console.error('Error fetching analytics data:', error));
+
+    function reorderGrid(layout) {
+        const items = Array.from(analyticsGrid.children);
+        const itemMap = new Map(items.map(item => [item.dataset.id, item]));
+        layout.forEach(id => {
+            const item = itemMap.get(id);
+            if (item) {
+                analyticsGrid.appendChild(item);
+            }
+        });
+    }
 
     function populateStatCards(data) {
         document.getElementById('totalResidents').textContent = data.totalResidents;
@@ -181,4 +202,34 @@ document.addEventListener('DOMContentLoaded', () => {
             options: { responsive: true, plugins: { legend: { labels: { color: textColor } } } }
         });
     }
+
+    function initializeSortable() {
+        new Sortable(analyticsGrid, {
+            animation: 150,
+            ghostClass: 'sortable-ghost'
+        });
+    }
+
+    saveLayoutBtn.addEventListener('click', () => {
+        const layout = Array.from(analyticsGrid.children).map(item => item.dataset.id);
+        const formData = new URLSearchParams();
+        formData.append('layout', JSON.stringify(layout));
+
+        fetch('../core/save_layout.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.status === 'success') {
+                alert('Layout saved successfully!');
+            } else {
+                alert('Failed to save layout: ' + result.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error saving layout:', error);
+            alert('An error occurred while saving the layout.');
+        });
+    });
 });
