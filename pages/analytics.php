@@ -1,12 +1,9 @@
 <?php
 session_start();
-
-// Include config + core
 $config = require __DIR__ . '/../core/config.php';
 require __DIR__ . '/../core/Database.php';
 require __DIR__ . '/../core/Auth.php';
 
-// Auth check
 if (!isset($_SESSION['user'])) {
     header("Location: login.php");
     exit;
@@ -14,10 +11,7 @@ if (!isset($_SESSION['user'])) {
 
 $db   = new Database($config);
 $auth = new Auth($db);
-
-// Refresh session to get latest user data (theme, etc.)
 $auth->refreshUserSession($_SESSION['user']['id']);
-
 $user  = $_SESSION['user'];
 $theme = $user['theme'] ?? 'light';
 ?>
@@ -29,7 +23,6 @@ $theme = $user['theme'] ?? 'light';
 <title>iCensus - Analytics</title>
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/css/analytics.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -37,9 +30,7 @@ $theme = $user['theme'] ?? 'light';
 
 <?php include __DIR__ . '/../components/header.php'; ?>
 
-<div class="welcome">
-    <h2>Analytics Dashboard</h2>
-</div>
+<div class="welcome"><h2>Analytics Dashboard</h2></div>
 
 <main class="analytics-dashboard">
     <div class="analytics-grid">
@@ -48,6 +39,13 @@ $theme = $user['theme'] ?? 'light';
             <div class="stat-info">
                 <p>Total Residents</p>
                 <h3 id="totalResidents">...</h3>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><span class="material-icons">house</span></div>
+            <div class="stat-info">
+                <p>Total Households</p>
+                <h3 id="totalHouseholds">...</h3>
             </div>
         </div>
         <div class="stat-card">
@@ -72,7 +70,10 @@ $theme = $user['theme'] ?? 'light';
             </div>
         </div>
 
-
+        <div class="chart-card">
+            <h3>Household Size Distribution</h3>
+            <canvas id="householdSizeChart"></canvas>
+        </div>
         <div class="chart-card">
             <h3>Gender Distribution</h3>
             <canvas id="genderChart"></canvas>
@@ -89,13 +90,21 @@ $theme = $user['theme'] ?? 'light';
             <h3>Population by Barangay</h3>
             <canvas id="barangayChart"></canvas>
         </div>
-         <div class="chart-card">
+        <div class="chart-card">
             <h3>Resident Status</h3>
             <canvas id="statusChart"></canvas>
         </div>
         <div class="chart-card">
             <h3>Civil Status</h3>
             <canvas id="civilStatusChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Blood Type Distribution</h3>
+            <canvas id="bloodTypeChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Nationality Distribution</h3>
+            <canvas id="nationalityChart"></canvas>
         </div>
     </div>
 </main>

@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function populateStatCards(data) {
         document.getElementById('totalResidents').textContent = data.totalResidents;
+        document.getElementById('totalHouseholds').textContent = data.totalHouseholds;
         document.getElementById('maleCount').textContent = data.maleCount;
         document.getElementById('femaleCount').textContent = data.femaleCount;
         document.getElementById('seniorCount').textContent = data.seniorCount;
@@ -22,6 +23,27 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderCharts(data) {
         const isDarkMode = document.body.classList.contains('dark-mode');
         const textColor = isDarkMode ? 'white' : 'black';
+        
+        // Household Size Chart
+        new Chart(document.getElementById('householdSizeChart'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(data.householdSizeDistribution),
+                datasets: [{
+                    label: 'Number of Households',
+                    data: Object.values(data.householdSizeDistribution),
+                    backgroundColor: '#9b59b6',
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true, ticks: { color: textColor, stepSize: 1 } },
+                    x: { ticks: { color: textColor } }
+                },
+                plugins: { legend: { labels: { color: textColor } } }
+            }
+        });
 
         // Gender Chart
         new Chart(document.getElementById('genderChart'), {
@@ -33,16 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     backgroundColor: ['#3498db', '#e74c3c'],
                 }]
             },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: textColor
-                        }
-                    }
-                }
-            }
+            options: { responsive: true, plugins: { legend: { labels: { color: textColor } } } }
         });
 
         // Age Chart
@@ -59,21 +72,10 @@ document.addEventListener('DOMContentLoaded', () => {
             options: {
                 responsive: true,
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { color: textColor }
-                    },
-                    x: {
-                        ticks: { color: textColor }
-                    }
+                    y: { beginAtZero: true, ticks: { color: textColor } },
+                    x: { ticks: { color: textColor } }
                 },
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: textColor
-                        }
-                    }
-                }
+                plugins: { legend: { labels: { color: textColor } } }
             }
         });
 
@@ -91,21 +93,10 @@ document.addEventListener('DOMContentLoaded', () => {
              options: {
                 responsive: true,
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { color: textColor }
-                    },
-                    x: {
-                        ticks: { color: textColor }
-                    }
+                    y: { beginAtZero: true, ticks: { color: textColor } },
+                    x: { ticks: { color: textColor } }
                 },
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: textColor
-                        }
-                    }
-                }
+                plugins: { legend: { labels: { color: textColor } } }
             }
         });
         
@@ -123,21 +114,10 @@ document.addEventListener('DOMContentLoaded', () => {
              options: {
                 responsive: true,
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { color: textColor }
-                    },
-                    x: {
-                        ticks: { color: textColor }
-                    }
+                    y: { beginAtZero: true, ticks: { color: textColor } },
+                    x: { ticks: { color: textColor } }
                 },
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: textColor
-                        }
-                    }
-                }
+                plugins: { legend: { labels: { color: textColor } } }
             }
         });
         
@@ -151,16 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     backgroundColor: ['#1abc9c', '#9b59b6', '#34495e', '#e74c3c'],
                 }]
             },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: textColor
-                        }
-                    }
-                }
-            }
+            options: { responsive: true, plugins: { legend: { labels: { color: textColor } } } }
         });
 
         // Civil Status Chart
@@ -173,16 +144,41 @@ document.addEventListener('DOMContentLoaded', () => {
                     backgroundColor: ['#2980b9', '#27ae60', '#c0392b', '#f39c12', '#8e44ad'],
                 }]
             },
+            options: { responsive: true, plugins: { legend: { labels: { color: textColor } } } }
+        });
+
+        // Blood Type Chart
+        new Chart(document.getElementById('bloodTypeChart'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(data.bloodTypeDistribution),
+                datasets: [{
+                    label: 'Count',
+                    data: Object.values(data.bloodTypeDistribution),
+                    backgroundColor: '#c0392b',
+                }]
+            },
             options: {
                 responsive: true,
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: textColor
-                        }
-                    }
-                }
+                scales: {
+                    y: { beginAtZero: true, ticks: { color: textColor } },
+                    x: { ticks: { color: textColor } }
+                },
+                plugins: { legend: { labels: { color: textColor } } }
             }
+        });
+
+        // Nationality Chart
+        new Chart(document.getElementById('nationalityChart'), {
+            type: 'pie',
+            data: {
+                labels: Object.keys(data.nationalityDistribution),
+                datasets: [{
+                    data: Object.values(data.nationalityDistribution),
+                    backgroundColor: ['#34495e', '#16a085', '#d35400', '#8e44ad'],
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { labels: { color: textColor } } } }
         });
     }
 });

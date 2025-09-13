@@ -54,21 +54,23 @@
     padding: 1.5rem;
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     grid-column: span 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .chart-card h3 {
-    margin-top: 0;
-    margin-bottom: 1.5rem;
     text-align: center;
     font-size: 1.2rem;
+    margin-top: 0;
+    margin-bottom: 0.5rem; /* Reduced margin */
 }
 
 /* Make some charts take up more space */
-.chart-card:nth-child(5),
-.chart-card:nth-child(6) {
-    grid-column: span 2;
+@media (min-width: 992px) {
+    .chart-card:nth-child(n+6) { /* Apply to all charts from the 6th onwards */
+        grid-column: span 2;
+    }
 }
-
 
 /* Dark Mode */
 body.dark-mode .stat-card,
@@ -87,4 +89,36 @@ body.dark-mode .stat-info p {
 body.dark-mode .stat-info h3,
 body.dark-mode .chart-card h3 {
     color: #ffffff;
+}
+
+/* Chart Type Selector Styles */
+.chart-selector-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.chart-selector-wrapper .material-icons {
+    color: #6c757d;
+}
+
+.chart-type-selector {
+    padding: 0.3rem 0.5rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background-color: #f8f9fa;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+body.dark-mode .chart-selector-wrapper .material-icons {
+    color: #bdc3c7;
+}
+
+body.dark-mode .chart-type-selector {
+    background-color: #34495e;
+    color: #ffffff;
+    border-color: #566573;
 }
