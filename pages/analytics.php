@@ -34,9 +34,12 @@ $theme = $user['theme'] ?? 'light';
 <div class="welcome"><h2>Analytics Dashboard</h2></div>
 
 <main class="analytics-dashboard">
-    <div style="text-align: right; margin-bottom: 1rem;">
-        <button id="saveLayoutBtn" style="padding: 0.5rem 1rem; border-radius: 6px; border: none; cursor: pointer; background: #4caf50; color: #fff;">
-            <span class="material-icons" style="vertical-align: middle;">save</span> Save Layout
+    <div class="analytics-controls">
+        <button id="saveLayoutBtn" class="control-btn save-btn">
+            <span class="material-icons">save</span> Save Layout
+        </button>
+        <button id="resetLayoutBtn" class="control-btn reset-btn">
+            <span class="material-icons">refresh</span> Reset Layout
         </button>
     </div>
     <div class="analytics-grid" id="analyticsGrid">
@@ -76,42 +79,35 @@ $theme = $user['theme'] ?? 'light';
             </div>
         </div>
 
-        <div class="chart-card" data-id="chart-household-size">
-            <h3>Household Size Distribution</h3>
-            <canvas id="householdSizeChart"></canvas>
+        <?php 
+        $charts = [
+            'chart-household-size' => 'Household Size Distribution',
+            'chart-gender' => 'Gender Distribution',
+            'chart-age' => 'Age Distribution',
+            'chart-purok' => 'Population by Purok',
+            'chart-barangay' => 'Population by Barangay',
+            'chart-status' => 'Resident Status',
+            'chart-civil-status' => 'Civil Status',
+            'chart-blood-type' => 'Blood Type Distribution',
+            'chart-nationality' => 'Nationality Distribution'
+        ];
+        
+        foreach ($charts as $id => $title): ?>
+        <div class="chart-card" data-id="<?= $id ?>">
+            <div class="chart-header">
+                <h3><?= $title ?></h3>
+                <div class="chart-settings">
+                    <span class="material-icons">settings</span>
+                    <div class="size-selector">
+                        <div class="size-option" data-size="1">1x</div>
+                        <div class="size-option" data-size="2">2x</div>
+                        <div class="size-option" data-size="3">3x</div>
+                    </div>
+                </div>
+            </div>
+            <canvas id="<?= str_replace('chart-', '', $id) ?>Chart"></canvas>
         </div>
-        <div class="chart-card" data-id="chart-gender">
-            <h3>Gender Distribution</h3>
-            <canvas id="genderChart"></canvas>
-        </div>
-        <div class="chart-card" data-id="chart-age">
-            <h3>Age Distribution</h3>
-            <canvas id="ageChart"></canvas>
-        </div>
-        <div class="chart-card" data-id="chart-purok">
-            <h3>Population by Purok</h3>
-            <canvas id="purokChart"></canvas>
-        </div>
-        <div class="chart-card" data-id="chart-barangay">
-            <h3>Population by Barangay</h3>
-            <canvas id="barangayChart"></canvas>
-        </div>
-        <div class="chart-card" data-id="chart-status">
-            <h3>Resident Status</h3>
-            <canvas id="statusChart"></canvas>
-        </div>
-        <div class="chart-card" data-id="chart-civil-status">
-            <h3>Civil Status</h3>
-            <canvas id="civilStatusChart"></canvas>
-        </div>
-        <div class="chart-card" data-id="chart-blood-type">
-            <h3>Blood Type Distribution</h3>
-            <canvas id="bloodTypeChart"></canvas>
-        </div>
-        <div class="chart-card" data-id="chart-nationality">
-            <h3>Nationality Distribution</h3>
-            <canvas id="nationalityChart"></canvas>
-        </div>
+        <?php endforeach; ?>
     </div>
 </main>
 

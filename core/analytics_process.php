@@ -27,6 +27,11 @@ try {
     $layoutStmt = $pdo->prepare("SELECT layout FROM user_analytics_layouts WHERE user_id = ?");
     $layoutStmt->execute([$_SESSION['user']['id']]);
     $userLayout = $layoutStmt->fetchColumn();
+    
+    // Fetch user chart sizes
+    $sizesStmt = $pdo->prepare("SELECT chart_id, size FROM user_chart_settings WHERE user_id = ?");
+    $sizesStmt->execute([$_SESSION['user']['id']]);
+    $userChartSizes = $sizesStmt->fetchAll(PDO::FETCH_KEY_PAIR);
 
     // Initialize the complete analytics data structure
     $analyticsData = [
@@ -138,7 +143,8 @@ try {
         'status' => 'success',
         'data' => $analyticsData,
         'chartSettings' => $chartSettingsData,
-        'layout' => $userLayout ? json_decode($userLayout) : null
+        'layout' => $userLayout ? json_decode($userLayout) : null,
+        'sizes' => $userChartSizes
     ];
 
     echo json_encode($response);

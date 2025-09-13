@@ -1,6 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
     const analyticsGrid = document.getElementById('analyticsGrid');
     const saveLayoutBtn = document.getElementById('saveLayoutBtn');
+    const resetLayoutBtn = document.getElementById('resetLayoutBtn');
+
+    let initialLayoutOrder = [];
 
     fetch('../core/analytics_process.php')
         .then(response => response.json())
@@ -8,14 +11,23 @@ document.addEventListener('DOMContentLoaded', () => {
             if (result.status === 'success') {
                 const data = result.data;
                 const layout = result.layout;
+                const sizes = result.sizes;
+                
+                // Store the initial order of elements in the DOM
+                initialLayoutOrder = Array.from(analyticsGrid.children).map(item => item.dataset.id);
 
                 if (layout) {
                     reorderGrid(layout);
+                }
+                
+                if(sizes) {
+                    applyChartSizes(sizes);
                 }
 
                 populateStatCards(data);
                 renderCharts(data);
                 initializeSortable();
+                setupChartSettings();
             } else {
                 console.error('Failed to fetch analytics data:', result.message);
             }
@@ -31,6 +43,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 analyticsGrid.appendChild(item);
             }
         });
+    }
+
+    function applyChartSizes(sizes) {
+        for (const chartId in sizes) {
+            const card = analyticsGrid.querySelector(`.chart-card[data-id="${chartId}"]`);
+            if (card) {
+                card.classList.remove('size-1', 'size-2', 'size-3');
+                card.classList.add(`size-${sizes[chartId]}`);
+            }
+        }
     }
 
     function populateStatCards(data) {
@@ -209,6 +231,39 @@ document.addEventListener('DOMContentLoaded', () => {
             ghostClass: 'sortable-ghost'
         });
     }
+    
+    function setupChartSettings() {
+        document.querySelectorAll('.chart-settings .size-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+                const card = e.target.closest('.chart-card');
+                const chartId = card.dataset.id;
+                const size = e.target.dataset.size;
+
+                card.classList.remove('size-1', 'size-2', 'size-3');
+                card.classList.add(`size-${size}`);
+
+                saveChartSize(chartId, size);
+            });
+        });
+    }
+
+    function saveChartSize(chartId, size) {
+        const formData = new URLSearchParams();
+        formData.append('chart_id', chartId);
+        formData.append('size', size);
+
+        fetch('../core/save_chart_size.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(result => {
+            if (result.status !== 'success') {
+                alert('Failed to save chart size: ' + result.message);
+            }
+        })
+        .catch(err => console.error('Error saving chart size:', err));
+    }
 
     saveLayoutBtn.addEventListener('click', () => {
         const layout = Array.from(analyticsGrid.children).map(item => item.dataset.id);
@@ -231,5 +286,29 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error saving layout:', error);
             alert('An error occurred while saving the layout.');
         });
+    });
+
+    resetLayoutBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to reset your layout and chart sizes to default?')) {
+            fetch('../core/reset_layout.php', { method: 'POST' })
+            .then(res => res.json())
+            .then(result => {
+                if (result.status === 'success') {
+                    // Revert to initial DOM order without a full reload
+                    reorderGrid(initialLayoutOrder);
+                    
+                    // Reset sizes visually
+                    document.querySelectorAll('.chart-card').forEach(card => {
+                        card.classList.remove('size-2', 'size-3');
+                        card.classList.add('size-1');
+                    });
+
+                    alert('Layout reset successfully.');
+                } else {
+                    alert('Failed to reset layout: ' + result.message);
+                }
+            })
+            .catch(err => console.error('Error resetting layout:', err));
+        }
     });
 });
