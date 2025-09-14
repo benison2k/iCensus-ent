@@ -19,13 +19,16 @@ $theme = $user['theme'] ?? 'light';
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>iCensus - Analytics</title>
-<link rel="stylesheet" href="../assets/css/style.css">
-<link rel="stylesheet" href="../assets/css/analytics.css">
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iCensus - Analytics</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/analytics.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/8.2.1/gridstack.min.css" rel="stylesheet"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/8.2.1/gridstack-all.js"></script>
 </head>
 <body class="<?= $theme === 'dark' ? 'dark-mode' : '' ?>">
 
@@ -36,39 +39,14 @@ $theme = $user['theme'] ?? 'light';
 </div>
 
 <main class="analytics-container">
-    <div class="chart-grid">
-        <div class="chart-container">
-            <div class="chart-title">Gender Distribution</div>
-            <div class="chart-div" id="gender_chart_div"></div>
+    <div class="dashboard-card">
+        <div style="text-align: right; margin-bottom: 1rem;">
+            <button id="save-layout-btn" style="padding: 0.5rem 1rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; border: none; border-radius: 8px;">
+                <span class="material-icons">save</span> Save Layout
+            </button>
         </div>
-        <div class="chart-container">
-            <div class="chart-title">Age Distribution</div>
-            <div class="chart-div" id="age_chart_div"></div>
-        </div>
-        <div class="chart-container">
-            <div class="chart-title">Resident Status</div>
-            <div class="chart-div" id="status_chart_div"></div>
-        </div>
-        <div class="chart-container">
-            <div class="chart-title">Population by Purok</div>
-            <div class="chart-div" id="purok_chart_div"></div>
-        </div>
-        <div class="chart-container">
-            <div class="chart-title">Population by Barangay</div>
-            <div class="chart-div" id="barangay_chart_div"></div>
-        </div>
-        <div class="chart-container">
-            <div class="chart-title">Civil Status</div>
-            <div class="chart-div" id="civil_status_chart_div"></div>
-        </div>
-        <div class="chart-container">
-            <div class="chart-title">Blood Type</div>
-            <div class="chart-div" id="blood_type_chart_div"></div>
-        </div>
-        <div class="chart-container">
-            <div class="chart-title">Residency Status</div>
-            <div class="chart-div" id="residency_status_chart_div"></div>
-        </div>
+        
+        <div class="grid-stack"></div>
     </div>
 </main>
 

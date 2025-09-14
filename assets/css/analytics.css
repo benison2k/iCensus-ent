@@ -1,33 +1,28 @@
-/* =========================
-   Analytics Page Styles
-========================= */
-
 .analytics-container {
     padding: 2rem;
     max-width: 1600px;
     margin: auto;
 }
 
-.chart-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 2rem;
+/* Central Dashboard Card Styles */
+.dashboard-card {
+    background-color: #f8f9fa; /* A light grey to contrast with the body */
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+    width: 100%; /* Add this line to make the card wider */
 }
 
-.chart-container {
+
+/* GridStack Widget Styles */
+.grid-stack-item-content {
+    background-color: #ffffff;
     border-radius: 12px;
-    padding: 1.5rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transition: transform 0.2s, box-shadow 0.2s;
-    min-height: 350px;
     display: flex;
     flex-direction: column;
-    background-color: #ffffff;
-}
-
-.chart-container:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    padding: 1.5rem;
+    overflow: hidden !important; /* Important for chart resizing */
 }
 
 .chart-title {
@@ -44,30 +39,64 @@
     height: 100%;
 }
 
-/* =========================
-   Dark Mode
-========================= */
-body.dark-mode .chart-container {
-    background-color: #2C3E50;
-    color: #ffffff;
+/* Dark Mode */
+body.dark-mode .dashboard-card {
+    background-color: #1c2a38; /* Dark blue-grey, slightly lighter than body */
 }
-
+body.dark-mode .grid-stack-item-content {
+    background-color: #2C3E50;
+}
 body.dark-mode .chart-title {
     color: #ffffff;
 }
 
-
-/* =========================
-   Responsive
-========================= */
-@media (max-width: 1200px) {
-    .chart-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
+.analytics-container {
+    padding: 2rem;
+    max-width: 1600px;
+    margin: auto;
 }
 
-@media (max-width: 768px) {
-    .chart-grid {
-        grid-template-columns: 1fr;
-    }
+/* New: Central Dashboard Card Styles */
+.dashboard-card {
+    background-color: #f8f9fa; /* A light grey to contrast with the body */
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+
+/* GridStack Widget Styles */
+.grid-stack-item-content {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    overflow: hidden !important; /* Important for chart resizing */
+}
+
+.chart-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-align: center;
+    color: #333;
+}
+
+.chart-div {
+    flex-grow: 1;
+    width: 100%;
+    height: 100%;
+}
+
+/* Dark Mode */
+body.dark-mode .dashboard-card {
+    background-color: #1c2a38; /* Dark blue-grey, slightly lighter than body */
+}
+body.dark-mode .grid-stack-item-content {
+    background-color: #2C3E50;
+}
+body.dark-mode .chart-title {
+    color: #ffffff;
 }

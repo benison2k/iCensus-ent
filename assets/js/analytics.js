@@ -1,147 +1,119 @@
 google.charts.load('current', {'packages':['corechart']});
-google.charts.setOnLoadCallback(drawCharts);
+google.charts.setOnLoadCallback(initializeDashboard);
 
-function drawCharts() {
-    fetch('../core/analytics_data.php')
+let grid; // Make grid globally accessible
+
+function initializeDashboard() {
+    grid = GridStack.init({
+        cellHeight: 150,
+        margin: 10,
+        float: true
+    });
+
+    loadLayout();
+
+    grid.on('resizestop', function(event, el) {
+        const id = el.gridstackNode.id;
+        const chartDiv = document.getElementById(`${id}_chart_div`);
+        if (chartDiv && chartDiv.chart) {
+            setTimeout(() => {
+                chartDiv.chart.draw(chartDiv.data, chartDiv.options);
+            }, 100);
+        }
+    });
+
+    document.getElementById('save-layout-btn').addEventListener('click', saveLayout);
+}
+
+function loadLayout() {
+    fetch('../core/get_layout.php')
         .then(response => response.json())
-        .then(data => {
-            drawGenderChart(data.gender);
-            drawAgeChart(data.age);
-            drawStatusChart(data.status);
-            drawPurokChart(data.purok);
-            drawBarangayChart(data.barangay);
-            drawCivilStatusChart(data.civil_status);
-            drawBloodTypeChart(data.blood_type);
-            drawResidencyStatusChart(data.residency_status);
+        .then(layoutData => {
+            grid.removeAll();
+            layoutData.forEach(node => {
+                const widgetHtml = `
+                    <div>
+                        <div class="grid-stack-item-content">
+                            <div class="chart-title">${getChartTitle(node.id)}</div>
+                            <div class="chart-div" id="${node.id}_chart_div">Loading...</div>
+                        </div>
+                    </div>`;
+                grid.addWidget(widgetHtml, node);
+                drawChart(node.id);
+            });
         });
 }
 
-function drawGenderChart(genderData) {
-    const data = google.visualization.arrayToDataTable([
-        ['Gender', 'Count'],
-        ['Male', genderData.Male],
-        ['Female', genderData.Female],
-        ['Other', genderData.Other]
-    ]);
-
-    const options = {
-        title: 'Gender Distribution',
-        pieHole: 0.4,
-    };
-
-    const chart = new google.visualization.PieChart(document.getElementById('gender_chart_div'));
-    chart.draw(data, options);
+function saveLayout() {
+    const serializedData = grid.save(true, true).children;
+    // **MODIFIED PART**: Ensure 'keepAspectRatio' is included when saving
+    const layout = serializedData.map(d => ({
+        id: d.id, x: d.x, y: d.y, w: d.w, h: d.h, 
+        keepAspectRatio: d.keepAspectRatio 
+    }));
+    
+    fetch('../core/save_layout.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(layout)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.status === 'success') {
+            alert('Layout saved successfully!');
+        } else {
+            alert('Error saving layout: ' + result.message);
+        }
+    });
 }
 
-function drawAgeChart(ageData) {
-    const data = google.visualization.arrayToDataTable([
-        ['Age Group', 'Count', { role: 'style' }],
-        ['0-17', ageData['0-17'], '#3366cc'],
-        ['18-35', ageData['18-35'], '#dc3912'],
-        ['36-59', ageData['36-59'], '#ff9900'],
-        ['60+', ageData['60+'], '#109618']
-    ]);
-
-    const options = {
-        title: 'Age Distribution',
-        legend: { position: 'none' }
+function getChartTitle(metric) {
+    const titles = {
+        gender: 'Gender Distribution',
+        age: 'Age Distribution',
+        status: 'Resident Status',
+        purok: 'Population by Purok',
+        barangay: 'Population by Barangay',
+        civil_status: 'Civil Status',
+        blood_type: 'Blood Type',
+        residency_status: 'Residency Status'
     };
-
-    const chart = new google.visualization.BarChart(document.getElementById('age_chart_div'));
-    chart.draw(data, options);
+    return titles[metric] || 'Unknown Chart';
 }
 
-function drawStatusChart(statusData) {
-    const dataArray = [['Status', 'Count']];
-    for (const status in statusData) {
-        dataArray.push([status, statusData[status]]);
-    }
-    const data = google.visualization.arrayToDataTable(dataArray);
+function drawChart(metric) {
+    fetch(`../core/analytics_data.php?metric=${metric}`)
+        .then(response => response.json())
+        .then(apiData => {
+            const chartDiv = document.getElementById(`${metric}_chart_div`);
+            if (!chartDiv || !apiData) return;
 
-    const options = {
-        title: 'Resident Status (Active, Inactive, etc.)',
-    };
+            const dataArray = [[getChartTitle(metric), 'Count']];
+            for (const key in apiData) {
+                if (key) { 
+                    dataArray.push([key, apiData[key]]);
+                }
+            }
+            const data = google.visualization.arrayToDataTable(dataArray);
+            chartDiv.data = data;
 
-    const chart = new google.visualization.PieChart(document.getElementById('status_chart_div'));
-    chart.draw(data, options);
-}
+            let options = { title: '', legend: 'bottom' };
+            let chartType = 'PieChart';
 
-function drawPurokChart(purokData) {
-    const dataArray = [['Purok', 'Count']];
-    for (const purok in purokData) {
-        dataArray.push([`Purok ${purok}`, purokData[purok]]);
-    }
-    const data = google.visualization.arrayToDataTable(dataArray);
+            if (['age', 'purok', 'barangay', 'residency_status'].includes(metric)) {
+                chartType = 'ColumnChart';
+                options.legend = { position: 'none' };
+            } else if (['gender', 'civil_status'].includes(metric)) {
+                options.pieHole = 0.4;
+            }
+            
+            chartDiv.options = options;
+            
+            const chart = new google.visualization[chartType](chartDiv);
+            chartDiv.chart = chart;
 
-    const options = {
-        title: 'Population by Purok',
-        legend: { position: 'none' }
-    };
-
-    const chart = new google.visualization.ColumnChart(document.getElementById('purok_chart_div'));
-    chart.draw(data, options);
-}
-
-function drawBarangayChart(barangayData) {
-    const dataArray = [['Barangay', 'Count']];
-    for (const barangay in barangayData) {
-        dataArray.push([barangay, barangayData[barangay]]);
-    }
-    const data = google.visualization.arrayToDataTable(dataArray);
-
-    const options = {
-        title: 'Population by Barangay',
-        legend: { position: 'none' }
-    };
-
-    const chart = new google.visualization.ColumnChart(document.getElementById('barangay_chart_div'));
-    chart.draw(data, options);
-}
-
-function drawCivilStatusChart(civilStatusData) {
-    const dataArray = [['Civil Status', 'Count']];
-    for (const status in civilStatusData) {
-        dataArray.push([status, civilStatusData[status]]);
-    }
-    const data = google.visualization.arrayToDataTable(dataArray);
-
-    const options = {
-        title: 'Civil Status Distribution',
-        pieHole: 0.4,
-    };
-
-    // Corrected line: Use PieChart to create the doughnut chart
-    const chart = new google.visualization.PieChart(document.getElementById('civil_status_chart_div'));
-    chart.draw(data, options);
-}
-
-function drawBloodTypeChart(bloodTypeData) {
-    const dataArray = [['Blood Type', 'Count']];
-    for (const type in bloodTypeData) {
-        dataArray.push([type, bloodTypeData[type]]);
-    }
-    const data = google.visualization.arrayToDataTable(dataArray);
-
-    const options = {
-        title: 'Blood Type Distribution',
-    };
-
-    const chart = new google.visualization.PieChart(document.getElementById('blood_type_chart_div'));
-    chart.draw(data, options);
-}
-
-function drawResidencyStatusChart(residencyStatusData) {
-    const dataArray = [['Residency Status', 'Count']];
-    for (const status in residencyStatusData) {
-        dataArray.push([status, residencyStatusData[status]]);
-    }
-    const data = google.visualization.arrayToDataTable(dataArray);
-
-    const options = {
-        title: 'Residency Status (Resident, Non-resident)',
-        legend: { position: 'none' }
-    };
-
-    const chart = new google.visualization.BarChart(document.getElementById('residency_status_chart_div'));
-    chart.draw(data, options);
+            setTimeout(() => {
+                chart.draw(data, options);
+            }, 100);
+        });
 }
