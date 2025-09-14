@@ -57,13 +57,12 @@ $theme = $user['theme'] ?? 'light';
             <div class="chart-title">Population by Barangay</div>
             <div class="chart-div" id="barangay_chart_div"></div>
         </div>
-        
         <div class="chart-container">
             <div class="chart-title">Civil Status</div>
             <div class="chart-div" id="civil_status_chart_div"></div>
         </div>
         <div class="chart-container">
-            <div class="chart-title">Blood Type Distribution</div>
+            <div class="chart-title">Blood Type</div>
             <div class="chart-div" id="blood_type_chart_div"></div>
         </div>
         <div class="chart-container">

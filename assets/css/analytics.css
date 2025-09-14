@@ -10,7 +10,7 @@
 
 .chart-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr); /* This line restores the 4-column layout */
+    grid-template-columns: repeat(4, 1fr);
     gap: 2rem;
 }
 
@@ -19,10 +19,10 @@
     padding: 1.5rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     transition: transform 0.2s, box-shadow 0.2s;
-    min-height: 350px; /* Increased min-height for better spacing */
-    display: flex; /* Use flexbox for alignment */
-    flex-direction: column; /* Stack chart elements vertically */
-    background-color: #ffffff; /* Add a background color */
+    min-height: 350px;
+    display: flex;
+    flex-direction: column;
+    background-color: #ffffff;
 }
 
 .chart-container:hover {
@@ -30,7 +30,6 @@
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
-/* Style for the chart title */
 .chart-title {
     font-size: 1.2rem;
     font-weight: 600;
@@ -39,13 +38,11 @@
     color: #333;
 }
 
-/* The div where the chart is rendered */
 .chart-div {
-    flex-grow: 1; /* Allows the chart to take up available space */
+    flex-grow: 1;
     width: 100%;
     height: 100%;
 }
-
 
 /* =========================
    Dark Mode
@@ -59,12 +56,13 @@ body.dark-mode .chart-title {
     color: #ffffff;
 }
 
+
 /* =========================
    Responsive
 ========================= */
 @media (max-width: 1200px) {
     .chart-grid {
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 

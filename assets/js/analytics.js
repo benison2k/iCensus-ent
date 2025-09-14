@@ -110,7 +110,8 @@ function drawCivilStatusChart(civilStatusData) {
         pieHole: 0.4,
     };
 
-    const chart = new google.visualization.DoughnutChart(document.getElementById('civil_status_chart_div'));
+    // Corrected line: Use PieChart to create the doughnut chart
+    const chart = new google.visualization.PieChart(document.getElementById('civil_status_chart_div'));
     chart.draw(data, options);
 }
 
