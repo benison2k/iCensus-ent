@@ -23,7 +23,7 @@ $theme = $user['theme'] ?? 'light';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>iCensus - Analytics</title>
     <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="stylesheet" href="../assets/css/analytics.css">
+    <link rel="stylesheet" href="../assets/css/analytics_cms.css"> 
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 

@@ -1,19 +1,26 @@
+/* =========================
+   NEW DEDICATED STYLESHEET FOR ANALYTICS CMS
+========================= */
+
+/* Main container for the analytics page */
 .analytics-container {
+    display: flex;
+    justify-content: center;
     padding: 2rem;
     max-width: 1600px;
-    margin: auto;
+    margin: 0 auto;
 }
 
-/* Central Dashboard Card Styles */
+/* The main card that holds the chart grid */
 .dashboard-card {
     background-color: #f8f9fa;
     padding: 2rem;
     border-radius: 16px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
-    width: 100%; /* Ensures the card is wide */
+    width: 100%;
 }
 
-/* GridStack Widget Styles */
+/* Individual chart widgets */
 .grid-stack-item-content {
     background-color: #ffffff;
     border-radius: 12px;
@@ -22,6 +29,11 @@
     flex-direction: column;
     padding: 1.5rem;
     overflow: hidden !important;
+    /* --- KEY FIX --- */
+    /* This ensures the container has a height for the chart div to fill */
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .chart-title {
@@ -30,21 +42,26 @@
     margin-bottom: 1rem;
     text-align: center;
     color: #333;
+    flex-shrink: 0; /* Prevents title from shrinking */
 }
 
 .chart-div {
-    flex-grow: 1;
+    flex-grow: 1; /* Allows the chart to take up the remaining space */
     width: 100%;
     height: 100%;
 }
 
-/* Dark Mode */
+/* =========================
+   Dark Mode Styles
+========================= */
 body.dark-mode .dashboard-card {
     background-color: #1c2a38;
 }
+
 body.dark-mode .grid-stack-item-content {
     background-color: #2C3E50;
 }
+
 body.dark-mode .chart-title {
     color: #ffffff;
 }

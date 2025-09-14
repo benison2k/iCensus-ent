@@ -2,6 +2,20 @@ google.charts.load('current', {'packages':['corechart']});
 google.charts.setOnLoadCallback(initializeDashboard);
 
 let grid; // Make grid globally accessible
+let chartsToDraw = {}; // A registry for our charts
+
+// A simple debounce function to prevent rapid-fire resizing
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
 
 function initializeDashboard() {
     grid = GridStack.init({
@@ -12,15 +26,32 @@ function initializeDashboard() {
 
     loadLayout();
 
-    grid.on('resizestop', function(event, el) {
+    // When a widget is added, draw its chart
+    grid.on('added', function(event, items) {
+        items.forEach(item => {
+            const chartId = item.id;
+            if (chartsToDraw[chartId]) {
+                chartsToDraw[chartId](); // Call the drawing function
+                delete chartsToDraw[chartId]; // Clean up
+            }
+        });
+    });
+    
+    // When a widget stops resizing, redraw its chart
+    const redrawChart = (el) => {
         const id = el.gridstackNode.id;
         const chartDiv = document.getElementById(`${id}_chart_div`);
-        if (chartDiv && chartDiv.chart) {
-            setTimeout(() => {
-                chartDiv.chart.draw(chartDiv.data, chartDiv.options);
-            }, 100);
+        if (chartDiv && chartDiv.chartInstance) {
+            chartDiv.chartInstance.draw(chartDiv.chartData, chartDiv.chartOptions);
         }
-    });
+    };
+
+    grid.on('resizestop', (event, el) => redrawChart(el));
+
+    // Also redraw all charts if the browser window is resized
+    window.addEventListener('resize', debounce(() => {
+        grid.engine.nodes.forEach(node => redrawChart(node.el));
+    }, 250));
 
     document.getElementById('save-layout-btn').addEventListener('click', saveLayout);
 }
@@ -30,7 +61,9 @@ function loadLayout() {
         .then(response => response.json())
         .then(layoutData => {
             grid.removeAll();
+            // Prepare drawing functions before adding widgets
             layoutData.forEach(node => {
+                chartsToDraw[node.id] = () => drawChart(node.id);
                 const widgetHtml = `
                     <div>
                         <div class="grid-stack-item-content">
@@ -39,14 +72,12 @@ function loadLayout() {
                         </div>
                     </div>`;
                 grid.addWidget(widgetHtml, node);
-                drawChart(node.id);
             });
         });
 }
 
 function saveLayout() {
     const serializedData = grid.save(true, true).children;
-    // **MODIFIED PART**: Ensure 'keepAspectRatio' is included when saving
     const layout = serializedData.map(d => ({
         id: d.id, x: d.x, y: d.y, w: d.w, h: d.h, 
         keepAspectRatio: d.keepAspectRatio 
@@ -90,14 +121,19 @@ function drawChart(metric) {
 
             const dataArray = [[getChartTitle(metric), 'Count']];
             for (const key in apiData) {
-                if (key) { 
-                    dataArray.push([key, apiData[key]]);
-                }
+                if (key) dataArray.push([key, apiData[key]]);
             }
             const data = google.visualization.arrayToDataTable(dataArray);
-            chartDiv.data = data;
+            
+            let options = {
+                title: '',
+                legend: 'bottom',
+                width: '100%',
+                height: '100%',
+                backgroundColor: 'transparent',
+                chartArea: {'width': '90%', 'height': '75%'}
+            };
 
-            let options = { title: '', legend: 'bottom' };
             let chartType = 'PieChart';
 
             if (['age', 'purok', 'barangay', 'residency_status'].includes(metric)) {
@@ -107,13 +143,12 @@ function drawChart(metric) {
                 options.pieHole = 0.4;
             }
             
-            chartDiv.options = options;
+            chartDiv.chartData = data;
+            chartDiv.chartOptions = options;
             
             const chart = new google.visualization[chartType](chartDiv);
-            chartDiv.chart = chart;
+            chartDiv.chartInstance = chart;
 
-            setTimeout(() => {
-                chart.draw(data, options);
-            }, 100);
+            chart.draw(data, options);
         });
 }
