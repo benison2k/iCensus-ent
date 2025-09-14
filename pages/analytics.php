@@ -24,7 +24,7 @@ $theme = $user['theme'] ?? 'light';
     <title>iCensus - Analytics</title>
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/dashboard.css">
-    <link rel="stylesheet" href="../assets/css/analytics.css"> 
+    <link rel="stylesheet" href="../assets/css/analytics_layout_fix.css"> 
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 

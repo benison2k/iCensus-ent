@@ -2,23 +2,15 @@
    DEFINITIVE FIX FOR ANALYTICS LAYOUT
 ========================= */
 
-/* Main container for the analytics page */
-.analytics-container {
-    display: flex !important;
-    justify-content: center !important;
-    padding: 2rem !important;
-    max-width: 1600px !important;
-    margin: 0 auto !important;
-}
-
 /* The main card that holds the chart grid */
 .dashboard-card {
     background-color: #f8f9fa;
     padding: 2rem;
     border-radius: 16px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
-    width: 100% !important; /* Force the card to be wide */
-    box-sizing: border-box !important;
+    width: 90% !important; /* Force the card to be wide */
+    max-width: 1600px !important;
+    margin: 2rem 0 !important; /* Add vertical margin */
 }
 
 /* Individual chart widgets */
