@@ -1,6 +1,7 @@
 /* =========================
    Analytics Page Styles
 ========================= */
+
 .analytics-container {
     padding: 2rem;
     max-width: 1600px;
@@ -9,7 +10,7 @@
 
 .chart-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, 1fr); /* This line restores the 4-column layout */
     gap: 2rem;
 }
 
@@ -18,7 +19,10 @@
     padding: 1.5rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     transition: transform 0.2s, box-shadow 0.2s;
-    min-height: 300px;
+    min-height: 350px; /* Increased min-height for better spacing */
+    display: flex; /* Use flexbox for alignment */
+    flex-direction: column; /* Stack chart elements vertically */
+    background-color: #ffffff; /* Add a background color */
 }
 
 .chart-container:hover {
@@ -26,17 +30,20 @@
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
-/* Responsive */
-@media (max-width: 1200px) {
-    .chart-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
+/* Style for the chart title */
+.chart-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-align: center;
+    color: #333;
 }
 
-@media (max-width: 768px) {
-    .chart-grid {
-        grid-template-columns: 1fr;
-    }
+/* The div where the chart is rendered */
+.chart-div {
+    flex-grow: 1; /* Allows the chart to take up available space */
+    width: 100%;
+    height: 100%;
 }
 
 
@@ -46,4 +53,23 @@
 body.dark-mode .chart-container {
     background-color: #2C3E50;
     color: #ffffff;
+}
+
+body.dark-mode .chart-title {
+    color: #ffffff;
+}
+
+/* =========================
+   Responsive
+========================= */
+@media (max-width: 1200px) {
+    .chart-grid {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .chart-grid {
+        grid-template-columns: 1fr;
+    }
 }

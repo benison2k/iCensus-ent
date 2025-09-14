@@ -37,14 +37,39 @@ $theme = $user['theme'] ?? 'light';
 
 <main class="analytics-container">
     <div class="chart-grid">
-        <div class="chart-container" id="gender_chart_div"></div>
-        <div class="chart-container" id="age_chart_div"></div>
-        <div class="chart-container" id="status_chart_div"></div>
-        <div class="chart-container" id="purok_chart_div"></div>
-        <div class="chart-container" id="barangay_chart_div"></div>
-        <div class="chart-container" id="civil_status_chart_div"></div>
-        <div class="chart-container" id="blood_type_chart_div"></div>
-        <div class="chart-container" id="residency_status_chart_div"></div>
+        <div class="chart-container">
+            <div class="chart-title">Gender Distribution</div>
+            <div class="chart-div" id="gender_chart_div"></div>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">Age Distribution</div>
+            <div class="chart-div" id="age_chart_div"></div>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">Resident Status</div>
+            <div class="chart-div" id="status_chart_div"></div>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">Population by Purok</div>
+            <div class="chart-div" id="purok_chart_div"></div>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">Population by Barangay</div>
+            <div class="chart-div" id="barangay_chart_div"></div>
+        </div>
+        
+        <div class="chart-container">
+            <div class="chart-title">Civil Status</div>
+            <div class="chart-div" id="civil_status_chart_div"></div>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">Blood Type Distribution</div>
+            <div class="chart-div" id="blood_type_chart_div"></div>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">Residency Status</div>
+            <div class="chart-div" id="residency_status_chart_div"></div>
+        </div>
     </div>
 </main>
 
