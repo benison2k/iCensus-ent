@@ -25,6 +25,7 @@ $theme = $user['theme'] ?? 'light';
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/dashboard.css">
     <link rel="stylesheet" href="../assets/css/analytics_layout_fix.css"> 
+    <link rel="stylesheet" href="../assets/css/analytics.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
@@ -41,12 +42,23 @@ $theme = $user['theme'] ?? 'light';
 
 <main class="dashboard">
     <div class="dashboard-card">
-        <div style="text-align: right; margin-bottom: 1rem;">
-            <button id="save-layout-btn" style="padding: 0.5rem 1rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; border: none; border-radius: 8px;">
-                <span class="material-icons">save</span> Save Layout
-            </button>
+        <div class="controls-wrapper">
+            <div class="tooltip-container">
+                <span class="material-icons info-icon">info</span>
+                <div class="tooltip-text">You can drag and drop the charts to rearrange the layout.</div>
+            </div>
+            <div class="buttons-container">
+                <button id="reset-layout-btn" style="padding: 0.5rem 1rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; border: none; border-radius: 8px; background-color: #f44336; color: white; margin-right: 0.5rem;">
+                    <span class="material-icons">refresh</span> Reset Layout
+                </button>
+                <button id="save-layout-btn" style="padding: 0.5rem 1rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; border: none; border-radius: 8px;">
+                    <span class="material-icons">save</span> Save Layout
+                </button>
+            </div>
         </div>
         
+        <hr class="separator-line">
+
         <div class="grid-stack"></div>
     </div>
 </main>

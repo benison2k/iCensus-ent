@@ -4,7 +4,7 @@
 
 /* The main card that holds the chart grid */
 .dashboard-card {
-    background-color: #f8f9fa;
+    background-color: #c9c9c9;
     padding: 2rem;
     border-radius: 16px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);

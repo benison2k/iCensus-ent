@@ -50,6 +50,7 @@ function initializeDashboard() {
     }, 250));
 
     document.getElementById('save-layout-btn').addEventListener('click', saveLayout);
+    document.getElementById('reset-layout-btn').addEventListener('click', resetLayout);
 }
 
 function loadLayout() {
@@ -62,7 +63,10 @@ function loadLayout() {
                 const widgetHtml = `
                     <div>
                         <div class="grid-stack-item-content">
-                            <div class="chart-title">${getChartTitle(node.id)}</div>
+                            <div class="chart-title">
+                                <span class="material-icons chart-icon">${getChartIcon(node.id)}</span>
+                                ${getChartTitle(node.id)}
+                            </div>
                             <div class="chart-div" id="${node.id}_chart_div">Loading...</div>
                         </div>
                     </div>`;
@@ -93,6 +97,24 @@ function saveLayout() {
     });
 }
 
+function resetLayout() {
+    if (confirm('Are you sure you want to reset your layout? This will revert to the default layout and cannot be undone.')) {
+        fetch('../core/reset_layout.php', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.status === 'success') {
+                loadLayout();
+                alert('Layout has been reset.');
+            } else {
+                alert('Error resetting layout: ' + result.message);
+            }
+        });
+    }
+}
+
+
 function getChartTitle(metric) {
     const titles = {
         gender: 'Gender Distribution',
@@ -103,7 +125,6 @@ function getChartTitle(metric) {
         civil_status: 'Civil Status',
         blood_type: 'Blood Type',
         residency_status: 'Residency Status',
-        // New Titles
         nationality: 'Nationality Distribution',
         relationship: 'Relationship to Head',
         voter_status: 'Voter Status',
@@ -112,6 +133,26 @@ function getChartTitle(metric) {
         toddlers: 'Early Childhood (0-4)'
     };
     return titles[metric] || 'Unknown Chart';
+}
+
+function getChartIcon(metric) {
+    const icons = {
+        gender: 'wc',
+        age: 'cake',
+        status: 'assignment_ind',
+        purok: 'location_on',
+        barangay: 'map',
+        civil_status: 'favorite',
+        blood_type: 'opacity',
+        residency_status: 'home',
+        nationality: 'flag',
+        relationship: 'people',
+        voter_status: 'how_to_vote',
+        senior_citizens: 'elderly',
+        youth_bracket: 'school',
+        toddlers: 'child_care'
+    };
+    return icons[metric] || 'pie_chart';
 }
 
 function drawChart(metric) {
@@ -136,13 +177,13 @@ function drawChart(metric) {
                 chartArea: {'width': '90%', 'height': '75%'}
             };
 
-            let chartType = 'PieChart'; // Default to PieChart
+            let chartType = 'PieChart'; 
 
             if (['age', 'purok', 'barangay', 'residency_status'].includes(metric)) {
                 chartType = 'ColumnChart';
                 options.legend = { position: 'none' };
             } else if (['gender', 'civil_status', 'voter_status', 'senior_citizens', 'youth_bracket', 'toddlers'].includes(metric)) {
-                options.pieHole = 0.4; // Doughnut chart for these
+                options.pieHole = 0.4;
             }
             
             chartDiv.chartData = data;
