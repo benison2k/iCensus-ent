@@ -1,0 +1,49 @@
+/* =========================
+   Analytics Page Styles
+========================= */
+.analytics-container {
+    padding: 2rem;
+    max-width: 1600px;
+    margin: auto;
+}
+
+.chart-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+}
+
+.chart-container {
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+    min-height: 300px;
+}
+
+.chart-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .chart-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .chart-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* =========================
+   Dark Mode
+========================= */
+body.dark-mode .chart-container {
+    background-color: #2C3E50;
+    color: #ffffff;
+}
