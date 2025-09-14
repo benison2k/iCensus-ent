@@ -1,14 +1,14 @@
 /* =========================
-   ANALYTICS PAGE STYLES
+   DEFINITIVE FIX FOR ANALYTICS LAYOUT
 ========================= */
 
 /* Main container for the analytics page */
 .analytics-container {
-    display: flex;
-    justify-content: center;
-    padding: 2rem;
-    max-width: 1600px;
-    margin: 0 auto;
+    display: flex !important;
+    justify-content: center !important;
+    padding: 2rem !important;
+    max-width: 1600px !important;
+    margin: 0 auto !important;
 }
 
 /* The main card that holds the chart grid */
@@ -17,7 +17,8 @@
     padding: 2rem;
     border-radius: 16px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
-    width: 100%;
+    width: 100% !important; /* Force the card to be wide */
+    box-sizing: border-box !important;
 }
 
 /* Individual chart widgets */
@@ -40,28 +41,26 @@
     margin-bottom: 1rem;
     text-align: center;
     color: #333;
-    flex-shrink: 0; /* Prevents title from shrinking */
+    flex-shrink: 0;
 }
 
 .chart-div {
     flex-grow: 1;
     width: 100%;
-    min-height: 0; /* Allows the flex item to shrink and grow properly */
+    min-height: 0;
 }
 
 /* =========================
    Dark Mode Styles
 ========================= */
 body.dark-mode .dashboard-card {
-    /* Corrected: Lighter color to stand out from the body */
-    background-color: #2C3E50; 
+    background-color: #2C3E50 !important; 
 }
 
 body.dark-mode .grid-stack-item-content {
-    /* A slightly darker color for the inner chart cards */
-    background-color: #1c2a38;
+    background-color: #1c2a38 !important;
 }
 
 body.dark-mode .chart-title {
-    color: #ffffff;
+    color: #ffffff !important;
 }
