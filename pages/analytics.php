@@ -23,7 +23,8 @@ $theme = $user['theme'] ?? 'light';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>iCensus - Analytics</title>
     <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="stylesheet" href="../assets/css/analytics_layout_fix.css"> 
+    <link rel="stylesheet" href="../assets/css/dashboard.css">
+    <link rel="stylesheet" href="../assets/css/analytics.css"> 
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
@@ -38,7 +39,7 @@ $theme = $user['theme'] ?? 'light';
     <h2>Analytics Dashboard</h2>
 </div>
 
-<main class="analytics-container">
+<main class="dashboard">
     <div class="dashboard-card">
         <div style="text-align: right; margin-bottom: 1rem;">
             <button id="save-layout-btn" style="padding: 0.5rem 1rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; border: none; border-radius: 8px;">
