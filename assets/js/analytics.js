@@ -1,10 +1,9 @@
 google.charts.load('current', {'packages':['corechart']});
 google.charts.setOnLoadCallback(initializeDashboard);
 
-let grid; // Make grid globally accessible
-let chartsToDraw = {}; // A registry for our charts
+let grid;
+let chartsToDraw = {};
 
-// A simple debounce function to prevent rapid-fire resizing
 function debounce(func, wait) {
     let timeout;
     return function executedFunction(...args) {
@@ -26,18 +25,16 @@ function initializeDashboard() {
 
     loadLayout();
 
-    // When a widget is added, draw its chart
     grid.on('added', function(event, items) {
         items.forEach(item => {
             const chartId = item.id;
             if (chartsToDraw[chartId]) {
-                chartsToDraw[chartId](); // Call the drawing function
-                delete chartsToDraw[chartId]; // Clean up
+                chartsToDraw[chartId]();
+                delete chartsToDraw[chartId];
             }
         });
     });
     
-    // When a widget stops resizing, redraw its chart
     const redrawChart = (el) => {
         const id = el.gridstackNode.id;
         const chartDiv = document.getElementById(`${id}_chart_div`);
@@ -48,7 +45,6 @@ function initializeDashboard() {
 
     grid.on('resizestop', (event, el) => redrawChart(el));
 
-    // Also redraw all charts if the browser window is resized
     window.addEventListener('resize', debounce(() => {
         grid.engine.nodes.forEach(node => redrawChart(node.el));
     }, 250));
@@ -61,7 +57,6 @@ function loadLayout() {
         .then(response => response.json())
         .then(layoutData => {
             grid.removeAll();
-            // Prepare drawing functions before adding widgets
             layoutData.forEach(node => {
                 chartsToDraw[node.id] = () => drawChart(node.id);
                 const widgetHtml = `
@@ -107,7 +102,14 @@ function getChartTitle(metric) {
         barangay: 'Population by Barangay',
         civil_status: 'Civil Status',
         blood_type: 'Blood Type',
-        residency_status: 'Residency Status'
+        residency_status: 'Residency Status',
+        // New Titles
+        nationality: 'Nationality Distribution',
+        relationship: 'Relationship to Head',
+        voter_status: 'Voter Status',
+        senior_citizens: 'Senior Citizens (60+)',
+        youth_bracket: 'Youth Bracket (15-24)',
+        toddlers: 'Early Childhood (0-4)'
     };
     return titles[metric] || 'Unknown Chart';
 }
@@ -134,13 +136,13 @@ function drawChart(metric) {
                 chartArea: {'width': '90%', 'height': '75%'}
             };
 
-            let chartType = 'PieChart';
+            let chartType = 'PieChart'; // Default to PieChart
 
             if (['age', 'purok', 'barangay', 'residency_status'].includes(metric)) {
                 chartType = 'ColumnChart';
                 options.legend = { position: 'none' };
-            } else if (['gender', 'civil_status'].includes(metric)) {
-                options.pieHole = 0.4;
+            } else if (['gender', 'civil_status', 'voter_status', 'senior_citizens', 'youth_bracket', 'toddlers'].includes(metric)) {
+                options.pieHole = 0.4; // Doughnut chart for these
             }
             
             chartDiv.chartData = data;
