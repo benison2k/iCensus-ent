@@ -18,8 +18,8 @@ function debounce(func, wait) {
 
 function initializeDashboard() {
     grid = GridStack.init({
-        cellHeight: 150,
-        margin: 10,
+        cellHeight: 80, // Using a smaller, more granular cell height
+        margin: 20,     // This is the gap between all charts
         float: true
     });
 
@@ -38,15 +38,21 @@ function initializeDashboard() {
     const redrawChart = (el) => {
         const id = el.gridstackNode.id;
         const chartDiv = document.getElementById(`${id}_chart_div`);
-        if (chartDiv && chartDiv.chartInstance) {
-            chartDiv.chartInstance.draw(chartDiv.chartData, chartDiv.chartOptions);
+        if (chartDiv && chartDiv.chartInstance && chartDiv.chartData && chartDiv.chartOptions) {
+             if (chartDiv.chartType && (chartDiv.chartType === 'GroupedBar' || chartDiv.chartType === 'PopulationPyramid')) {
+                chartDiv.chartInstance.draw(chartDiv.chartData, google.charts.Bar.convertOptions(chartDiv.chartOptions));
+            } else {
+                chartDiv.chartInstance.draw(chartDiv.chartData, chartDiv.chartOptions);
+            }
         }
     };
 
     grid.on('resizestop', (event, el) => redrawChart(el));
 
     window.addEventListener('resize', debounce(() => {
-        grid.engine.nodes.forEach(node => redrawChart(node.el));
+        if(grid && grid.engine && grid.engine.nodes) {
+            grid.engine.nodes.forEach(node => redrawChart(node.el));
+        }
     }, 250));
 
     document.getElementById('save-layout-btn').addEventListener('click', saveLayout);
@@ -121,21 +127,14 @@ function resetLayout() {
 
 function getChartTitle(metric) {
     const titles = {
-        // Original 12
         gender: 'Gender Distribution',
         age: 'Age Groups',
-        status: 'Resident Status',
         purok: 'Population by Purok',
         barangay: 'Population by Barangay',
         civil_status: 'Civil Status',
         blood_type: 'Blood Type Distribution',
         nationality: 'Nationality',
         relationship: 'Relationship to Head',
-        voter_status: 'Voter Status',
-        senior_citizens: 'Senior Citizens (60+)',
-        youth_bracket: 'Youth Bracket (15-24)',
-
-        // New 18
         generation_breakdown: 'Generation Breakdown',
         detailed_age_brackets: 'Detailed Age Brackets (10-year)',
         household_size_distribution: 'Household Size Distribution',
@@ -153,17 +152,17 @@ function getChartTitle(metric) {
         voter_population_by_purok: 'Voter Population by Purok',
         senior_citizens_by_purok: 'Senior Citizens by Purok',
         school_age_population_by_purok: 'School-Age Population by Purok',
-        resident_status_overview: 'Resident Status Overview'
+        resident_status_overview: 'Resident Status Overview',
+        youth_vs_seniors_by_purok: 'Youth vs. Seniors by Purok'
     };
     return titles[metric] || 'Unknown Chart';
 }
 
 function getChartIcon(metric) {
     const icons = {
-        gender: 'wc', age: 'cake', status: 'assignment_ind', purok: 'location_on',
+        gender: 'wc', age: 'cake', purok: 'location_on',
         barangay: 'map', civil_status: 'favorite', blood_type: 'opacity', nationality: 'flag',
-        relationship: 'people', voter_status: 'how_to_vote', senior_citizens: 'elderly',
-        youth_bracket: 'school', generation_breakdown: 'groups', detailed_age_brackets: 'bar_chart',
+        relationship: 'people', generation_breakdown: 'groups', detailed_age_brackets: 'bar_chart',
         household_size_distribution: 'home', dependency_ratio: 'reduce_capacity', sex_ratio: 'transgender',
         population_pyramid: 'stacked_bar_chart', average_age_of_residents: 'escalator_warning',
         average_household_size: 'roofing', heads_of_household_by_gender: 'supervisor_account',
@@ -171,7 +170,7 @@ function getChartIcon(metric) {
         profile_completeness: 'fact_check', blood_type_data_coverage: 'science',
         emergency_contact_coverage: 'contact_phone', voter_population_by_purok: 'where_to_vote',
         senior_citizens_by_purok: 'assist_walker', school_age_population_by_purok: 'school',
-        resident_status_overview: 'visibility'
+        resident_status_overview: 'visibility', youth_vs_seniors_by_purok: 'elderly_woman'
     };
     return icons[metric] || 'pie_chart';
 }
@@ -190,24 +189,29 @@ function getChartType(metric) {
     };
     if (types[metric]) return types[metric];
 
-    // Default types
     if (['age', 'purok', 'barangay', 'detailed_age_brackets', 'voter_population_by_purok', 'senior_citizens_by_purok', 'average_age_by_purok'].includes(metric)) {
         return 'ColumnChart';
     }
-    return 'PieChart'; // Default
+    return 'PieChart';
 }
-
 
 function drawChart(metric) {
     fetch(`../core/analytics_data.php?metric=${metric}`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error(`Network response was not ok for metric: ${metric}`);
+            return response.json();
+        })
         .then(apiData => {
             const chartDiv = document.getElementById(`${metric}_chart_div`);
-            if (!chartDiv || !apiData) return;
+            if (!chartDiv) return;
+            if (apiData.error) {
+                chartDiv.innerHTML = `<div class="chart-error">Error: ${apiData.error}</div>`;
+                return;
+            }
 
             const chartType = getChartType(metric);
-            
-            // --- KPI Card Handling ---
+            chartDiv.chartType = chartType;
+
             if(chartType === 'KPI') {
                 chartDiv.innerHTML = `<div class="kpi-value">${apiData.value}</div><div class="kpi-label">${apiData.label || ''}</div>`;
                 return;
@@ -216,33 +220,39 @@ function drawChart(metric) {
             let data;
             let options = {
                 title: '',
-                legend: 'bottom',
+                legend: { position: 'bottom' },
                 width: '100%',
                 height: '100%',
                 backgroundColor: 'transparent',
-                chartArea: {'width': '85%', 'height': '70%'}
+                chartArea: {'width': '85%', 'height': '70%'},
+                hAxis: { textStyle: { color: '#555' }, slantedText: false },
+                vAxis: { textStyle: { color: '#555' }, viewWindow: { min: 0 } }
             };
 
-            // --- Data & Options setup for different charts ---
             switch(chartType) {
                 case 'PopulationPyramid':
-                    const pyramidData = [['Age Bracket', 'Male', 'Female']];
+                    let maxVal = 0;
+                    const pyramidData = [['Age Bracket', 'Male', { role: 'style' }, 'Female', { role: 'style' }]];
                     for (const age in apiData) {
-                        pyramidData.push([age, -Math.abs(apiData[age]['Male']), apiData[age]['Female']]);
+                        const maleVal = Math.abs(apiData[age]['Male'] || 0);
+                        const femaleVal = Math.abs(apiData[age]['Female'] || 0);
+                        if (maleVal > maxVal) maxVal = maleVal;
+                        if (femaleVal > maxVal) maxVal = femaleVal;
+                        pyramidData.push([age, -maleVal, 'color: #3366cc', femaleVal, 'color: #dc3912']);
                     }
                     data = google.visualization.arrayToDataTable(pyramidData);
                     options.isStacked = true;
-                    options.hAxis = {
-                        title: 'Population',
-                        format: 'short',
-                        ticks: [-10, -5, 0, 5, 10] // Example ticks
-                    };
+                    const tickMax = Math.ceil(maxVal / 5) * 5;
+                    options.hAxis.ticks = Array.from({length: (tickMax / 5) * 2 + 1}, (_, i) => (i - tickMax / 5) * 5).map(v => ({v: v, f: String(Math.abs(v))}));
                     break;
 
                 case 'GroupedBar':
-                    const groupData = [['Category', 'Male', 'Female']]; // Example for gender
+                    const firstRow = apiData[Object.keys(apiData)[0]];
+                    if(!firstRow) return; // No data to draw
+                    const headers = ['Category', ...Object.keys(firstRow)];
+                    const groupData = [headers];
                     for (const cat in apiData) {
-                        groupData.push([cat, apiData[cat]['Male'], apiData[cat]['Female']]);
+                        groupData.push([cat, ...Object.values(apiData[cat])]);
                     }
                     data = google.visualization.arrayToDataTable(groupData);
                     break;
@@ -253,8 +263,8 @@ function drawChart(metric) {
                         dataArray.push([key, apiData[key]]);
                     }
                     data = google.visualization.arrayToDataTable(dataArray);
-                    if (['gender', 'civil_status', 'voter_status', 'senior_citizens', 'youth_bracket', 'blood_type_data_coverage', 'emergency_contact_coverage', 'resident_status_overview', 'sex_ratio'].includes(metric)) {
-                        options.pieHole = 0.4; // Doughnut chart
+                    if (['gender', 'civil_status', 'blood_type_data_coverage', 'emergency_contact_coverage', 'resident_status_overview', 'sex_ratio', 'heads_of_household_by_gender'].includes(metric)) {
+                        options.pieHole = 0.4;
                     }
                     if (chartType.includes('Column')) options.legend = { position: 'none' };
                     break;
@@ -266,11 +276,17 @@ function drawChart(metric) {
             let chart;
             if (chartType === 'GroupedBar' || chartType === 'PopulationPyramid') {
                 chart = new google.charts.Bar(chartDiv);
+                chartDiv.chartInstance = chart;
+                chart.draw(data, google.charts.Bar.convertOptions(options));
             } else {
                 chart = new google.visualization[chartType](chartDiv);
+                chartDiv.chartInstance = chart;
+                chart.draw(data, options);
             }
-            chartDiv.chartInstance = chart;
-
-            chart.draw(data, chartType.includes('Bar') ? google.charts.Bar.convertOptions(options) : options);
+        })
+        .catch(error => {
+            const chartDiv = document.getElementById(`${metric}_chart_div`);
+            if(chartDiv) chartDiv.innerHTML = `<div class="chart-error">Could not load chart.</div>`;
+            console.error('Error fetching/drawing chart:', metric, error);
         });
 }

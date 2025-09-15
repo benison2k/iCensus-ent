@@ -1,12 +1,56 @@
 /* =========================
-   FINAL ANALYTICS LAYOUT STYLES
+   ENHANCED ANALYTICS STYLES
 ========================= */
 
+/* --- Main Dashboard Container --- */
+.dashboard-card {
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 2rem;
+    border-radius: 24px; /* Softer corners */
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.1);
+    width: 95%; /* Wider for more space */
+    max-width: 1800px;
+}
+
+/* --- Controls Area --- */
 .controls-wrapper {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
+    padding: 0 0.5rem;
+}
+
+.buttons-container button {
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#reset-layout-btn {
+    background-color: #ffebee;
+    color: #c62828;
+}
+#reset-layout-btn:hover {
+    background-color: #ffcdd2;
+    transform: translateY(-2px);
+}
+
+#save-layout-btn {
+    background-color: #e8eaf6;
+    color: #3949ab;
+}
+#save-layout-btn:hover {
+    background-color: #c5cae9;
+    transform: translateY(-2px);
 }
 
 .tooltip-container {
@@ -16,34 +60,35 @@
 
 .info-icon {
     cursor: pointer;
+    color: #757575;
 }
 
 .tooltip-text {
     visibility: hidden;
     width: 220px;
-    background-color: #555;
+    background-color: #333;
     color: #fff;
     text-align: center;
     border-radius: 6px;
-    padding: 5px 0;
+    padding: 8px 12px;
     position: absolute;
-    z-index: 1;
-    bottom: 125%;
+    z-index: 1001;
+    bottom: 135%;
     left: 50%;
     margin-left: -110px;
     opacity: 0;
     transition: opacity 0.3s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
 .tooltip-text::after {
     content: "";
     position: absolute;
-    top: 100%;
-    left: 50%;
+    top: 100%; left: 50%;
     margin-left: -5px;
     border-width: 5px;
     border-style: solid;
-    border-color: #555 transparent transparent transparent;
+    border-color: #333 transparent transparent transparent;
 }
 
 .tooltip-container:hover .tooltip-text {
@@ -54,39 +99,39 @@
 .separator-line {
     border: 0;
     height: 1px;
-    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
-    margin-bottom: 1rem;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0));
+    margin: 1rem 0 2rem 0; /* More space after the line */
 }
 
-.dashboard-card {
-    background-color: #e9e9e9;
-    padding: 2rem;
-    padding: 2rem;
-    border-radius: 16px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
-    width: 90%; 
-    max-width: 1600px;
-}
 
+/* --- Chart Widget Design --- */
 .grid-stack-item-content {
     background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-radius: 16px;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
     display: flex;
     flex-direction: column;
-    padding: 1.5rem;
+    padding: 1.25rem 1.5rem;
     overflow: hidden !important;
     height: 100%;
     width: 100%;
     box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+.grid-stack-item-content:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.07);
+    border-color: #c5cae9;
 }
 
 .chart-title {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 600;
     margin-bottom: 1rem;
     text-align: center;
-    color: #333;
+    color: #37474f; /* Darker, less harsh than black */
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -96,6 +141,7 @@
 
 .chart-icon {
     font-size: 1.5rem;
+    color: #546e7a;
 }
 
 .chart-div {
@@ -104,17 +150,99 @@
     min-height: 0;
 }
 
+/* --- Enhanced KPI Card Styles --- */
+.kpi-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    text-align: center;
+}
+.kpi-value {
+    font-size: 3.5rem; /* Larger font */
+    font-weight: 700;
+    color: #3949ab; /* Primary accent color */
+    line-height: 1.1;
+}
+.kpi-label {
+    font-size: 0.9rem;
+    color: #546e7a;
+    margin-top: 0.5rem;
+}
+
+/* --- Chart Error Styles --- */
+.chart-error {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: #c62828;
+    font-style: italic;
+    background-color: #ffebee;
+    border-radius: 8px;
+}
+
+
 /* =========================
-   Dark Mode Styles
+   DARK MODE ENHANCEMENTS
 ========================= */
 body.dark-mode .dashboard-card {
-    background-color: #2C3E50; 
+    background-color: rgba(28, 42, 56, 0.7); /* Darker semi-transparent */
+    backdrop-filter: blur(15px);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
 }
 
 body.dark-mode .grid-stack-item-content {
-    background-color: #1c2a38;
+    background-color: #263238; /* Dark blue-grey */
+    border-color: #37474f;
+}
+
+body.dark-mode .grid-stack-item-content:hover {
+    border-color: #7986cb;
 }
 
 body.dark-mode .chart-title {
-    color: #ffffff;
+    color: #eceff1;
+}
+
+body.dark-mode .chart-icon {
+    color: #90a4ae;
+}
+
+body.dark-mode .kpi-value {
+    color: #9fa8da;
+}
+
+body.dark-mode .kpi-label {
+    color: #b0bec5;
+}
+
+body.dark-mode .separator-line {
+     background-image: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
+}
+
+body.dark-mode #reset-layout-btn {
+    background-color: #3e2723;
+    color: #ef9a9a;
+}
+body.dark-mode #reset-layout-btn:hover {
+    background-color: #4e342e;
+}
+
+body.dark-mode #save-layout-btn {
+    background-color: #283593;
+    color: #e8eaf6;
+}
+body.dark-mode #save-layout-btn:hover {
+    background-color: #303f9f;
+}
+
+body.dark-mode .chart-error {
+    background-color: #3e2723;
+    color: #ef9a9a;
+}
+body.dark-mode text { /* Google Charts text elements */
+    fill: #CFD8DC !important;
 }
