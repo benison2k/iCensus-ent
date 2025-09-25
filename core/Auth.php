@@ -13,7 +13,13 @@ class Auth {
      * @return array ['success' => bool, 'message' => string|null]
      */
     public function login($username, $password) {
-        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE username = ?");
+        // MODIFIED: Join the roles table to get the role_name
+        $stmt = $this->pdo->prepare("
+            SELECT users.*, roles.role_name 
+            FROM users 
+            JOIN roles ON users.role_id = roles.id 
+            WHERE users.username = ?
+        ");
         $stmt->execute([$username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -30,6 +36,7 @@ class Auth {
             'id' => $user['id'],
             'username' => $user['username'],
             'role_id' => $user['role_id'],
+            'role_name' => $user['role_name'], // ADDED: Store the role name
             'full_name' => $user['full_name'],
             'theme' => $user['theme'] ?? 'light',
             'language' => $user['language'] ?? 'en',
@@ -40,11 +47,18 @@ class Auth {
     }
 
     public function refreshUserSession($userId) {
-        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE id=?");
+        // MODIFIED: Also refresh the role_name
+        $stmt = $this->pdo->prepare("
+            SELECT users.*, roles.role_name 
+            FROM users 
+            JOIN roles ON users.role_id = roles.id 
+            WHERE users.id = ?
+        ");
         $stmt->execute([$userId]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($user) {
             $_SESSION['user']['username'] = $user['username'];
+            $_SESSION['user']['role_name'] = $user['role_name']; // ADDED: Refresh role name
             $_SESSION['user']['theme'] = $user['theme'] ?? 'light';
             $_SESSION['user']['language'] = $user['language'] ?? 'en';
             $_SESSION['user']['two_fa'] = $user['two_fa'] ?? 0;
