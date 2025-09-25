@@ -1,7 +1,7 @@
 <?php
 // create_hash.php
 
-$passwordToHash = 'password123';
+$passwordToHash = '111';
 $hashedPassword = password_hash($passwordToHash, PASSWORD_DEFAULT);
 
 echo "<h3>Password Hash Generator</h3>";

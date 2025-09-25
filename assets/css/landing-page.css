@@ -1,0 +1,269 @@
+/* =================================
+   Base Styles & Variables
+==================================== */
+:root {
+    --gradient-start: #0d6efd;
+    --gradient-end: #6c63ff;
+    --text-light: #ffffff;
+    --text-dark: #2C3E50;
+    --bg-light: #f8f9fa;
+    --bg-white: #ffffff;
+    --accent-light: #e7f1ff;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-light);
+    color: var(--text-dark);
+    line-height: 1.7;
+    position: relative;
+}
+
+.container {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2.5rem;
+    font-weight: 600;
+    margin-bottom: 4rem;
+    position: relative; /* Ensure title is above any background elements */
+    z-index: 5;
+}
+
+/* =================================
+   Particle Canvas Background
+==================================== */
+#particleCanvas {
+    position: fixed; /* Changed to fixed to stay with viewport */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1; /* Lowest z-index to stay in the back */
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+}
+
+main, footer {
+    position: relative;
+    z-index: 5; /* Sit above the particle canvas */
+    background-color: transparent;
+}
+
+main > section {
+    background-color: var(--bg-light);
+}
+
+/* Hero section is transparent to show the particle canvas */
+main > section.hero {
+    background-color: transparent;
+}
+
+
+/* =================================
+   Header & Buttons
+==================================== */
+.header {
+    position: fixed; width: 100%; top: 0; left: 0;
+    z-index: 999; /* Highest z-index to ensure it's on top of everything */
+    padding: 1.5rem 0;
+    transition: all 0.3s ease;
+}
+.header.scrolled {
+    background-color: rgba(255, 255, 255, 0.95);
+    padding: 1rem 0;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+    backdrop-filter: blur(5px);
+}
+.header-container { display: flex; justify-content: space-between; align-items: center; }
+.logo { height: 45px; transition: filter 0.3s ease; }
+
+.btn-login {
+    padding: 0.6rem 1.2rem; border: 2px solid var(--text-light); border-radius: 8px;
+    font-size: 0.9rem; font-weight: 500; text-decoration: none; color: var(--text-light);
+    background-color: transparent; transition: all 0.3s ease;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+}
+.header.scrolled .btn-login { border-color: var(--gradient-start); color: var(--gradient-start); }
+.btn-login:hover { background-color: var(--text-light); color: var(--gradient-start); }
+
+/* ADD THESE NEW RULES */
+.btn-login.btn-icon {
+    padding: 0.5rem;
+    border-radius: 50%;
+    line-height: 1;
+}
+
+.btn-login.btn-icon .material-icons {
+    font-size: 28px;
+    vertical-align: middle;
+}
+
+.btn-cta {
+    padding: 0.9rem 2.5rem; border-radius: 8px; font-size: 1.1rem; font-weight: 600;
+    text-decoration: none; color: var(--text-dark); background-color: var(--text-light);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1); transition: all 0.3s ease; display: inline-block;
+}
+.btn-cta:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+
+/* =================================
+   Hero Section
+==================================== */
+.hero {
+    color: var(--text-light);
+    padding: 12rem 0 10rem;
+    overflow: hidden;
+}
+
+.hero-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    align-items: center;
+    gap: 2rem;
+}
+
+.hero-text-content {
+    text-align: left;
+}
+
+.hero-title {
+    font-size: 3.2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    max-width: 550px;
+    margin-bottom: 2.5rem;
+    opacity: 0.9;
+}
+
+.hero-visual-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.visual-placeholder {
+    width: 100%;
+    max-width: 450px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px dashed rgba(255, 255, 255, 0.5);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.2rem;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+.visual-placeholder:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.visual-placeholder .material-icons {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+/* =================================
+   Features Section
+==================================== */
+.features { padding: 6rem 0; }
+.features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
+.feature-card {
+    background-color: var(--bg-white); padding: 2.5rem 2rem; border-radius: 12px;
+    text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.04);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.feature-card:hover { transform: translateY(-10px); box-shadow: 0 12px 30px rgba(0,0,0,0.08); }
+.feature-icon-wrapper {
+    display: inline-flex; justify-content: center; align-items: center;
+    width: 80px; height: 80px; border-radius: 50%;
+    background-color: var(--accent-light); margin-bottom: 1.5rem;
+}
+.feature-icon-wrapper .material-icons { font-size: 2.5rem; color: var(--gradient-start); }
+.feature-title { font-size: 1.3rem; font-weight: 600; margin-bottom: 0.75rem; }
+.feature-description { font-size: 0.95rem; color: #555; }
+
+/* =================================
+   How It Works Section
+==================================== */
+.how-it-works { padding: 4rem 0 6rem; background-color: var(--bg-white); }
+.process-wrapper { display: flex; justify-content: space-around; align-items: flex-start; gap: 2rem; flex-wrap: wrap; }
+.process-step { text-align: center; max-width: 300px; }
+.step-icon {
+    width: 90px; height: 90px; border-radius: 50%; background-color: var(--accent-light);
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;
+}
+.step-icon .material-icons { font-size: 2.8rem; color: var(--gradient-start); }
+.step-title { font-size: 1.4rem; font-weight: 600; margin-bottom: 0.5rem; }
+.step-arrow { font-size: 2rem; color: #ccc; margin-top: 3rem; }
+
+/* =================================
+   Role Section
+==================================== */
+.role-section { padding: 6rem 0; }
+.role-row { display: flex; align-items: center; gap: 4rem; margin-bottom: 4rem; }
+.role-row:last-child { margin-bottom: 0; }
+.role-text, .role-img-container { flex: 1; }
+.role-text h3 { font-size: 2rem; margin-bottom: 1rem; }
+.role-img-container {
+    background-color: var(--bg-white); border-radius: 12px;
+    padding: 3rem; text-align: center;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.04);
+}
+.role-icon { font-size: 6rem; color: var(--gradient-start); }
+.role-row.reverse { flex-direction: row-reverse; }
+
+/* =================================
+   CTA Section
+==================================== */
+.cta-section {
+    padding: 5rem 0; text-align: center;
+    background-color: var(--bg-white);
+}
+.cta-section h2 { font-size: 2.5rem; margin-bottom: 1rem; color: var(--text-dark); }
+.cta-section p { font-size: 1.1rem; margin-bottom: 2rem; opacity: 0.9; }
+.cta-section .btn-cta {
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+    color: var(--text-light);
+}
+
+/* =================================
+   Footer
+==================================== */
+.footer {
+    background-color: var(--text-dark); color: var(--text-light);
+    text-align: center; padding: 2rem 0; font-size: 0.9rem;
+}
+.footer p { opacity: 0.7; }
+
+/* =================================
+   Responsive
+==================================== */
+@media (max-width: 992px) {
+    .role-row, .role-row.reverse { flex-direction: column; gap: 2rem; }
+    .role-text { text-align: center; }
+}
+@media (max-width: 768px) {
+    .hero-title { font-size: 2.5rem; }
+    .section-title { font-size: 2rem; }
+    .process-wrapper { flex-direction: column; align-items: center; }
+    .step-arrow { transform: rotate(90deg); margin: 0; }
+    .hero-grid { grid-template-columns: 1fr; text-align: center; }
+    .hero-text-content { text-align: center; order: 2; }
+    .hero-visual-content { order: 1; margin-bottom: 3rem; }
+}

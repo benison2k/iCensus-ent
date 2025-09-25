@@ -19,14 +19,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $result = $auth->login($username, $password);
 
     if ($result['success']) {
-        // MODIFIED: Role-based redirection logic
+        // --- UPDATED: Role-based redirection logic ---
         $role = $_SESSION['user']['role_name'];
 
-        if ($role == 'Admin') {
-            header("Location: dashboard.php");
+        if ($role == 'System Admin') {
+            // This will be created later
+            header("Location: ../sysadmin/dashboard.php");
             exit;
-        } elseif ($role == 'Clerk/Encoder') {
-            header("Location: encoder_dashboard.php");
+        } elseif ($role == 'Barangay Admin') {
+            // CORRECTED: Point to the admin folder
+            header("Location: ../pages/dashboard.php");
+            exit;
+        } elseif ($role == 'Encoder') {
+            header("Location: ../pages/encoder_dashboard.php");
             exit;
         } else {
             // Fallback for other roles or if role is not set
@@ -45,10 +50,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <title>iCensus Login</title>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
 <link rel="stylesheet" href="../assets/css/login.css">
+
 </head>
 <body>
 

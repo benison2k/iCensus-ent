@@ -6,7 +6,8 @@ if (!isset($_SESSION['user'])) {
     header("Location: login.php"); // Not logged in
     exit;
 }
-$allowed_roles = ['Admin', 'Clerk/Encoder'];
+// Correct roles that can access this page
+$allowed_roles = ['Barangay Admin', 'Encoder']; 
 if (!in_array($_SESSION['user']['role_name'], $allowed_roles)) {
     http_response_code(403);
     die("<h1>403 Forbidden</h1><p>You do not have permission to access this page.</p>");
@@ -32,11 +33,10 @@ $modalMessage = $_SESSION['modal']['message'] ?? '';
 $modalType = $_SESSION['modal']['type'] ?? '';
 unset($_SESSION['modal']);
 
-// Fetch initial data just for populating filters and getting a total count
+// Fetch initial data for filters
 $pdo = $db->getPdo();
 $stmt = $pdo->query("SELECT purok, barangay FROM residents");
 $all_residents_for_filters = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 $total_residents_count = count($all_residents_for_filters);
 
 ?>
@@ -66,7 +66,12 @@ endif; ?>
 
 <div style="padding:0 2rem; max-width:1400px; margin:auto;">
     
-    <?php if ($user_role === 'Admin'): ?>
+    <?php 
+    // --- THIS IS THE FIX ---
+    // Allow both Barangay Admins and Encoders to see the button
+    $allowed_roles_for_adding = ['Barangay Admin', 'Encoder'];
+    if (in_array($user_role, $allowed_roles_for_adding)): 
+    ?>
         <button id="addResidentBtn" class="settings-card" style="cursor:pointer; display:inline-flex; align-items:center; gap:0.5rem;">
             <span class="material-icons">person_add</span> Add Resident
         </button>
