@@ -35,8 +35,7 @@ require_once __DIR__ . '/auth_check.php';
             <p class="card-desc">Perform system backups and maintenance.</p>
         </a>
         
-        <a href="#" class="card clickable-card">
-            <span class="material-icons card-icon">receipt_long</span>
+        <a href="system_logs.php" class="card clickable-card"> <span class="material-icons card-icon">receipt_long</span>
             <h3 class="card-title">System Logs</h3>
             <p class="card-desc">View system-wide activity and error logs.</p>
         </a>

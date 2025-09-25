@@ -1,4 +1,7 @@
 <?php
+// At the very top of the file, include the new functions file
+require_once __DIR__ . '/functions.php';
+
 class Auth {
     private $pdo;
 
@@ -13,7 +16,9 @@ class Auth {
      * @return array ['success' => bool, 'message' => string|null]
      */
     public function login($username, $password) {
-        // MODIFIED: Join the roles table to get the role_name
+        // Make the global $db object available for our logging function
+        global $db; 
+
         $stmt = $this->pdo->prepare("
             SELECT users.*, roles.role_name 
             FROM users 
@@ -23,8 +28,10 @@ class Auth {
         $stmt->execute([$username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Return generic error for any invalid credentials
+        // If login fails, log the event and then return the error
         if (!$user || !password_verify($password, $user['password'])) {
+            // UPDATED: Log the failed login attempt
+            log_action('WARNING', 'USER_LOGIN_FAIL', "Failed login attempt for username: '" . htmlspecialchars($username) . "'");
             return [
                 'success' => false,
                 'message' => 'Invalid credentials'
@@ -36,18 +43,21 @@ class Auth {
             'id' => $user['id'],
             'username' => $user['username'],
             'role_id' => $user['role_id'],
-            'role_name' => $user['role_name'], // ADDED: Store the role name
+            'role_name' => $user['role_name'],
             'full_name' => $user['full_name'],
+            'barangay_id' => $user['barangay_id'] ?? null, // Added for security and scoping
             'theme' => $user['theme'] ?? 'light',
             'language' => $user['language'] ?? 'en',
             'two_fa' => $user['two_fa'] ?? 0
         ];
 
+        // UPDATED: Log the successful login event after setting the session
+        log_action('INFO', 'USER_LOGIN_SUCCESS', "User '" . htmlspecialchars($username) . "' logged in successfully.");
+
         return ['success' => true, 'message' => null];
     }
 
     public function refreshUserSession($userId) {
-        // MODIFIED: Also refresh the role_name
         $stmt = $this->pdo->prepare("
             SELECT users.*, roles.role_name 
             FROM users 
@@ -58,7 +68,8 @@ class Auth {
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($user) {
             $_SESSION['user']['username'] = $user['username'];
-            $_SESSION['user']['role_name'] = $user['role_name']; // ADDED: Refresh role name
+            $_SESSION['user']['role_name'] = $user['role_name'];
+            $_SESSION['user']['barangay_id'] = $user['barangay_id'] ?? null; // Also refresh the barangay_id
             $_SESSION['user']['theme'] = $user['theme'] ?? 'light';
             $_SESSION['user']['language'] = $user['language'] ?? 'en';
             $_SESSION['user']['two_fa'] = $user['two_fa'] ?? 0;
