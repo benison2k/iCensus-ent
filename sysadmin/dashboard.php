@@ -24,9 +24,9 @@ require_once __DIR__ . '/auth_check.php';
 <main class="dashboard">
     <div class="card-grid">
         <a href="manage_users.php" class="card clickable-card">
-            <span class="material-icons card-icon">shield_person</span>
+            <span class="material-icons card-icon">manage_accounts</span>
             <h3 class="card-title">Manage Users</h3>
-            <p class="card-desc">Create and manage Barangay Admin and Encoder accounts.</p>
+            <p class="card-desc">Add, edit, and manage Encoder accounts.</p>
         </a>
 
         <a href="#" class="card clickable-card">
