@@ -79,6 +79,7 @@ $assignable_roles = $roles_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 </main>
 
+<?php $form_action = '../core/users_process.php'; ?>
 <?php include __DIR__ . '/../components/user_modal.php'; ?>
 <?php include __DIR__ . '/../components/footer.php'; ?>
 <script src="../assets/js/users.js"></script>

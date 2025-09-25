@@ -2,9 +2,7 @@
     <div class="modal-content" style="text-align: left;">
         <span class="close">&times;</span>
         <h3 id="userModalTitle" style="text-align: center;">Add New User</h3>
-        <form id="userForm" method="POST" action="../core/admin_process.php">
-            
-            <input type="hidden" name="user_id" id="user_id">
+        <form id="userForm" method="POST" action="<?= htmlspecialchars($form_action ?? '../core/users_process.php') ?>">            <input type="hidden" name="user_id" id="user_id">
             
             <div class="form-group" style="margin-bottom: 1rem;">
                 <label for="full_name" style="font-weight: 500;">Full Name</label>
