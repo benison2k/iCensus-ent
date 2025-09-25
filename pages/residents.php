@@ -1,13 +1,24 @@
 <?php
 session_start();
+
+// --- Bouncer ---
+if (!isset($_SESSION['user'])) {
+    header("Location: login.php"); // Not logged in
+    exit;
+}
+$allowed_roles = ['Admin', 'Clerk/Encoder'];
+if (!in_array($_SESSION['user']['role_name'], $allowed_roles)) {
+    http_response_code(403);
+    die("<h1>403 Forbidden</h1><p>You do not have permission to access this page.</p>");
+}
+// --- End Bouncer ---
+
+// Get user role for conditionally showing elements
+$user_role = $_SESSION['user']['role_name'];
+
 $config = require __DIR__ . '/../core/config.php';
 require __DIR__ . '/../core/Database.php';
 require __DIR__ . '/../core/Auth.php';
-
-if (!isset($_SESSION['user'])) {
-    header("Location: login.php");
-    exit;
-}
 
 $db = new Database($config);
 $auth = new Auth($db);
@@ -21,23 +32,13 @@ $modalMessage = $_SESSION['modal']['message'] ?? '';
 $modalType = $_SESSION['modal']['type'] ?? '';
 unset($_SESSION['modal']);
 
-// Fetch residents
+// Fetch initial data just for populating filters and getting a total count
 $pdo = $db->getPdo();
-$stmt = $pdo->query("SELECT * FROM residents ORDER BY last_name ASC");
-$residents = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$stmt = $pdo->query("SELECT purok, barangay FROM residents");
+$all_residents_for_filters = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Helper: calculate age
-function calculateAge($dob) {
-    $dobObj = new DateTime($dob);
-    $now = new DateTime();
-    return $dobObj->diff($now)->y;
-}
+$total_residents_count = count($all_residents_for_filters);
 
-// Helper: get full name with middle initial
-function formatName($r) {
-    $middleInitial = $r['middle_name'] ? strtoupper($r['middle_name'][0]).'.' : '';
-    return trim("{$r['first_name']} {$middleInitial} {$r['last_name']}");
-}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -63,23 +64,22 @@ function formatName($r) {
     include __DIR__ . '/../components/modal.php';
 endif; ?>
 
-<div style="padding:0 2rem; max-width:1200px; margin:auto;">
-    <!-- Add Resident Button -->
-    <button id="addResidentBtn" class="settings-card" style="cursor:pointer; display:inline-flex; align-items:center; gap:0.5rem;">
-        <span class="material-icons">person_add</span> Add Resident
-    </button>
+<div style="padding:0 2rem; max-width:1400px; margin:auto;">
+    
+    <?php if ($user_role === 'Admin'): ?>
+        <button id="addResidentBtn" class="settings-card" style="cursor:pointer; display:inline-flex; align-items:center; gap:0.5rem;">
+            <span class="material-icons">person_add</span> Add Resident
+        </button>
+    <?php endif; ?>
 
-    <!-- Total Residents -->
     <p style="margin: 1rem 0; font-weight: 500;">
-        Total Residents in Database: <?= count($residents); ?>
+        Total Residents in Database: <span id="totalCount"><?= $total_residents_count; ?></span>
     </p>
 
-    <!-- Filtered Results -->
-    <p style="margin: 0.5rem 0; font-weight: 500; display:none;" id="filteredResults">
+    <div style="margin: 0.5rem 0; font-weight: 500; display:none;" id="filteredResults">
          Filtered search results: <span id="filteredCount">0</span>
-    </p>
+    </div>
 
-    <!-- Filters -->
     <div style="margin-top:1rem; display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
         <input type="text" id="searchInput" placeholder="Search by name or address" style="padding:0.5rem; flex:1;">
         <select id="statusFilter" style="padding:0.5rem;">
@@ -99,17 +99,17 @@ endif; ?>
         <select id="purokFilter" style="padding:0.5rem;">
             <option value="">All Puroks</option>
             <?php
-            $puroks = array_unique(array_map(fn($r) => $r['purok'], $residents));
+            $puroks = array_unique(array_column($all_residents_for_filters, 'purok'));
             sort($puroks);
-            foreach($puroks as $p) echo "<option value=\"".htmlspecialchars($p)."\">$p</option>";
+            foreach($puroks as $p) if(!empty($p)) echo "<option value=\"".htmlspecialchars($p)."\">".htmlspecialchars($p)."</option>";
             ?>
         </select>
         <select id="barangayFilter" style="padding:0.5rem;">
             <option value="">All Barangays</option>
             <?php
-            $barangays = array_unique(array_map(fn($r) => $r['barangay'], $residents));
+            $barangays = array_unique(array_column($all_residents_for_filters, 'barangay'));
             sort($barangays);
-            foreach($barangays as $b) echo "<option value=\"".htmlspecialchars($b)."\">$b</option>";
+            foreach($barangays as $b) if(!empty($b)) echo "<option value=\"".htmlspecialchars($b)."\">".htmlspecialchars($b)."</option>";
             ?>
         </select>
         <button id="clearFiltersBtn" style="padding:0.5rem; background:#ccc; border:none; border-radius:5px; cursor:pointer;">
@@ -117,7 +117,6 @@ endif; ?>
         </button>
     </div>
 
-    <!-- Pagination Controls -->
     <div style="margin: 1rem 0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
         <div>
             <label>Show
@@ -129,50 +128,35 @@ endif; ?>
                 </select>
             entries</label>
         </div>
-        <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+        <div style="margin-left:auto; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+            <span>Showing <span id="shownCount">0–0</span> of <span id="totalCountEl"><?= $total_residents_count ?></span></span>
+        </div>
+        <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin-left:1rem;">
             <button id="prevPageBtn" style="padding:0.3rem 0.5rem;">Prev</button>
             <span id="pageInfo">Page 1 of 1</span>
             <button id="nextPageBtn" style="padding:0.3rem 0.5rem;">Next</button>
 
-            <!-- Go To Page -->
             <input type="number" id="gotoPage" min="1" style="width:70px; padding:0.3rem;" placeholder="Page">
             <button id="gotoPageBtn" style="padding:0.3rem 0.5rem;">Go</button>
         </div>
     </div>
-
-    <!-- Residents Table -->
-    <table class="resident-table" id="residentsTable">
-        <thead>
-            <tr>
-                <th>Full Name</th>
-                <th>Age</th>
-                <th>Gender</th>
-                <th>Address</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="residentsTableBody">
-            <?php foreach($residents as $r): 
-                $address = "{$r['house_no']} {$r['street']}, Purok {$r['purok']}, {$r['barangay']}";
-                $statusClass = strtolower($r['status']);
-                $fullName = formatName($r);
-            ?>
-            <tr data-id="<?= $r['id']; ?>" data-status="<?= htmlspecialchars($r['status']); ?>" 
-                data-gender="<?= htmlspecialchars($r['gender']); ?>" data-age="<?= calculateAge($r['dob']); ?>"
-                data-purok="<?= htmlspecialchars($r['purok']); ?>" data-barangay="<?= htmlspecialchars($r['barangay']); ?>">
-                <td><?= htmlspecialchars($fullName); ?></td>
-                <td><?= calculateAge($r['dob']); ?></td>
-                <td><?= htmlspecialchars($r['gender']); ?></td>
-                <td><?= htmlspecialchars($address); ?></td>
-                <td><span class="status-label status-<?= $statusClass; ?>"><?= htmlspecialchars($r['status']); ?></span></td>
-                <td>
-                    <button class="moreBtn material-icons" data-id="<?= $r['id']; ?>" title="View Resident Info">more_vert</button>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
+    
+    <div style="overflow-x:auto;">
+        <table class="resident-table" id="residentsTable">
+            <thead>
+                <tr>
+                    <th>Full Name</th>
+                    <th>Age</th>
+                    <th>Gender</th>
+                    <th>Address</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="residentsTableBody">
+                </tbody>
+        </table>
+    </div>
 </div>
 
 <?php include __DIR__ . '/../components/resident_modal2.php'; ?>
@@ -180,6 +164,5 @@ endif; ?>
 <?php include __DIR__ . '/../components/footer.php'; ?>
 
 <script src="../assets/js/residents.js"></script>
-<script src="../assets/js/residents3.js"></script>
 </body>
 </html>

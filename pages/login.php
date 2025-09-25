@@ -19,8 +19,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $result = $auth->login($username, $password);
 
     if ($result['success']) {
-        header("Location: dashboard.php");
-        exit;
+        // MODIFIED: Role-based redirection logic
+        $role = $_SESSION['user']['role_name'];
+
+        if ($role == 'Admin') {
+            header("Location: dashboard.php");
+            exit;
+        } elseif ($role == 'Clerk/Encoder') {
+            header("Location: encoder_dashboard.php");
+            exit;
+        } else {
+            // Fallback for other roles or if role is not set
+            $error = 'No dashboard is set for your role.';
+        }
     } else {
         $error = 'Invalid credentials';
     }
@@ -33,41 +44,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <meta charset="UTF-8">
 <title>iCensus Login</title>
 
-<!-- Bootstrap -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 
-<!-- Material Icons -->
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-<!-- Custom CSS -->
 <link rel="stylesheet" href="../assets/css/login.css">
 </head>
 <body>
 
 <div class="split-screen">
-    <!-- Left side -->
     <div class="left-side position-relative d-flex flex-column justify-content-center align-items-center text-center overflow-hidden">
         <div class="shape shape1"></div>
         <div class="shape shape2"></div>
         <div class="shape shape3"></div>
         <canvas id="particleCanvas"></canvas>
 
-        <!-- Logo in hero -->
-
         <img src="../assets/img/iCensusLogo.png" alt="iCensus Logo" class="hero-logo mb-3">
 
         <p class="hero-subtitle">Accurate. Fast. Reliable.</p>
     </div>
 
-    <!-- Divider shadow -->
     <div class="divider-shadow"></div>
 
-    <!-- Right side -->
     <div class="right-side d-flex justify-content-center align-items-center">
         <div class="login-card animate-login">
             <div class="card-header text-center mb-3">
-                <!-- Logo in login card -->
-                         <h1 class="hero-title">Sign in</h1>
+                <h1 class="hero-title">Sign in</h1>
                 <p class="text-muted">Please enter your credentials</p>
             </div>
 

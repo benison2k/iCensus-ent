@@ -4,6 +4,7 @@ $config = require __DIR__ . '/../core/config.php';
 require __DIR__ . '/../core/Database.php';
 require __DIR__ . '/../core/Auth.php';
 
+// --- Bouncer ---
 if (!isset($_SESSION['user'])) {
     header("HTTP/1.1 403 Forbidden");
     echo json_encode(['status'=>'error','message'=>'Unauthorized']);
@@ -14,6 +15,9 @@ $db = new Database($config);
 $auth = new Auth($db);
 $user = $_SESSION['user'];
 $pdo = $db->getPdo();
+
+// Get user role from session for permission checks
+$user_role = $_SESSION['user']['role_name'] ?? '';
 
 $action = $_GET['action'] ?? $_POST['action'] ?? 'save';
 
@@ -38,6 +42,11 @@ switch($action) {
 
     // Delete resident
     case 'delete':
+        // ADDED: Only Admins can delete
+        if ($user_role !== 'Admin') {
+            echo json_encode(['status' => 'error', 'message' => 'Permission Denied']);
+            exit;
+        }
         $resident_id = $_POST['id'] ?? 0;
         $stmt = $pdo->prepare("DELETE FROM residents WHERE id=?");
         $stmt->execute([$resident_id]);
@@ -53,38 +62,64 @@ switch($action) {
         $age_max = $_GET['age_max'] ?? '';
         $purok = $_GET['purok'] ?? '';
         $barangay = $_GET['barangay'] ?? '';
+        
+        $sql = "SELECT * FROM residents";
+        $conditions = [];
+        $params = [];
 
-        $stmt = $pdo->query("SELECT * FROM residents ORDER BY last_name ASC");
+        if($search) {
+            $conditions[] = "(first_name LIKE ? OR last_name LIKE ? OR middle_name LIKE ? OR CONCAT(house_no, ' ', street) LIKE ?)";
+            $searchTerm = "%$search%";
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
+        }
+        if($status) { $conditions[] = "status = ?"; $params[] = $status; }
+        if($gender) { $conditions[] = "gender = ?"; $params[] = $gender; }
+        if($purok) { $conditions[] = "purok = ?"; $params[] = $purok; }
+        if($barangay) { $conditions[] = "barangay = ?"; $params[] = $barangay; }
+
+        if(!empty($conditions)) {
+            $sql .= " WHERE " . implode(" AND ", $conditions);
+        }
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
         $residents = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $filtered = array_filter($residents, function($r) use($search,$status,$gender,$age_min,$age_max,$purok,$barangay){
-            $age = (new DateTime($r['dob']))->diff(new DateTime())->y;
-            $middleInitial = $r['middle_name'] ? strtoupper($r['middle_name'][0]).'.' : '';
-            $fullName = trim("{$r['first_name']} {$middleInitial} {$r['last_name']}");
-            $address = "{$r['house_no']} {$r['street']}, Purok {$r['purok']}, {$r['barangay']}";
-            if($search && stripos($fullName.$address,$search)===false) return false;
-            if($status && $r['status'] != $status) return false;
-            if($gender && $r['gender'] != $gender) return false;
-            if($age_min && $age < (int)$age_min) return false;
-            if($age_max && $age > (int)$age_max) return false;
-            if($purok && $r['purok'] != $purok) return false;
-            if($barangay && $r['barangay'] != $barangay) return false;
-            $r['age']=$age;
+        $filtered = array_filter($residents, function($r) use($age_min, $age_max){
+             if (empty($r['dob']) || $r['dob'] === '0000-00-00') {
+                $age = null;
+            } else {
+                $age = (new DateTime($r['dob']))->diff(new DateTime())->y;
+            }
+            if($age_min !== '' && $age < (int)$age_min) return false;
+            if($age_max !== '' && $age > (int)$age_max) return false;
             return true;
         });
 
         // Add age field for table
-        $filtered = array_map(function($r){
-            $r['age'] = (new DateTime($r['dob']))->diff(new DateTime())->y;
+        $final_residents = array_map(function($r){
+            if (empty($r['dob']) || $r['dob'] === '0000-00-00') {
+                $r['age'] = 'N/A';
+            } else {
+                $r['age'] = (new DateTime($r['dob']))->diff(new DateTime())->y;
+            }
             return $r;
-        }, $filtered);
+        }, array_values($filtered));
 
-        echo json_encode(['status'=>'success','residents'=>array_values($filtered)]);
+        echo json_encode(['status'=>'success','residents'=>$final_residents]);
         break;
 
     // Save or update resident
     case 'save':
     default:
+        // ADDED: Admins and Encoders can save
+        if ($user_role !== 'Admin' && $user_role !== 'Clerk/Encoder') {
+            echo json_encode(['status' => 'error', 'message' => 'Permission Denied']);
+            exit;
+        }
         $resident_id = post('resident_id');
 
         $data = [
@@ -109,18 +144,18 @@ switch($action) {
             'barangay'    => post('barangay'),
             'head_of_household'=> post('head_of_household'),
             'relationship'=> post('relationship'),
-            'status'      => post('status'),
-            'date_added'  => date('Y-m-d H:i:s'),
-            'last_updated'=> date('Y-m-d H:i:s')
+            'status'      => post('status')
         ];
 
         if(empty($resident_id)) {
+            $data['date_added'] = date('Y-m-d H:i:s');
             $fields = array_keys($data);
             $placeholders = array_fill(0,count($fields),'?');
             $stmt = $pdo->prepare("INSERT INTO residents (".implode(",",$fields).") VALUES (".implode(",",$placeholders).")");
             $stmt->execute(array_values($data));
             $_SESSION['modal'] = ['message'=>'Resident added successfully','type'=>'success'];
         } else {
+            $data['last_updated'] = date('Y-m-d H:i:s');
             $setStr = implode(',', array_map(fn($f)=>"$f=?", array_keys($data)));
             $stmt = $pdo->prepare("UPDATE residents SET $setStr WHERE id=?");
             $values = array_values($data);
