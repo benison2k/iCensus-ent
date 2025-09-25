@@ -3,7 +3,7 @@ session_start();
 
 // --- Bouncer ---
 // Only allow users with the 'Clerk/Encoder' role
-if (!isset($_SESSION['user']) || $_SESSION['user']['role_name'] != 'Clerk/Encoder') {
+if (!isset($_SESSION['user']) || $_SESSION['user']['role_name'] != 'Clerk') {
     http_response_code(403);
     die("<h1>403 Forbidden</h1><p>You do not have permission to access this page.</p>");
 }
