@@ -1,9 +1,14 @@
 <?php
 // Detect current page
 $currentFile = basename($_SERVER['PHP_SELF']);
+
+// Check if a session is active and if the user is a System Admin
+$isAdmin = isset($_SESSION['user']) && $_SESSION['user']['role_name'] === 'System Admin';
+
+// Determine the correct dashboard link based on the user's role
+$dashboardLink = $isAdmin ? '../sysadmin/dashboard.php' : '../pages/dashboard.php';
 ?>
 
-<!-- Absolute paths preferred -->
 <head>
 <link rel="stylesheet" href="../assets/css/header2.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -11,7 +16,6 @@ $currentFile = basename($_SERVER['PHP_SELF']);
 </head>
 
 <header class="header">
-    <!-- Back Button (hidden on dashboard, replaced by placeholder) -->
     <?php if ($currentFile !== 'dashboard.php'): ?>
         <button class="back-button" id="backButton" title="Go Back">
             <span class="material-icons">arrow_back</span>
@@ -20,14 +24,12 @@ $currentFile = basename($_SERVER['PHP_SELF']);
         <div class="header-slot"></div>
     <?php endif; ?>
 
-    <!-- Centered Header Logo -->
     <div class="header-logo">
-        <a href="../pages/dashboard.php">
+        <a href="<?= $dashboardLink ?>">
             <img src="../assets/img/iCensusLogoSmaller.png" alt="iCensus Logo" class="logo">
         </a>
     </div>
 
-    <!-- Logout Icon -->
     <button id="logoutBtn" class="logout-icon" title="Logout">
         <span class="material-icons">logout</span>
     </button>
@@ -50,7 +52,7 @@ $currentFile = basename($_SERVER['PHP_SELF']);
       if (ref && ref.origin === window.location.origin) {
         window.location.replace(bust(ref));
       } else {
-        const fallback = new URL('/iCensus/pages/dashboard.php', window.location.origin);
+        const fallback = new URL('<?= $dashboardLink ?>', window.location.origin);
         fallback.searchParams.set('_r', Date.now().toString());
         window.location.replace(fallback.toString());
       }

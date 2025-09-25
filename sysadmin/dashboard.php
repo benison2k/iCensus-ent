@@ -29,7 +29,7 @@ require_once __DIR__ . '/auth_check.php';
             <p class="card-desc">Add, edit, and manage Encoder accounts.</p>
         </a>
 
-        <a href="#" class="card clickable-card">
+        <a href="db_tools.php" class="card clickable-card">
             <span class="material-icons card-icon">storage</span>
             <h3 class="card-title">Database Tools</h3>
             <p class="card-desc">Perform system backups and maintenance.</p>
