@@ -6,7 +6,7 @@ if (!isset($_SESSION['user'])) {
     header("Location: login.php"); // Not logged in
     exit;
 }
-$allowed_roles = ['Admin', 'Clerk/Encoder'];
+$allowed_roles = ['Barangay Admin', 'Encoder'];
 if (!in_array($_SESSION['user']['role_name'], $allowed_roles)) {
     http_response_code(403);
     die("<h1>403 Forbidden</h1><p>You do not have permission to access this page.</p>");

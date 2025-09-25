@@ -23,13 +23,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $role = $_SESSION['user']['role_name'];
 
         if ($role == 'System Admin') {
-            header("Location: ../superadmin/dashboard.php");
+            // This will be created later
+            header("Location: ../sysadmin/dashboard.php");
             exit;
         } elseif ($role == 'Barangay Admin') {
+            // CORRECTED: Point to the admin folder
             header("Location: ../pages/dashboard.php");
             exit;
         } elseif ($role == 'Encoder') {
-            header("Location: encoder_dashboard.php");
+            header("Location: ../pages/encoder_dashboard.php");
             exit;
         } else {
             // Fallback for other roles or if role is not set
