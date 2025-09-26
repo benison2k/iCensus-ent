@@ -1,0 +1,102 @@
+/* Report Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1001; /* Above analytics grid */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.6);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 2rem;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    position: relative;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.close-btn {
+    color: #aaa;
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: black;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: .5rem;
+    font-weight: 500;
+}
+
+.form-group select {
+    width: 100%;
+    padding: .75rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+}
+
+.btn-generate {
+    background-color: #2e7d32;
+    color: #fff;
+    padding: .75rem 1.5rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    width: 100%;
+    justify-content: center;
+}
+
+.btn-generate:hover {
+    background-color: #1b5e20;
+}
+
+/* Dark Mode */
+body.dark-mode .modal-content {
+    background-color: #2C3E50;
+    color: #fff;
+}
+
+body.dark-mode .close-btn {
+    color: #ccc;
+}
+body.dark-mode .close-btn:hover {
+    color: #fff;
+}
+
+body.dark-mode .form-group select {
+    background-color: #1e1e2f;
+    color: #fff;
+    border-color: #555;
+}
+
+@keyframes fadeIn {
+    from {opacity: 0; transform: translateY(-20px);}
+    to {opacity: 1; transform: translateY(0);}
+}

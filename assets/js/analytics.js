@@ -57,6 +57,35 @@ function initializeDashboard() {
 
     document.getElementById('save-layout-btn').addEventListener('click', saveLayout);
     document.getElementById('reset-layout-btn').addEventListener('click', resetLayout);
+    
+    // --- NEW: Report Modal Logic ---
+    const reportModal = document.getElementById('report-modal');
+    const generateReportBtn = document.getElementById('generate-report-btn');
+    const closeBtn = document.querySelector('.close-btn');
+    const reportTypeSelect = document.getElementById('report_type');
+    const purokSelectContainer = document.getElementById('purok_select_container');
+
+    generateReportBtn.addEventListener('click', () => {
+        reportModal.style.display = 'block';
+    });
+
+    closeBtn.addEventListener('click', () => {
+        reportModal.style.display = 'none';
+    });
+
+    window.addEventListener('click', (event) => {
+        if (event.target == reportModal) {
+            reportModal.style.display = 'none';
+        }
+    });
+
+    reportTypeSelect.addEventListener('change', () => {
+        if (reportTypeSelect.value === 'by_purok') {
+            purokSelectContainer.style.display = 'block';
+        } else {
+            purokSelectContainer.style.display = 'none';
+        }
+    });
 }
 
 function loadLayout() {

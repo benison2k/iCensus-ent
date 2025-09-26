@@ -24,8 +24,9 @@ $theme = $user['theme'] ?? 'light';
     <title>iCensus - Analytics</title>
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/dashboard.css">
-    <link rel="stylesheet" href="../assets/css/analytics_layout_fix.css"> 
+    <link rel="stylesheet" href="../assets/css/analytics_layout_fix.css">
     <link rel="stylesheet" href="../assets/css/analytics.css">
+    <link rel="stylesheet" href="../assets/css/report-modal.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
@@ -48,6 +49,9 @@ $theme = $user['theme'] ?? 'light';
                 <div class="tooltip-text">You can drag and drop the charts to rearrange the layout.</div>
             </div>
             <div class="buttons-container">
+                <button id="generate-report-btn" style="padding: 0.5rem 1rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; border: none; border-radius: 8px; background-color: #4CAF50; color: white; margin-right: 0.5rem;">
+                    <span class="material-icons">assessment</span> Generate Report
+                </button>
                 <button id="reset-layout-btn" style="padding: 0.5rem 1rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; border: none; border-radius: 8px; background-color: #f44336; color: white; margin-right: 0.5rem;">
                     <span class="material-icons">refresh</span> Reset Layout
                 </button>
@@ -62,6 +66,37 @@ $theme = $user['theme'] ?? 'light';
         <div class="grid-stack"></div>
     </div>
 </main>
+
+<div id="report-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2>Generate Report</h2>
+        <form action="../core/generate_report.php" method="post" target="_blank">
+            <div class="form-group">
+                <label for="report_type">Select Report Type:</label>
+                <select name="report_type" id="report_type">
+                    <option value="all_residents">All Residents</option>
+                    <option value="by_purok">By Purok</option>
+                </select>
+            </div>
+            <div id="purok_select_container" class="form-group" style="display: none;">
+                <label for="purok">Select Purok:</label>
+                <select name="purok" id="purok">
+                    <?php
+                    $pdo = $db->getPdo();
+                    $stmt = $pdo->query("SELECT DISTINCT purok FROM residents ORDER BY purok");
+                    $puroks = $stmt->fetchAll(PDO::FETCH_COLUMN);
+                    foreach ($puroks as $purok) {
+                        echo "<option value=\"" . htmlspecialchars($purok) . "\">" . htmlspecialchars($purok) . "</option>";
+                    }
+                    ?>
+                </select>
+            </div>
+            <button type="submit" class="btn-generate">Generate Report</button>
+        </form>
+    </div>
+</div>
+
 
 <?php include __DIR__ . '/../components/footer.php'; ?>
 
