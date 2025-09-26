@@ -2,7 +2,7 @@
 .modal {
     display: none;
     position: fixed;
-    z-index: 1001; /* Above analytics grid */
+    z-index: 1001;
     left: 0;
     top: 0;
     width: 100%;
@@ -10,15 +10,16 @@
     overflow: auto;
     background-color: rgba(0,0,0,0.6);
     backdrop-filter: blur(5px);
+    padding-top: 5vh;
 }
 
 .modal-content {
     background-color: #fefefe;
-    margin: 15% auto;
+    margin: auto;
     padding: 2rem;
     border-radius: 12px;
     width: 90%;
-    max-width: 500px;
+    max-width: 800px;
     box-shadow: 0 5px 20px rgba(0,0,0,0.3);
     position: relative;
     animation: fadeIn 0.3s ease-in-out;
@@ -32,30 +33,55 @@
     font-size: 28px;
     font-weight: bold;
     cursor: pointer;
+    transition: color 0.2s;
+}
+.close-btn:hover, .close-btn:focus { color: black; }
+
+/* --- TWO-COLUMN LAYOUT --- */
+.modal-form-columns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
 }
 
-.close-btn:hover,
-.close-btn:focus {
-    color: black;
+.modal-form-column {
+    flex: 1;
+    min-width: 250px;
 }
 
-.form-group {
+fieldset {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1rem;
     margin-bottom: 1.5rem;
 }
 
-.form-group label {
-    display: block;
-    margin-bottom: .5rem;
-    font-weight: 500;
+legend {
+    padding: 0 0.5rem;
+    font-weight: 600;
+    color: #333;
 }
 
-.form-group select {
+.form-group-inline { display: flex; gap: 1rem; }
+.form-group-inline .form-group { flex: 1; }
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; margin-bottom: .5rem; font-weight: 500; }
+.form-group select, .form-group input {
     width: 100%;
-    padding: .75rem;
+    padding: .65rem;
     border-radius: 8px;
     border: 1px solid #ccc;
-    font-size: 1rem;
+    font-size: 0.95rem;
 }
+
+.checkbox-group {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+    margin-top: 0.5rem;
+}
+.checkbox-group label { display: flex; align-items: center; gap: 0.5rem; font-weight: normal; }
+.checkbox-group input { width: auto; }
 
 .btn-generate {
     background-color: #2e7d32;
@@ -66,31 +92,19 @@
     cursor: pointer;
     font-size: 1rem;
     font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: .5rem;
+    display: block;
     width: 100%;
-    justify-content: center;
+    text-align: center;
+    margin-top: 1rem;
 }
 
-.btn-generate:hover {
-    background-color: #1b5e20;
-}
-
-/* Dark Mode */
-body.dark-mode .modal-content {
-    background-color: #2C3E50;
-    color: #fff;
-}
-
-body.dark-mode .close-btn {
-    color: #ccc;
-}
-body.dark-mode .close-btn:hover {
-    color: #fff;
-}
-
-body.dark-mode .form-group select {
+/* --- Dark Mode --- */
+body.dark-mode .modal-content { background-color: #2C3E50; color: #fff; }
+body.dark-mode .close-btn { color: #ccc; }
+body.dark-mode fieldset { border-color: #555; }
+body.dark-mode legend { color: #eee; }
+body.dark-mode .form-group select,
+body.dark-mode .form-group input {
     background-color: #1e1e2f;
     color: #fff;
     border-color: #555;

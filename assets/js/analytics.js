@@ -1,3 +1,44 @@
+// --- Report Modal Logic (Runs Immediately) ---
+document.addEventListener('DOMContentLoaded', () => {
+    const reportModal = document.getElementById('report-modal');
+    const generateReportBtn = document.getElementById('generate-report-btn');
+    
+    // Check if the modal and button exist before adding listeners
+    if (reportModal && generateReportBtn) {
+        const closeBtn = reportModal.querySelector('.close-btn');
+        const reportTypeSelect = document.getElementById('report_type');
+        const purokSelectContainer = document.getElementById('purok_select_container');
+
+        generateReportBtn.addEventListener('click', () => {
+            reportModal.style.display = 'block';
+        });
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                reportModal.style.display = 'none';
+            });
+        }
+
+        window.addEventListener('click', (event) => {
+            if (event.target == reportModal) {
+                reportModal.style.display = 'none';
+            }
+        });
+
+        if (reportTypeSelect && purokSelectContainer) {
+            reportTypeSelect.addEventListener('change', () => {
+                if (reportTypeSelect.value === 'by_purok') {
+                    purokSelectContainer.style.display = 'block';
+                } else {
+                    purokSelectContainer.style.display = 'none';
+                }
+            });
+        }
+    }
+});
+
+
+// --- Google Charts and GridStack Logic ---
 google.charts.load('current', {'packages':['corechart', 'bar']});
 google.charts.setOnLoadCallback(initializeDashboard);
 
@@ -18,8 +59,8 @@ function debounce(func, wait) {
 
 function initializeDashboard() {
     grid = GridStack.init({
-        cellHeight: 80, // Using a smaller, more granular cell height
-        margin: 20,     // This is the gap between all charts
+        cellHeight: 80,
+        margin: 20,
         float: true
     });
 
@@ -34,7 +75,7 @@ function initializeDashboard() {
             }
         });
     });
-    
+
     const redrawChart = (el) => {
         const id = el.gridstackNode.id;
         const chartDiv = document.getElementById(`${id}_chart_div`);
@@ -57,35 +98,6 @@ function initializeDashboard() {
 
     document.getElementById('save-layout-btn').addEventListener('click', saveLayout);
     document.getElementById('reset-layout-btn').addEventListener('click', resetLayout);
-    
-    // --- NEW: Report Modal Logic ---
-    const reportModal = document.getElementById('report-modal');
-    const generateReportBtn = document.getElementById('generate-report-btn');
-    const closeBtn = document.querySelector('.close-btn');
-    const reportTypeSelect = document.getElementById('report_type');
-    const purokSelectContainer = document.getElementById('purok_select_container');
-
-    generateReportBtn.addEventListener('click', () => {
-        reportModal.style.display = 'block';
-    });
-
-    closeBtn.addEventListener('click', () => {
-        reportModal.style.display = 'none';
-    });
-
-    window.addEventListener('click', (event) => {
-        if (event.target == reportModal) {
-            reportModal.style.display = 'none';
-        }
-    });
-
-    reportTypeSelect.addEventListener('change', () => {
-        if (reportTypeSelect.value === 'by_purok') {
-            purokSelectContainer.style.display = 'block';
-        } else {
-            purokSelectContainer.style.display = 'none';
-        }
-    });
 }
 
 function loadLayout() {
@@ -95,9 +107,8 @@ function loadLayout() {
             grid.removeAll();
             layoutData.forEach(node => {
                 chartsToDraw[node.id] = () => drawChart(node.id);
-
                 const isKpi = getChartType(node.id) === 'KPI';
-                const contentHtml = isKpi ? 
+                const contentHtml = isKpi ?
                     `<div class="kpi-content" id="${node.id}_chart_div">Loading...</div>` :
                     `<div class="chart-div" id="${node.id}_chart_div">Loading...</div>`;
 
