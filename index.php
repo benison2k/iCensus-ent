@@ -15,9 +15,14 @@
     <header class="header" id="header">
         <div class="container header-container">
             <img src="assets/img/iCensusLogo.png" alt="iCensus Logo" class="logo">
-            <a href="pages/login.php" class="btn-login btn-icon" title="Member Login">
-                <span class="material-icons">account_circle</span>
-            </a>
+            <div>
+                <a href="index.php" class="btn-login btn-icon" title="Home">
+                    <span class="material-icons">home</span>
+                </a>
+                <a href="pages/login.php" class="btn-login btn-icon" title="Member Login">
+                    <span class="material-icons">account_circle</span>
+                </a>
+            </div>
         </div>
     </header>
 
@@ -28,21 +33,42 @@
                     <div class="hero-text-content">
                         <h1 class="hero-title">Empowering Your Barangay with Digital Census Management</h1>
                         <p class="hero-subtitle">
-                            Welcome to iCensus. Streamline resident profiling, generate instant reports, and build a better-informed community here in Balagtas.
+                            Welcome to iCensus. Streamline resident profiling, generate instant reports, and build a better-informed community.
                         </p>
                         <a href="pages/login.php" class="btn-cta">Access the Portal</a>
                     </div>
                     <div class="hero-visual-content">
-                        <div class="visual-placeholder">
-                            <span class="material-icons">dashboard_customize</span>
-                            <p>System Visual</p>
+                        <div class="carousel-container">
+                            <div class="carousel-slides">
+                                <div class="carousel-slide">
+                                    <img src="assets/img/dashboard.png" alt="Dashboard View">
+                                    <div class="carousel-caption">
+                                        <h3>Dashboard</h3>
+                                    </div>
+                                </div>
+                                <div class="carousel-slide">
+                                    <img src="assets/img/residents.png" alt="Residents Management View">
+                                    <div class="carousel-caption">
+                                        <h3>Residents Management</h3>
+                                    </div>
+                                </div>
+                                <div class="carousel-slide">
+                                    <img src="assets/img/analytics.png" alt="Analytics View">
+                                    <div class="carousel-caption">
+                                        <h3>Data Analytics</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="carousel-btn prev" title="Previous">&#10094;</button>
+                            <button class="carousel-btn next" title="Next">&#10095;</button>
+                            <div class="carousel-dots"></div>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section class="features">
+        <section class="features fade-in-section">
             <div class="container">
                 <h2 class="section-title">Everything You Need in One Platform</h2>
                 <div class="features-grid">
@@ -65,7 +91,7 @@
             </div>
         </section>
 
-        <section class="how-it-works">
+        <section class="how-it-works fade-in-section">
             <div class="container">
                 <h2 class="section-title">A Simple, Streamlined Process</h2>
                 <div class="process-wrapper">
@@ -90,7 +116,7 @@
             </div>
         </section>
 
-        <section class="role-section">
+        <section class="role-section fade-in-section">
             <div class="container">
                  <h2 class="section-title">Designed For Your Role</h2>
                  <div class="role-row">
@@ -145,7 +171,6 @@ let particlesArray = [];
 
 function resizeCanvas() {
     canvas.width = window.innerWidth;
-    // The key fix is here: set height to window.innerHeight
     canvas.height = window.innerHeight; 
 }
 
@@ -190,10 +215,58 @@ function animateParticles() {
     requestAnimationFrame(animateParticles);
 }
 
+// Scroll-triggered animations
+const sections = document.querySelectorAll('.fade-in-section');
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+        }
+    });
+}, { threshold: 0.1 });
+sections.forEach(section => observer.observe(section));
+
+// Carousel Logic
+const initCarousel = () => {
+    const slidesContainer = document.querySelector('.carousel-slides');
+    if (!slidesContainer) return;
+
+    const slides = document.querySelectorAll('.carousel-slide');
+    const prevBtn = document.querySelector('.carousel-btn.prev');
+    const nextBtn = document.querySelector('.carousel-btn.next');
+    const dotsContainer = document.querySelector('.carousel-dots');
+    let currentSlide = 0;
+    let slideInterval;
+
+    const showSlide = (n) => {
+        currentSlide = (n + slides.length) % slides.length;
+        slidesContainer.style.transform = `translateX(-${currentSlide * 100}%)`;
+        
+        document.querySelectorAll('.carousel-dot').forEach(dot => dot.classList.remove('active'));
+        dotsContainer.children[currentSlide].classList.add('active');
+        
+        clearInterval(slideInterval);
+        slideInterval = setInterval(() => showSlide(currentSlide + 1), 5000); // Auto-slide every 5 seconds
+    };
+
+    slides.forEach((_, i) => {
+        const dot = document.createElement('span');
+        dot.classList.add('carousel-dot');
+        dot.addEventListener('click', () => showSlide(i));
+        dotsContainer.appendChild(dot);
+    });
+
+    prevBtn.addEventListener('click', () => showSlide(currentSlide - 1));
+    nextBtn.addEventListener('click', () => showSlide(currentSlide + 1));
+    
+    showSlide(0);
+};
+
 // Initial setup
 resizeCanvas();
 initParticles();
 animateParticles();
+initCarousel();
     </script>
 
 </body>

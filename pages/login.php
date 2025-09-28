@@ -58,6 +58,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <div class="split-screen">
     <div class="left-side position-relative d-flex flex-column justify-content-center align-items-center text-center overflow-hidden">
+        <a href="../index.php" class="home-link" title="Back to Home">
+            <span class="material-icons">home</span>
+        </a>
         <div class="shape shape1"></div>
         <div class="shape shape2"></div>
         <div class="shape shape3"></div>
