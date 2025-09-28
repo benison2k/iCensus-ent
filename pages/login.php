@@ -58,6 +58,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <div class="split-screen">
     <div class="left-side position-relative d-flex flex-column justify-content-center align-items-center text-center overflow-hidden">
+        <a href="../index.php" class="home-link" title="Back to Home">
+            <span class="material-icons">home</span>
+        </a>
         <div class="shape shape1"></div>
         <div class="shape shape2"></div>
         <div class="shape shape3"></div>
@@ -71,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="divider-shadow"></div>
 
     <div class="right-side d-flex justify-content-center align-items-center">
-        <div class="login-card animate-login">
+        <div class="login-card">
             <div class="card-header text-center mb-3">
                 <h1 class="hero-title">Sign in</h1>
                 <p class="text-muted">Please enter your credentials</p>
