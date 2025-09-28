@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="divider-shadow"></div>
 
     <div class="right-side d-flex justify-content-center align-items-center">
-        <div class="login-card animate-login">
+        <div class="login-card">
             <div class="card-header text-center mb-3">
                 <h1 class="hero-title">Sign in</h1>
                 <p class="text-muted">Please enter your credentials</p>

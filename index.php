@@ -38,30 +38,24 @@
                         <a href="pages/login.php" class="btn-cta">Access the Portal</a>
                     </div>
                     <div class="hero-visual-content">
-                        <div class="carousel-container">
-                            <div class="carousel-slides">
-                                <div class="carousel-slide">
-                                    <img src="assets/img/dashboard.png" alt="Dashboard View">
-                                    <div class="carousel-caption">
-                                        <h3>Dashboard</h3>
+                        <div class="carousel-wrapper">
+                            <div class="carousel-container">
+                                <div class="carousel-slides">
+                                    <div class="carousel-slide" data-caption="Dashboard">
+                                        <img src="assets/img/dashboard.png" alt="Dashboard View">
+                                    </div>
+                                    <div class="carousel-slide" data-caption="Residents Management">
+                                        <img src="assets/img/residents.png" alt="Residents Management View">
+                                    </div>
+                                    <div class="carousel-slide" data-caption="Data Analytics">
+                                        <img src="assets/img/analytics.png" alt="Analytics View">
                                     </div>
                                 </div>
-                                <div class="carousel-slide">
-                                    <img src="assets/img/residents.png" alt="Residents Management View">
-                                    <div class="carousel-caption">
-                                        <h3>Residents Management</h3>
-                                    </div>
-                                </div>
-                                <div class="carousel-slide">
-                                    <img src="assets/img/analytics.png" alt="Analytics View">
-                                    <div class="carousel-caption">
-                                        <h3>Data Analytics</h3>
-                                    </div>
-                                </div>
+                                <button class="carousel-btn prev" title="Previous">&#10094;</button>
+                                <button class="carousel-btn next" title="Next">&#10095;</button>
+                                <div class="carousel-dots"></div>
                             </div>
-                            <button class="carousel-btn prev" title="Previous">&#10094;</button>
-                            <button class="carousel-btn next" title="Next">&#10095;</button>
-                            <div class="carousel-dots"></div>
+                            <div class="carousel-caption-external"></div>
                         </div>
                     </div>
                 </div>
@@ -235,6 +229,7 @@ const initCarousel = () => {
     const prevBtn = document.querySelector('.carousel-btn.prev');
     const nextBtn = document.querySelector('.carousel-btn.next');
     const dotsContainer = document.querySelector('.carousel-dots');
+    const captionEl = document.querySelector('.carousel-caption-external');
     let currentSlide = 0;
     let slideInterval;
 
@@ -244,9 +239,12 @@ const initCarousel = () => {
         
         document.querySelectorAll('.carousel-dot').forEach(dot => dot.classList.remove('active'));
         dotsContainer.children[currentSlide].classList.add('active');
+
+        // Update external caption
+        captionEl.textContent = slides[currentSlide].dataset.caption;
         
         clearInterval(slideInterval);
-        slideInterval = setInterval(() => showSlide(currentSlide + 1), 5000); // Auto-slide every 5 seconds
+        slideInterval = setInterval(() => showSlide(currentSlide + 1), 5000);
     };
 
     slides.forEach((_, i) => {
