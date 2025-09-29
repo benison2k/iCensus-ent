@@ -246,3 +246,53 @@ body.dark-mode .chart-error {
 body.dark-mode text { /* Google Charts text elements */
     fill: #CFD8DC !important;
 }
+
+/* --- Remove the visible resize icon --- */
+.grid-stack-item > .ui-resizable-handle::after {
+    content: none; /* This removes the icon */
+}
+
+/* --- MODAL LAYOUT FIX --- */
+#chart-detail-modal .modal-content.large {
+    max-width: 90vw;
+    width: 1400px;
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+#chart-detail-modal .modal-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2.5rem;
+    flex-grow: 1; /* Allow grid to fill modal content area */
+    min-height: 0; /* Prevent flexbox overflow issues */
+}
+
+#chart-detail-content, .chart-info-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.chart-info-panel {
+    justify-content: center;
+    padding-right: 1rem; /* Add some padding */
+}
+
+#chart-detail-title {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+    text-align: left;
+}
+
+#chart-detail-explanation {
+    font-size: 1rem;
+    line-height: 1.7; /* Increased for readability */
+    color: #555;
+}
+
+body.dark-mode #chart-detail-explanation {
+    color: #cfd8dc;
+}

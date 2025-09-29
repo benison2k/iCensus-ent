@@ -35,6 +35,20 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     }
+
+    // --- Chart Detail Modal Logic ---
+    const detailModal = document.getElementById('chart-detail-modal');
+    if (detailModal) {
+        const closeBtn = detailModal.querySelector('.close-btn');
+        closeBtn.addEventListener('click', () => {
+            detailModal.style.display = 'none';
+        });
+        window.addEventListener('click', (event) => {
+            if (event.target == detailModal) {
+                detailModal.style.display = 'none';
+            }
+        });
+    }
 });
 
 
@@ -60,8 +74,11 @@ function debounce(func, wait) {
 function initializeDashboard() {
     grid = GridStack.init({
         cellHeight: 80,
-        margin: 20,
-        float: true
+        margin: 30, // Increased margin for more space between charts
+        float: true,
+        resizable: {
+            handles: 'n, e, s, w, ne, nw, se, sw'
+        }
     });
 
     loadLayout();
@@ -113,14 +130,12 @@ function loadLayout() {
                     `<div class="chart-div" id="${node.id}_chart_div">Loading...</div>`;
 
                 const widgetHtml = `
-                    <div>
-                        <div class="grid-stack-item-content">
-                            <div class="chart-title">
-                                <span class="material-icons chart-icon">${getChartIcon(node.id)}</span>
-                                ${getChartTitle(node.id)}
-                            </div>
-                            ${contentHtml}
+                    <div class="grid-stack-item-content chart-container" data-metric="${node.id}">
+                        <div class="chart-title">
+                            <span class="material-icons chart-icon">${getChartIcon(node.id)}</span>
+                            ${getChartTitle(node.id)}
                         </div>
+                        ${contentHtml}
                     </div>`;
                 grid.addWidget(widgetHtml, node);
             });
@@ -235,6 +250,63 @@ function getChartType(metric) {
     return 'PieChart';
 }
 
+// --- Function to get chart explanations ---
+function getChartExplanation(metric) {
+    const explanations = {
+        gender: 'This pie chart shows the breakdown of residents by gender, providing a quick overview of the male-to-female ratio in the community.',
+        age: 'This column chart categorizes the population into key age groups: children (0-17), young adults (18-35), adults (36-59), and seniors (60+). It helps in understanding the age structure of the barangay.',
+        population_pyramid: 'This chart visualizes the distribution of different age groups in the population, split by gender. It is useful for understanding population trends, such as aging or youth bulges.',
+        generation_breakdown: 'This chart segments the population into recognized generations (e.g., Gen Z, Millennials, Baby Boomers). It offers insights into the cultural and social landscape of the community.',
+        average_age_of_residents: 'This Key Performance Indicator (KPI) shows the average age of all residents. A lower number may indicate a younger, growing community, while a higher number might suggest an aging population.',
+        dependency_ratio: 'This KPI measures the ratio of dependents (people younger than 15 or older than 64) to the working-age population (15-64). A higher ratio means more pressure on the working population to support dependents.',
+        default: 'This chart visualizes the selected data, providing insights into the demographic and social composition of the community.'
+    };
+    return explanations[metric] || explanations.default;
+}
+
+
+// --- Function to open the detail modal ---
+function openDetailModal(metric, chartData, chartOptions) {
+    const detailModal = document.getElementById('chart-detail-modal');
+    const titleEl = document.getElementById('chart-detail-title');
+    const contentEl = document.getElementById('chart-detail-content');
+    const explanationEl = document.getElementById('chart-detail-explanation');
+
+    titleEl.textContent = getChartTitle(metric);
+    contentEl.innerHTML = ''; // Clear previous chart
+    explanationEl.innerHTML = getChartExplanation(metric); // Add explanation
+
+    // Make the modal visible *before* drawing the chart
+    detailModal.style.display = 'block';
+
+    // Use a short timeout to allow the browser to render the modal first
+    setTimeout(() => {
+        // Make options suitable for a larger display
+        let detailOptions = JSON.parse(JSON.stringify(chartOptions)); // Deep copy
+        detailOptions.width = '100%';
+        detailOptions.height = '100%';
+        detailOptions.chartArea = {'width': '80%', 'height': '80%'};
+        detailOptions.legend.position = 'right';
+
+        const chartType = getChartType(metric);
+        
+        if (chartType === 'KPI') {
+            const kpiContent = document.getElementById(`${metric}_chart_div`).innerHTML;
+            contentEl.innerHTML = `<div class="kpi-content large-kpi">${kpiContent}</div>`;
+        } else {
+            let chart;
+            if (chartType === 'GroupedBar' || chartType === 'PopulationPyramid') {
+                chart = new google.charts.Bar(contentEl);
+                chart.draw(chartData, google.charts.Bar.convertOptions(detailOptions));
+            } else {
+                chart = new google.visualization[chartType](contentEl);
+                chart.draw(chartData, detailOptions);
+            }
+        }
+    }, 50); // A small delay is enough
+}
+
+
 function drawChart(metric) {
     fetch(`../core/analytics_data.php?metric=${metric}`)
         .then(response => {
@@ -243,6 +315,8 @@ function drawChart(metric) {
         })
         .then(apiData => {
             const chartDiv = document.getElementById(`${metric}_chart_div`);
+            const chartContainer = chartDiv.closest('.chart-container');
+
             if (!chartDiv) return;
             if (apiData.error) {
                 chartDiv.innerHTML = `<div class="chart-error">Error: ${apiData.error}</div>`;
@@ -254,6 +328,11 @@ function drawChart(metric) {
 
             if(chartType === 'KPI') {
                 chartDiv.innerHTML = `<div class="kpi-value">${apiData.value}</div><div class="kpi-label">${apiData.label || ''}</div>`;
+                // Add click listener for KPI
+                if(chartContainer) {
+                    chartContainer.style.cursor = 'pointer';
+                    chartContainer.onclick = () => openDetailModal(metric, apiData, {});
+                }
                 return;
             }
 
@@ -323,6 +402,13 @@ function drawChart(metric) {
                 chartDiv.chartInstance = chart;
                 chart.draw(data, options);
             }
+
+            // --- Add click listener to the chart ---
+             if(chartContainer) {
+                chartContainer.style.cursor = 'pointer';
+                chartContainer.onclick = () => openDetailModal(metric, data, options);
+            }
+
         })
         .catch(error => {
             const chartDiv = document.getElementById(`${metric}_chart_div`);
