@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const ageMin = document.getElementById('ageMin');
     const ageMax = document.getElementById('ageMax');
     const purokFilter = document.getElementById('purokFilter');
-    const barangayFilter = document.getElementById('barangayFilter');
     const clearBtn = document.getElementById('clearFiltersBtn');
 
     const pageSizeSelect = document.getElementById('pageSizeSelect');
@@ -135,7 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (ageMin) ageMin.value = '';
             if (ageMax) ageMax.value = '';
             if (purokFilter) purokFilter.value = '';
-            if (barangayFilter) barangayFilter.value = '';
             fetchFilteredResidents();
         });
     }
@@ -227,8 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
             gender: genderFilter ? genderFilter.value : '',
             age_min: ageMin ? ageMin.value : '',
             age_max: ageMax ? ageMax.value : '',
-            purok: purokFilter ? purokFilter.value : '',
-            barangay: barangayFilter ? barangayFilter.value : ''
+            purok: purokFilter ? purokFilter.value : ''
         });
         try {
             const res = await fetch(`../core/residents_process.php?action=filter&${params.toString()}`);
@@ -245,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Update filtered counts
             if (filteredCount) filteredCount.textContent = currentResidents.length;
             if (filteredResults) {
-                const isFiltered = searchInput.value || statusFilter.value || genderFilter.value || ageMin.value || ageMax.value || purokFilter.value || barangayFilter.value;
+                const isFiltered = searchInput.value || statusFilter.value || genderFilter.value || ageMin.value || ageMax.value || purokFilter.value;
                 filteredResults.style.display = isFiltered ? 'block' : 'none';
             }
 
@@ -262,7 +259,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (ageMin) ageMin.addEventListener('input', fetchFilteredResidents);
     if (ageMax) ageMax.addEventListener('input', fetchFilteredResidents);
     if (purokFilter) purokFilter.addEventListener('change', fetchFilteredResidents);
-    if (barangayFilter) barangayFilter.addEventListener('change', fetchFilteredResidents);
 
     fetchFilteredResidents();
 });

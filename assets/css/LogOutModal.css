@@ -46,3 +46,19 @@
     color: #000;
   }
   
+/* --- DARK MODE FIX --- */
+body.dark-mode .modal-content {
+    background: #2C3E50; /* Dark background */
+    color: #ffffff;       /* Light text */
+}
+
+/* This new rule specifically targets the paragraph text */
+body.dark-mode .modal-content p {
+    color: #ffffff;
+}
+
+body.dark-mode .btn.cancel {
+    background: #757575; /* Darker grey for cancel button */
+    color: #ffffff;
+}
+/* --- END FIX --- */

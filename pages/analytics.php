@@ -153,6 +153,18 @@ $available_charts = [
     </div>
 </div>
 
+<div id="chart-detail-modal" class="modal">
+    <div class="modal-content large">
+        <span class="close-btn">&times;</span>
+        <div class="modal-grid">
+            <div id="chart-detail-content"></div>
+            <div class="chart-info-panel">
+                <h2 id="chart-detail-title">Chart Details</h2>
+                <div id="chart-detail-explanation"></div>
+            </div>
+        </div>
+    </div>
+</div>
 <?php include __DIR__ . '/../components/footer.php'; ?>
 <script src="../assets/js/analytics.js"></script>
 </body>
