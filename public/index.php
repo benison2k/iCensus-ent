@@ -85,4 +85,15 @@ switch ($route) {
     case 'analytics/layout/save':
         (new AnalyticsController())->saveLayout();
         break;
+
+    // --- Settings Routes ---
+    case 'settings':
+        (new SettingsController())->index();
+        break;
+    case 'settings/process':
+        (new SettingsController())->process();
+        break;
+    case 'settings/theme':
+        (new SettingsController())->updateTheme();
+        break;
 }
