@@ -57,6 +57,7 @@ $available_charts = [
     <link rel="stylesheet" href="../assets/css/dashboard.css">
     <link rel="stylesheet" href="../assets/css/analytics.css">
     <link rel="stylesheet" href="../assets/css/report-modal.css">
+    <link rel="icon" type="image/png" href="../assets/img/iCensusLogoOnly.png">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/8.2.1/gridstack.min.css" rel="stylesheet"/>
@@ -83,63 +84,64 @@ $available_charts = [
 </main>
 
 <div id="report-modal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content wide">
         <span class="close-btn">&times;</span>
-        <h2>Generate Custom Report</h2>
+        <h2 class="modal-title">Generate Custom Report</h2>
         <form action="../core/generate_report.php" method="post" target="_blank">
-            <div class="modal-form-columns">
+            <div class="modal-form-grid">
+
                 <div class="modal-form-column">
                      <fieldset>
-                        <legend>Report Data</legend>
+                        <legend><span class="material-icons">description</span> Report Data</legend>
                         <div class="checkbox-group">
                             <?php foreach($available_columns as $key => $label): ?>
                                 <label><input type="checkbox" name="columns[]" value="<?= $key ?>" <?= in_array($key, ['full_name', 'address', 'age', 'gender', 'status']) ? 'checked' : '' ?>> <?= $label ?></label>
                             <?php endforeach; ?>
                         </div>
                     </fieldset>
+                </div>
+
+                <div class="modal-form-column">
                     <fieldset>
-                        <legend>Configuration</legend>
-                        <div class="form-group-inline">
-                            <div class="form-group">
-                                <label for="orientation">Orientation:</label>
-                                <select name="orientation" id="orientation">
-                                    <option value="portrait" selected>Portrait</option>
-                                    <option value="landscape">Landscape</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="font_size">Font Size:</label>
-                                <select name="font_size" id="font_size">
-                                    <option value="10px">Small</option>
-                                    <option value="12px" selected>Normal</option>
-                                    <option value="14px">Large</option>
-                                </select>
-                            </div>
+                        <legend><span class="material-icons">settings</span> Configuration</legend>
+                        <div class="form-group">
+                            <label for="orientation">Orientation:</label>
+                            <select name="orientation" id="orientation">
+                                <option value="portrait" selected>Portrait</option>
+                                <option value="landscape">Landscape</option>
+                            </select>
                         </div>
-                        <div class="form-group-inline">
-                            <div class="form-group">
-                                <label for="sort_by">Sort Table By:</label>
-                                <select name="sort_by" id="sort_by">
-                                    <option value="last_name">Last Name</option>
-                                    <option value="first_name">First Name</option>
-                                    <option value="date_added">Date Added</option>
-                                    <option value="dob">Age</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="sort_order">Order:</label>
-                                <select name="sort_order" id="sort_order">
-                                    <option value="ASC">Ascending</option>
-                                    <option value="DESC">Descending</option>
-                                </select>
-                            </div>
+                        <div class="form-group">
+                            <label for="font_size">Font Size:</label>
+                            <select name="font_size" id="font_size">
+                                <option value="10px">Small</option>
+                                <option value="12px" selected>Normal</option>
+                                <option value="14px">Large</option>
+                            </select>
+                        </div>
+                         <div class="form-group">
+                            <label for="sort_by">Sort Table By:</label>
+                            <select name="sort_by" id="sort_by">
+                                <option value="last_name">Last Name</option>
+                                <option value="first_name">First Name</option>
+                                <option value="date_added">Date Added</option>
+                                <option value="dob">Age</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="sort_order">Order:</label>
+                            <select name="sort_order" id="sort_order">
+                                <option value="ASC">Ascending</option>
+                                <option value="DESC">Descending</option>
+                            </select>
                         </div>
                     </fieldset>
                 </div>
+
                 <div class="modal-form-column">
                     <fieldset>
-                        <legend>Visualizations</legend>
-                        <p style="font-size: 0.9em; color: #666; margin-bottom: 1rem;">Select the charts to include in the report.</p>
+                        <legend><span class="material-icons">pie_chart</span> Visualizations</legend>
+                        <p class="fieldset-subtitle">Select the charts to include in the report.</p>
                         <div class="checkbox-group">
                             <?php foreach($available_charts as $key => $label): ?>
                                 <label><input type="checkbox" name="charts[]" value="<?= $key ?>"> <?= $label ?></label>
@@ -152,7 +154,6 @@ $available_charts = [
         </form>
     </div>
 </div>
-
 <div id="chart-detail-modal" class="modal">
     <div class="modal-content large">
         <span class="close-btn">&times;</span>
@@ -165,6 +166,8 @@ $available_charts = [
         </div>
     </div>
 </div>
+
+
 <?php include __DIR__ . '/../components/footer.php'; ?>
 <script src="../assets/js/analytics.js"></script>
 </body>
