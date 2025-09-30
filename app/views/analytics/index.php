@@ -38,7 +38,7 @@
     <div class="modal-content wide">
         <span class="close-btn">&times;</span>
         <h2 class="modal-title">Generate Custom Report</h2>
-        <form action="<?= $base_url ?>/analytics/report" ...>
+        <form action="<?= $base_url ?>/analytics/report" method="post" target="_blank">
             <div class="modal-form-grid">
                 <div class="modal-form-column">
                      <fieldset>

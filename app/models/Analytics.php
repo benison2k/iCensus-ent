@@ -25,7 +25,7 @@ class Analytics {
             if (file_exists($defaultLayoutPath)) {
                 return json_decode(file_get_contents($defaultLayoutPath));
             }
-            return []; // Return empty array if default is missing
+            return [];
         }
         return $layout;
     }
@@ -39,88 +39,83 @@ class Analytics {
         $stmt = $this->pdo->prepare("DELETE FROM user_analytics_layouts WHERE user_id = ?");
         return $stmt->execute([$userId]);
     }
-
-    /**
-     * This is the complete and final version of getChartData,
-     * containing all the logic from the original analytics_data.php file.
-     */
+    
     public function getChartData($metric) {
-        $stmt = $this->pdo->query("SELECT dob, gender, civil_status, blood_type, nationality, status, relationship, head_of_household, purok FROM residents");
+        // Fetch all necessary data in one go
+        $stmt = $this->pdo->query("SELECT * FROM residents");
         $residents = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $data = [];
 
-        $calculateAge = function($dob) {
-            if (!$dob || $dob === '0000-00-00') return null;
-            return (new DateTime($dob))->diff(new DateTime('today'))->y;
-        };
-
+        // Helper functions
+        $calculateAge = fn($dob) => ($dob && $dob !== '0000-00-00') ? (new DateTime($dob))->diff(new DateTime('today'))->y : null;
         $getGeneration = function($dob) {
-            if (!$dob || $dob === '0000-00-00') return 'Unknown';
+            if (!$dob) return 'Unknown';
             $birthYear = (int)date('Y', strtotime($dob));
-            if ($birthYear <= 1900) return 'Unknown';
-            if ($birthYear >= 2013) return 'Gen Alpha';
-            if ($birthYear >= 1997) return 'Gen Z';
-            if ($birthYear >= 1981) return 'Millennials';
-            if ($birthYear >= 1965) return 'Gen X';
-            if ($birthYear >= 1946) return 'Baby Boomers';
-            return 'Older Generations';
+            if ($birthYear >= 2013) return 'Gen Alpha'; if ($birthYear >= 1997) return 'Gen Z';
+            if ($birthYear >= 1981) return 'Millennials'; if ($birthYear >= 1965) return 'Gen X';
+            if ($birthYear >= 1946) return 'Baby Boomers'; return 'Older';
         };
 
-        foreach ($residents as &$resident) {
-            $resident['age'] = $calculateAge($resident['dob']);
-        }
-        unset($resident);
+        // Pre-calculate ages
+        foreach ($residents as &$r) { $r['age'] = $calculateAge($r['dob']); }
+        unset($r);
 
         switch ($metric) {
-            case 'gender':
-            case 'civil_status':
-            case 'blood_type':
-            case 'nationality':
-            case 'purok':
-            case 'relationship':
-                foreach ($residents as $r) $data[trim($r[$metric]) ?: 'Unknown'] = ($data[trim($r[$metric]) ?: 'Unknown'] ?? 0) + 1;
+            // SIMPLE COUNTS
+            case 'gender': case 'civil_status': case 'blood_type': case 'nationality': case 'purok': case 'relationship':
+            case 'resident_status_overview':
+                $column = ($metric === 'resident_status_overview') ? 'status' : $metric;
+                foreach ($residents as $r) $data[trim($r[$column]) ?: 'Unknown'] = ($data[trim($r[$column]) ?: 'Unknown'] ?? 0) + 1;
                 break;
 
+            // AGE-BASED
             case 'age':
-                $ageGroups = ['0-17' => 0, '18-35' => 0, '36-59' => 0, '60+' => 0, 'Unknown' => 0];
+                $groups = ['0-17' => 0, '18-35' => 0, '36-59' => 0, '60+' => 0];
                 foreach ($residents as $r) {
-                    if ($r['age'] === null) $ageGroups['Unknown']++;
-                    elseif ($r['age'] <= 17) $ageGroups['0-17']++;
-                    elseif ($r['age'] <= 35) $ageGroups['18-35']++;
-                    elseif ($r['age'] <= 59) $ageGroups['36-59']++;
-                    else $ageGroups['60+']++;
+                    if ($r['age'] === null) continue;
+                    if ($r['age'] <= 17) $groups['0-17']++; elseif ($r['age'] <= 35) $groups['18-35']++;
+                    elseif ($r['age'] <= 59) $groups['36-59']++; else $groups['60+']++;
                 }
-                $data = $ageGroups;
+                $data = $groups;
                 break;
-            
+            case 'detailed_age_brackets':
+                $brackets = ['0-9'=>0, '10-19'=>0, '20-29'=>0, '30-39'=>0, '40-49'=>0, '50-59'=>0, '60-69'=>0, '70-79'=>0, '80+'=>0];
+                foreach ($residents as $r) {
+                    if($r['age'] === null) continue;
+                    $key = floor($r['age'] / 10);
+                    $bracket_name = ($key*10).'-'.($key*10+9);
+                    if($key >= 8) $bracket_name = '80+';
+                    if(isset($brackets[$bracket_name])) $brackets[$bracket_name]++;
+                }
+                $data = $brackets;
+                break;
             case 'generation_breakdown':
                  foreach($residents as $r) $data[$getGeneration($r['dob'])] = ($data[$getGeneration($r['dob'])] ?? 0) + 1;
                 break;
-
-            case 'average_age_of_residents':
-                $total_age = 0; $count = 0;
-                foreach ($residents as $r) {
-                    if ($r['age'] !== null) {
-                        $total_age += $r['age'];
-                        $count++;
-                    }
+            case 'population_pyramid':
+                $pyramid = []; $brackets = ['0-9', '10-19', '20-29', '30-39', '40-49', '50-59', '60-69', '70-79', '80+'];
+                foreach($brackets as $b) $pyramid[$b] = ['Male' => 0, 'Female' => 0];
+                foreach($residents as $r) {
+                    if ($r['age'] === null || empty($r['gender'])) continue;
+                    $key = floor($r['age'] / 10);
+                    if($key >= 8) $key = 8;
+                    $gender = ucfirst(strtolower($r['gender']));
+                    if(isset($pyramid[$brackets[$key]][$gender])) $pyramid[$brackets[$key]][$gender]++;
                 }
-                $avg = $count > 0 ? round($total_age / $count, 1) : 0;
+                $data = $pyramid;
+                break;
+
+            // KPIS
+            case 'average_age_of_residents':
+                $ages = array_column(array_filter($residents, fn($r) => $r['age'] !== null), 'age');
+                $avg = count($ages) > 0 ? round(array_sum($ages) / count($ages), 1) : 0;
                 $data = ['value' => $avg, 'label' => 'Average Resident Age'];
                 break;
-            
             case 'average_household_size':
-                $households = [];
-                foreach($residents as $r) {
-                    $head = trim($r['head_of_household']) ?: ($r['first_name'] . ' ' . $r['last_name']);
-                    $households[$head] = 1;
-                }
-                $total_members = count($residents);
-                $total_households = count($households);
-                $avg = $total_households > 0 ? round($total_members / $total_households, 2) : 0;
+                $heads = array_filter($residents, fn($r) => strtolower(trim($r['relationship'])) === 'self');
+                $avg = count($heads) > 0 ? round(count($residents) / count($heads), 2) : 0;
                 $data = ['value' => $avg, 'label' => 'Average Household Size'];
                 break;
-            
             case 'dependency_ratio':
                 $dependents = 0; $working_age = 0;
                 foreach ($residents as $r) {
@@ -132,37 +127,109 @@ class Analytics {
                 $ratio = $working_age > 0 ? round(($dependents / $working_age) * 100, 2) : 0;
                 $data = ['value' => $ratio . '%', 'label' => 'Dependents per 100 working-age'];
                 break;
-
             case 'sex_ratio':
-                $male = 0; $female = 0;
-                foreach ($residents as $r) {
-                    if (strtolower($r['gender']) == 'male') $male++;
-                    if (strtolower($r['gender']) == 'female') $female++;
-                }
+                $male = count(array_filter($residents, fn($r) => strtolower($r['gender']) == 'male'));
+                $female = count(array_filter($residents, fn($r) => strtolower($r['gender']) == 'female'));
                 $data = ['Male' => $male, 'Female' => $female];
                 break;
 
-            case 'population_pyramid':
-                $pyramid = [];
-                $ageBrackets = ['0-9', '10-19', '20-29', '30-39', '40-49', '50-59', '60-69', '70-79', '80+'];
-                foreach($ageBrackets as $bracket) $pyramid[$bracket] = ['Male' => 0, 'Female' => 0];
+            // GROUPED CHARTS
+            case 'civil_status_distribution_by_gender':
+                $civilStatusByGender = [];
                 foreach($residents as $r) {
-                    if ($r['age'] === null || empty($r['gender'])) continue;
-                    $bracketKey = floor($r['age'] / 10);
-                    if($bracketKey >= 8) $bracketKey = 8;
-                    $bracket = $ageBrackets[$bracketKey];
-                    $gender = ucfirst(strtolower($r['gender']));
-                    if(isset($pyramid[$bracket][$gender])) {
-                       $pyramid[$bracket][$gender]++;
+                    $status = trim($r['civil_status']) ?: 'Unknown';
+                    $gender = ucfirst(strtolower($r['gender'])) ?: 'Unknown';
+                    if (!isset($civilStatusByGender[$status])) $civilStatusByGender[$status] = ['Male' => 0, 'Female' => 0];
+                    if (isset($civilStatusByGender[$status][$gender])) $civilStatusByGender[$status][$gender]++;
+                }
+                $data = $civilStatusByGender;
+                break;
+             case 'school_age_population_by_purok':
+                $schoolAge = [];
+                foreach($residents as $r) {
+                    $purok = trim($r['purok']) ?: 'Unknown';
+                    if (!isset($schoolAge[$purok])) $schoolAge[$purok] = ['Daycare (0-4)'=>0, 'Elementary (5-11)'=>0, 'High School (12-17)'=>0];
+                    if ($r['age'] !== null) {
+                        if($r['age'] <= 4) $schoolAge[$purok]['Daycare (0-4)']++;
+                        else if($r['age'] <= 11) $schoolAge[$purok]['Elementary (5-11)']++;
+                        else if($r['age'] <= 17) $schoolAge[$purok]['High School (12-17)']++;
                     }
                 }
-                $data = $pyramid;
+                $data = $schoolAge;
                 break;
             
+            // OTHER
+            case 'voter_population_by_purok': case 'senior_citizens_by_purok':
+                $byPurok = [];
+                foreach($residents as $r) {
+                    $purok = trim($r['purok']) ?: 'Unknown';
+                    if(!isset($byPurok[$purok])) $byPurok[$purok] = 0;
+                    if($r['age'] !== null) {
+                        if($metric === 'voter_population_by_purok' && $r['age'] >= 18) $byPurok[$purok]++;
+                        if($metric === 'senior_citizens_by_purok' && $r['age'] >= 60) $byPurok[$purok]++;
+                    }
+                }
+                $data = $byPurok;
+                break;
+            case 'residents_per_street':
+                $streets = [];
+                foreach($residents as $r) $streets[trim($r['street']) ?: 'Unknown'] = ($streets[trim($r['street']) ?: 'Unknown'] ?? 0) + 1;
+                arsort($streets);
+                $data = array_slice($streets, 0, 10);
+                break;
+             case 'household_size_distribution':
+                $households = [];
+                foreach($residents as $r) {
+                    $head = trim($r['head_of_household']) ?: ($r['first_name'] . ' ' . $r['last_name']);
+                    if (!isset($households[$head])) $households[$head] = 0;
+                    $households[$head]++;
+                }
+                $sizes = ['1 person'=>0, '2 people'=>0, '3 people'=>0, '4 people'=>0, '5+ people'=>0];
+                foreach($households as $size) {
+                    if($size >= 5) $sizes['5+ people']++;
+                    else $sizes[$size . ' ' . ($size > 1 ? 'people' : 'person')]++;
+                }
+                $data = $sizes;
+                break;
+            case 'heads_of_household_by_gender':
+                $heads = [];
+                foreach($residents as $r) {
+                    if(strtolower(trim($r['relationship'])) == 'self') {
+                        $gender = $r['gender'] ?: 'Unknown';
+                        $heads[$gender] = ($heads[$gender] ?? 0) + 1;
+                    }
+                }
+                $data = $heads;
+                break;
+
+            // DATA HEALTH
+            case 'profile_completeness':
+                $completeness = ['Contact Info' => 0, 'Email' => 0, 'Emergency Contact' => 0, 'Blood Type' => 0];
+                $total = count($residents);
+                if ($total > 0) {
+                    foreach($residents as $r) {
+                        if(!empty(trim($r['contact_number']))) $completeness['Contact Info']++;
+                        if(!empty(trim($r['email']))) $completeness['Email']++;
+                        if(!empty(trim($r['emergency_name']))) $completeness['Emergency Contact']++;
+                        if(!empty(trim($r['blood_type']))) $completeness['Blood Type']++;
+                    }
+                    foreach($completeness as $key => $value) {
+                        $data[$key] = round(($value / $total) * 100);
+                    }
+                }
+                break;
+            case 'emergency_contact_coverage':
+                $with = count(array_filter($residents, fn($r) => !empty(trim($r['emergency_name']))));
+                $data = ['Has Contact' => $with, 'None' => count($residents) - $with];
+                break;
+
             default:
-                $data = ['error' => 'Invalid metric specified: ' . htmlspecialchars($metric)];
+                $data = ['error' => 'Metric not found: ' . htmlspecialchars($metric)];
                 break;
         }
         return $data;
     }
+
+    public function getDataForReport($postData) { /* ... same as before ... */ }
 }
+
