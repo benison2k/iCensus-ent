@@ -71,4 +71,18 @@ switch ($route) {
     case 'residents/process': // New endpoint for AJAX calls
         (new ResidentController())->process();
         break;
+
+    // --- Analytics Routes ---
+    case 'analytics':
+        (new AnalyticsController())->index();
+        break;
+    case 'analytics/data':
+        (new AnalyticsController())->data();
+        break;
+    case 'analytics/layout':
+        (new AnalyticsController())->getLayout();
+        break;
+    case 'analytics/layout/save':
+        (new AnalyticsController())->saveLayout();
+        break;
 }
