@@ -1,0 +1,6 @@
+RewriteEngine On
+
+# Redirect any requests that aren't for an existing file or directory
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [L]
