@@ -101,4 +101,21 @@ switch ($route) {
     case 'sysadmin/dashboard':
         (new SysadminController())->dashboard();
         break;
+
+    case 'sysadmin/users':
+        (new SysadminController())->manageUsers();
+        break;
+    case 'sysadmin/users/process':
+        (new SysadminController())->processUser();
+        break;
+    case 'sysadmin/users/get':
+        (new SysadminController())->getUser();
+        break;
+
+    case 'sysadmin/db-tools':
+        (new SysadminController())->dbTools();
+        break;
+    case 'sysadmin/db-tools/process':
+        (new SysadminController())->processDbTools();
+        break;
 }

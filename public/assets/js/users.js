@@ -1,3 +1,5 @@
+// Replace the content of /public/assets/js/users.js with this
+
 document.addEventListener('DOMContentLoaded', () => {
     const userModal = document.getElementById('userModal');
     if (!userModal) return;
@@ -7,8 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalTitle = document.getElementById('userModalTitle');
     const userIdInput = document.getElementById('user_id');
     const passwordInput = document.getElementById('password');
+    const basePath = '/icensus-ent/iCensus-ent-overhaul-MVC-file-structure-implementation-/public';
 
-    // --- Open Modal for Adding ---
+    // Open Modal for Adding
     document.getElementById('addUserBtn')?.addEventListener('click', () => {
         userForm.reset();
         userIdInput.value = '';
@@ -18,11 +21,12 @@ document.addEventListener('DOMContentLoaded', () => {
         userModal.style.display = 'block';
     });
 
-    // --- Open Modal for Editing ---
+    // Open Modal for Editing
     document.querySelectorAll('.editBtn').forEach(button => {
         button.addEventListener('click', async (e) => {
             const id = e.currentTarget.dataset.id;
-            const response = await fetch(`../core/users_process.php?action=get&user_id=${id}`);
+            // --- URL UPDATED ---
+            const response = await fetch(`${basePath}/sysadmin/users/get?user_id=${id}`);
             const result = await response.json();
 
             if (result.status === 'success') {
@@ -38,19 +42,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 passwordInput.placeholder = "Leave blank to keep current password";
                 userModal.style.display = 'block';
             } else {
-                alert('Error: ' + result.message);
+                alert('Error: Could not fetch user data.');
             }
         });
     });
 
-    // --- Handle Deletion ---
+    // Handle Deletion
     document.querySelectorAll('.deleteBtn').forEach(button => {
         button.addEventListener('click', (e) => {
             const id = e.currentTarget.dataset.id;
             if (confirm('Are you sure you want to delete this user?')) {
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = '../core/users_process.php';
+                // --- ACTION URL UPDATED ---
+                form.action = `${basePath}/sysadmin/users/process`;
                 form.innerHTML = `
                     <input type="hidden" name="action" value="delete">
                     <input type="hidden" name="user_id" value="${id}">
@@ -61,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- Close Modal Logic ---
+    // Close Modal Logic
     closeModalBtn.addEventListener('click', () => userModal.style.display = 'none');
     window.addEventListener('click', (event) => {
         if (event.target === userModal) userModal.style.display = 'none';

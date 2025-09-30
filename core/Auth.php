@@ -102,4 +102,10 @@ class Auth {
 
         return password_verify((string)$password, (string)$user['password']);
     }
+
+    public function updateTheme($userId, $theme) {
+        $stmt = $this->pdo->prepare("UPDATE users SET theme = ? WHERE id = ?");
+        $stmt->execute([$theme, $userId]);
+        $this->refreshUserSession($userId);
+    }
 }
