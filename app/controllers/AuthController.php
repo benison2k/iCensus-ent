@@ -1,5 +1,6 @@
 <?php
 // app/controllers/AuthController.php
+require_once __DIR__ . '/../../core/Auth.php';
 
 class AuthController {
 
@@ -30,7 +31,7 @@ class AuthController {
 
         if ($result['success']) {
             $role = $_SESSION['user']['role_name'];
-            $base_url = '/icensus-ent/iCensus-ent-overhaul-MVC-file-structure-implementation-/public';
+            $base_url = '/icensus-ent/public';
 
             // Redirect based on role
             if ($role == 'System Admin') $redirect_to = $base_url . '/sysadmin/dashboard';
@@ -66,7 +67,7 @@ class AuthController {
         }
         session_unset();
         session_destroy();
-        header("Location: /icensus-ent/iCensus-ent-overhaul-MVC-file-structure-implementation-/public/login");
+        header("Location: /icensus-ent/public/login");
         exit;
     }
 }

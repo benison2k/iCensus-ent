@@ -23,7 +23,7 @@ spl_autoload_register(function ($class_name) {
 $request_uri = strtok($_SERVER["REQUEST_URI"], '?');
 
 // IMPORTANT: Adjust if your project is in the root directory of your web server
-$base_path = '/icensus-ent/iCensus-ent-overhaul-MVC-file-structure-implementation-/public'; 
+$base_path = '/iCensus-ent/public';
 $route = str_replace($base_path, '', $request_uri);
 $route = trim($route, '/');
 $route = empty($route) ? 'home' : $route;

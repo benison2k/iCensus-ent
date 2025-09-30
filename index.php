@@ -19,7 +19,7 @@
                 <a href="index.php" class="btn-login btn-icon" title="Home">
                     <span class="material-icons">home</span>
                 </a>
-                <a href="pages/login.php" class="btn-login btn-icon" title="Member Login">
+                <a href="login" class="btn-login btn-icon" title="Member Login">
                     <span class="material-icons">account_circle</span>
                 </a>
             </div>
