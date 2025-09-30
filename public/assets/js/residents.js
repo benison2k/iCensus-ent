@@ -1,13 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- MODAL ELEMENTS ---
     const modal = document.getElementById('residentModal');
-    const closeModal = modal ? modal.querySelector('.close') : null;
+    const closeModal = modal.querySelector('.close');
     const form = document.getElementById('residentForm');
     const modalTitle = document.getElementById('modalTitle');
     const saveBtn = document.getElementById('saveBtn');
-    const editBtn = modal ? modal.querySelector('.editBtn') : null;
-    const deleteBtn = modal ? modal.querySelector('.deleteBtn') : null;
+    const editBtn = modal.querySelector('.editBtn');
+    const deleteBtn = modal.querySelector('.deleteBtn');
     const hiddenId = document.getElementById('resident_id');
+    const addResidentBtn = document.getElementById('addResidentBtn');
 
     // --- TABLE & FILTER ELEMENTS ---
     const tableBody = document.getElementById('residentsTableBody');
@@ -18,114 +19,101 @@ document.addEventListener('DOMContentLoaded', () => {
     const ageMax = document.getElementById('ageMax');
     const purokFilter = document.getElementById('purokFilter');
     const clearBtn = document.getElementById('clearFiltersBtn');
-
-    // --- PAGINATION ELEMENTS ---
     const pageSizeSelect = document.getElementById('pageSizeSelect');
     const prevPageBtn = document.getElementById('prevPageBtn');
     const nextPageBtn = document.getElementById('nextPageBtn');
     const pageInfo = document.getElementById('pageInfo');
     const shownCountEl = document.getElementById('shownCount');
-    const totalCountEl = document.getElementById('totalCount');
-    const filteredResults = document.getElementById('filteredResults');
-    const filteredCount = document.getElementById('filteredCount');
+    const totalCountEl = document.getElementById('totalCountEl');
     const gotoPageInput = document.getElementById('gotoPage');
     const gotoPageBtn = document.getElementById('gotoPageBtn');
+    const basePath = '/iCensus-ent/public';
 
-    // --- STATE VARIABLES ---
+    // --- STATE ---
     let currentPage = 1;
-    let pageSize = pageSizeSelect ? parseInt(pageSizeSelect.value, 10) : 10;
-    let allResidents = []; // This will hold the master list of residents
+    let pageSize = parseInt(pageSizeSelect.value, 10);
+    let filteredResidents = [];
 
-    // --- MODAL FUNCTIONS ---
+    // --- MODAL & FORM FUNCTIONS ---
     const setFormEditable = (editable) => {
-        if (!form) return;
         form.querySelectorAll('input, select').forEach(input => input.disabled = !editable);
-        if (saveBtn) saveBtn.style.display = editable ? 'inline-flex' : 'none';
+        saveBtn.style.display = editable ? 'inline-flex' : 'none';
+        editBtn.style.display = editable ? 'none' : 'inline-flex';
+        deleteBtn.style.display = editable ? 'none' : 'inline-flex';
     };
 
-    const openModal = async (id) => {
+    const openModalForEdit = async (id) => {
+        form.reset();
         try {
-            // MVC ROUTE: Fetch a single resident's data
-            const res = await fetch(`/icensus-ent/iCensus-ent-overhaul-MVC-file-structure-implementation-/public/residents/process?action=get&resident_id=${id}`);
+            const res = await fetch(`${basePath}/residents/process?action=get&resident_id=${id}`);
             const result = await res.json();
             if (result.status !== 'success') return alert('Resident not found.');
             
             const data = result.resident;
-            if (form) Object.keys(data).forEach(key => { if (form[key]) form[key].value = data[key]; });
+            Object.keys(data).forEach(key => { if (form[key]) form[key].value = data[key]; });
             
             setFormEditable(false);
-            if (modalTitle) modalTitle.textContent = `Resident Info - ${data.first_name} ${data.last_name}`;
-            if (modal) modal.style.display = 'block';
-            if (form) form.dataset.id = id;
-            if (hiddenId) hiddenId.value = id;
+            modalTitle.textContent = `View Resident Info`;
+            hiddenId.value = id;
+            modal.style.display = 'block';
         } catch (err) {
             console.error('Failed to fetch resident data:', err);
-            alert('An error occurred while fetching resident data.');
         }
     };
 
-    const attachRowEventListeners = () => {
+    const openModalForAdd = () => {
+        form.reset();
+        hiddenId.value = '';
+        setFormEditable(true);
+        editBtn.style.display = 'none';
+        deleteBtn.style.display = 'none';
+        modalTitle.textContent = 'Add New Resident';
+        modal.style.display = 'block';
+    };
+
+    // --- TABLE & PAGINATION FUNCTIONS ---
+    const attachEventListenersToRows = () => {
         document.querySelectorAll('.moreBtn').forEach(btn => {
-            btn.addEventListener('click', (e) => openModal(e.currentTarget.dataset.id));
+            btn.addEventListener('click', (e) => openModalForEdit(e.currentTarget.dataset.id));
         });
     };
 
-    if (closeModal) closeModal.addEventListener('click', () => modal.style.display = 'none');
-    window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
-
-    if (editBtn) editBtn.addEventListener('click', () => {
-        setFormEditable(true);
-        if (modalTitle) modalTitle.textContent = 'Edit Resident';
-    });
-    
-    // --- DATA & TABLE FUNCTIONS ---
-    const renderTable = (residentsToRender) => {
+    const renderTable = () => {
         tableBody.innerHTML = '';
         const start = (currentPage - 1) * pageSize;
         const end = start + pageSize;
-        const pageSlice = residentsToRender.slice(start, end);
+        const pageSlice = filteredResidents.slice(start, end);
 
-        if (pageSlice.length === 0 && residentsToRender.length > 0) {
-             // If current page is empty but there's data, go to first page
-            currentPage = 1;
-            renderTable(residentsToRender);
-            return;
-        }
-        
         pageSlice.forEach(r => {
             const middleInitial = r.middle_name ? `${r.middle_name.charAt(0).toUpperCase()}.` : '';
             const fullName = `${r.first_name} ${middleInitial} ${r.last_name}`.trim();
             const address = `${r.house_no} ${r.street}, Purok ${r.purok}`;
             const safeStatus = (r.status || '').toLowerCase();
-
             tableBody.innerHTML += `
                 <tr data-id="${r.id}">
-                    <td>${fullName}</td>
-                    <td>${r.age}</td>
-                    <td>${r.gender}</td>
+                    <td>${fullName}</td><td>${r.age}</td><td>${r.gender}</td>
                     <td>${address}</td>
                     <td><span class="status-label status-${safeStatus}">${r.status}</span></td>
                     <td><button class="moreBtn material-icons" data-id="${r.id}" title="View Resident Info">more_vert</button></td>
                 </tr>`;
         });
-
-        updatePagination(residentsToRender.length);
-        attachRowEventListeners();
+        updatePagination();
+        attachEventListenersToRows();
     };
 
     const applyFilters = () => {
-        const search = searchInput.value.toLowerCase();
+        const searchTerm = searchInput.value.toLowerCase();
         const status = statusFilter.value;
         const gender = genderFilter.value;
-        const minAge = ageMin.value ? parseInt(ageMin.value) : null;
-        const maxAge = ageMax.value ? parseInt(ageMax.value) : null;
+        const minAge = ageMin.value ? parseInt(ageMin.value, 10) : null;
+        const maxAge = ageMax.value ? parseInt(ageMax.value, 10) : null;
         const purok = purokFilter.value;
-
-        const filtered = allResidents.filter(r => {
+        
+        filteredResidents = allResidentsData.filter(r => {
             const fullName = `${r.first_name} ${r.last_name}`.toLowerCase();
             const address = `${r.house_no} ${r.street}, Purok ${r.purok}`.toLowerCase();
             
-            if (search && !fullName.includes(search) && !address.includes(search)) return false;
+            if (searchTerm && !fullName.includes(searchTerm) && !address.includes(searchTerm)) return false;
             if (status && r.status !== status) return false;
             if (gender && r.gender !== gender) return false;
             if (minAge !== null && r.age < minAge) return false;
@@ -133,86 +121,96 @@ document.addEventListener('DOMContentLoaded', () => {
             if (purok && r.purok !== purok) return false;
             return true;
         });
-
-        const isFiltered = search || status || gender || minAge !== null || maxAge !== null || purok;
-        filteredResults.style.display = isFiltered ? 'block' : 'none';
-        filteredCount.textContent = filtered.length;
-
         currentPage = 1;
-        renderTable(filtered);
+        renderTable();
     };
 
-    const updatePagination = (totalFilteredItems) => {
-        const totalPages = Math.ceil(totalFilteredItems / pageSize) || 1;
-        const startItem = totalFilteredItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
-        const endItem = Math.min(currentPage * pageSize, totalFilteredItems);
-
-        if (pageInfo) pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-        if (shownCountEl) shownCountEl.textContent = `${startItem}–${endItem}`;
-        if (totalCountEl) totalCountEl.textContent = totalFilteredItems;
-        if (prevPageBtn) prevPageBtn.disabled = currentPage === 1;
-        if (nextPageBtn) nextPageBtn.disabled = currentPage === totalPages;
+    const updatePagination = () => {
+        const totalPages = Math.ceil(filteredResidents.length / pageSize) || 1;
+        const startItem = filteredResidents.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+        const endItem = Math.min(currentPage * pageSize, filteredResidents.length);
+        pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+        shownCountEl.textContent = `${startItem}–${endItem}`;
+        totalCountEl.textContent = filteredResidents.length;
+        prevPageBtn.disabled = currentPage === 1;
+        nextPageBtn.disabled = currentPage === totalPages;
     };
+
+    const jumpToPage = () => {
+        const totalPages = Math.ceil(filteredResidents.length / pageSize) || 1;
+        const page = parseInt(gotoPageInput.value, 10);
+        if (page >= 1 && page <= totalPages) {
+            currentPage = page;
+            renderTable();
+        } else {
+            alert(`Please enter a page number between 1 and ${totalPages}.`);
+        }
+        gotoPageInput.value = '';
+    };
+
+    // --- ALL EVENT LISTENERS ---
+    addResidentBtn.addEventListener('click', openModalForAdd);
+    closeModal.addEventListener('click', () => modal.style.display = 'none');
+    window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+    editBtn.addEventListener('click', () => setFormEditable(true));
     
-    // --- INITIALIZATION ---
-    // Fetch all residents once on page load and store them.
-    const initializePage = async () => {
-        // The data is already embedded in the page via PHP, so we just parse it
-        const residentRows = Array.from(document.querySelectorAll('#residentsTableBody tr'));
-        // In a fully AJAX-driven app, you'd fetch here. Since PHP renders the initial list,
-        // we can just use that to build our client-side data cache.
-        // For simplicity, we'll continue with client-side filtering based on the initial load.
-        allResidents = residentRows.map(row => {
-            const cells = row.cells;
-            return {
-                id: row.dataset.id,
-                first_name: cells[0].textContent.split(' ')[0],
-                last_name: cells[0].textContent.split(' ').slice(-1)[0],
-                age: parseInt(cells[1].textContent, 10),
-                gender: cells[2].textContent,
-                house_no: cells[3].textContent.split(' ')[0],
-                street: cells[3].textContent.split(',')[0].split(' ').slice(1).join(' '),
-                purok: cells[3].textContent.split('Purok ')[1],
-                status: cells[4].textContent,
-            };
+    deleteBtn.addEventListener('click', async () => {
+        const id = hiddenId.value;
+        if (!id) return;
+        if (!confirm('Are you sure you want to delete this resident? This action cannot be undone.')) return;
+        
+        const response = await fetch(`${basePath}/residents/process`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: new URLSearchParams({ action: 'delete', id: id })
+        });
+        const result = await response.json();
+        if (result.status === 'success') {
+            window.location.reload();
+        } else {
+            alert('Failed to delete resident.');
+        }
+    });
+
+    // THIS IS THE NEWLY ADDED FIX
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const response = await fetch(form.action, {
+            method: 'POST',
+            body: formData
         });
         
-        applyFilters(); // Apply initial filters (if any) and render the table
-    };
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+            window.location.reload();
+        } else {
+            alert('An error occurred while saving the resident.');
+        }
+    });
 
-    // Attach all event listeners
-    [searchInput, ageMin, ageMax].forEach(el => el?.addEventListener('input', applyFilters));
-    [statusFilter, genderFilter, purokFilter].forEach(el => el?.addEventListener('change', applyFilters));
-    
-    pageSizeSelect?.addEventListener('change', (e) => {
+    [searchInput, ageMin, ageMax].forEach(el => el.addEventListener('input', applyFilters));
+    [statusFilter, genderFilter, purokFilter].forEach(el => el.addEventListener('change', applyFilters));
+    pageSizeSelect.addEventListener('change', (e) => {
         pageSize = parseInt(e.target.value, 10);
+        currentPage = 1;
+        renderTable();
+    });
+    prevPageBtn.addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderTable(); } });
+    nextPageBtn.addEventListener('click', () => {
+        const totalPages = Math.ceil(filteredResidents.length / pageSize);
+        if (currentPage < totalPages) { currentPage++; renderTable(); }
+    });
+    gotoPageBtn.addEventListener('click', jumpToPage);
+    gotoPageInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') jumpToPage(); });
+    clearBtn.addEventListener('click', () => {
+        searchInput.value = ''; statusFilter.value = ''; genderFilter.value = '';
+        ageMin.value = ''; ageMax.value = ''; purokFilter.value = '';
         applyFilters();
     });
 
-    prevPageBtn?.addEventListener('click', () => { if(currentPage > 1) { currentPage--; applyFilters(); } });
-    nextPageBtn?.addEventListener('click', () => {
-        const totalPages = Math.ceil(parseInt(totalCountEl.textContent) / pageSize);
-        if (currentPage < totalPages) { currentPage++; applyFilters(); }
-    });
-
-    clearBtn?.addEventListener('click', () => {
-        searchInput.value = '';
-        statusFilter.value = '';
-        genderFilter.value = '';
-        ageMin.value = '';
-        ageMax.value = '';
-        purokFilter.value = '';
-        applyFilters();
-    });
-
-    addResidentBtn?.addEventListener('click', () => {
-        form.reset();
-        hiddenId.value = '';
-        setFormEditable(true);
-        modalTitle.textContent = 'Add New Resident';
-        modal.style.display = 'block';
-    });
-
-    // Run the initialization
-    initializePage();
+    // --- INITIALIZATION ---
+    applyFilters();
 });

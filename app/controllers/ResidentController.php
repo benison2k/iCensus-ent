@@ -1,12 +1,11 @@
 <?php
 // /app/controllers/ResidentController.php
-require_once __DIR__ . '/../models/Resident.php';
+require_once __DIR__ . '/../../core/functions.php';
+require_once __DIR__ . '/../../core/Auth.php';
+require_once __DIR__ . '/../models/Residents.php';
 
 class ResidentController {
     
-    /**
-     * Display the residents page with all residents.
-     */
     public function index() {
         // Authenticate user
         $user_role = $_SESSION['user']['role_name'] ?? '';
@@ -15,14 +14,19 @@ class ResidentController {
              die("<h1>403 Forbidden</h1>");
         }
 
+        // --- REFRESH LOGIC ADDED HERE ---
         $config = require __DIR__ . '/../../config/database.php';
         $db = new Database($config);
+        $auth = new Auth($db);
+        $auth->refreshUserSession($_SESSION['user']['id']);
+        // --- END REFRESH LOGIC ---
+
         $residentModel = new Resident($db);
         
         $data = [
-            'user' => $_SESSION['user'],
+            'user' => $_SESSION['user'], // This is now fresh data
             'theme' => $_SESSION['user']['theme'] ?? 'light',
-            'residents' => $residentModel->getAll(), // Pass all residents to the view
+            'residents' => $residentModel->getAll(),
             'modalMessage' => $_SESSION['modal']['message'] ?? '',
             'modalType' => $_SESSION['modal']['type'] ?? ''
         ];
@@ -31,10 +35,6 @@ class ResidentController {
         view('residents/index', $data);
     }
 
-    /**
-     * Handle all AJAX requests (get, save, delete, filter).
-     * This method replaces residents_process.php
-     */
     public function process() {
         header('Content-Type: application/json');
         
@@ -45,6 +45,7 @@ class ResidentController {
 
         $config = require __DIR__ . '/../../config/database.php';
         $db = new Database($config);
+        $GLOBALS['db'] = $db;
         $residentModel = new Resident($db);
         
         $action = $_REQUEST['action'] ?? 'save';

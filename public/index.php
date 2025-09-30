@@ -5,25 +5,28 @@
 require_once __DIR__ . '/../core/init.php';
 require_once __DIR__ . '/../core/Database.php'; 
 
-// A simple helper function to load our view files easily
+// Helper function to load view files
 function view($path, $data = []) {
     extract($data); 
     require __DIR__ . "/../app/views/{$path}.php";
 }
 
-// Autoloader for Controllers
+// Autoloader for Controllers and Models
 spl_autoload_register(function ($class_name) {
-    $file = __DIR__ . "/../app/controllers/" . $class_name . '.php';
-    if (file_exists($file)) {
-        require_once $file;
+    $controller_file = __DIR__ . "/../app/controllers/" . $class_name . '.php';
+    if (file_exists($controller_file)) {
+        require_once $controller_file;
+        return;
+    }
+    $model_file = __DIR__ . "/../app/models/" . $class_name . '.php';
+    if (file_exists($model_file)) {
+        require_once $model_file;
     }
 });
 
-// --- Basic Router ---
+// --- Router ---
 $request_uri = strtok($_SERVER["REQUEST_URI"], '?');
-
-// IMPORTANT: Adjust if your project is in the root directory of your web server
-$base_path = '/iCensus-ent/public';
+$base_path = '/iCensus-ent/public'; // Correct base path for your local setup
 $route = str_replace($base_path, '', $request_uri);
 $route = trim($route, '/');
 $route = empty($route) ? 'home' : $route;
@@ -31,20 +34,17 @@ $route = empty($route) ? 'home' : $route;
 // --- Routing Table ---
 switch ($route) {
     case 'home':
-        // For now, this just loads your original landing page
         require __DIR__ . '/../index.php'; 
         break;
 
-    // --- Authentication Routes ---
+    // --- Auth Routes ---
     case 'login':
-        // Handles both showing the form (GET) and processing it (POST)
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             (new AuthController())->login();
         } else {
             (new AuthController())->showLoginForm();
         }
         break;
-    
     case 'logout':
         (new AuthController())->logout();
         break;
@@ -53,22 +53,15 @@ switch ($route) {
     case 'dashboard':
         (new DashboardController())->index();
         break;
-    
     case 'encoder-dashboard':
         (new DashboardController())->encoderDashboard();
-        break;
-
-    default:
-        http_response_code(404);
-        echo "<h1>404 Not Found</h1><p>The page '{$route}' could not be found.</p>";
         break;
 
     // --- Residents Routes ---
     case 'residents':
         (new ResidentController())->index();
         break;
-    
-    case 'residents/process': // New endpoint for AJAX calls
+    case 'residents/process':
         (new ResidentController())->process();
         break;
 
@@ -96,12 +89,14 @@ switch ($route) {
     case 'settings/theme':
         (new SettingsController())->updateTheme();
         break;
+    case 'settings/verify-password':
+        (new SettingsController())->verifyPassword();
+        break;
 
     // --- System Admin Routes ---
     case 'sysadmin/dashboard':
         (new SysadminController())->dashboard();
         break;
-
     case 'sysadmin/users':
         (new SysadminController())->manageUsers();
         break;
@@ -111,15 +106,33 @@ switch ($route) {
     case 'sysadmin/users/get':
         (new SysadminController())->getUser();
         break;
-
     case 'sysadmin/db-tools':
         (new SysadminController())->dbTools();
         break;
     case 'sysadmin/db-tools/process':
         (new SysadminController())->processDbTools();
         break;
-    
     case 'sysadmin/logs':
         (new SysadminController())->systemLogs();
+        break;
+    case 'settings/verify-password':
+        (new SettingsController())->verifyPassword();
+        break;
+    case 'analytics/layout/reset':
+        (new AnalyticsController())->resetLayout();
+        break;
+    case 'analytics/report':
+        (new AnalyticsController())->generateReport();
+        break;
+    
+    // --- About Page Route ---
+    case 'about':
+        // Simple pages can be loaded directly if no controller logic is needed
+        view('about/index', ['theme' => $_SESSION['user']['theme'] ?? 'light']);
+        break;
+
+    default:
+        http_response_code(404);
+        echo "<h1>404 Not Found</h1><p>The page '{$route}' could not be found.</p>";
         break;
 }

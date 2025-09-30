@@ -1,0 +1,8 @@
+[
+    {"id": "average_age_of_residents", "x": 0, "y": 0, "w": 3, "h": 2},
+    {"id": "average_household_size", "x": 3, "y": 0, "w": 3, "h": 2},
+    {"id": "dependency_ratio", "x": 6, "y": 0, "w": 3, "h": 2},
+    {"id": "sex_ratio", "x": 9, "y": 0, "w": 3, "h": 2},
+    {"id": "population_pyramid", "x": 0, "y": 2, "w": 6, "h": 6},
+    {"id": "generation_breakdown", "x": 6, "y": 2, "w": 6, "h": 6}
+]

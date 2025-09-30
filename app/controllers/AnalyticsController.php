@@ -1,19 +1,22 @@
 <?php
 // app/controllers/AnalyticsController.php
+require_once __DIR__ . '/../../core/Auth.php';
 require_once __DIR__ . '/../models/Analytics.php';
 
 class AnalyticsController {
 
     private function checkAuth() {
         if (!isset($_SESSION['user'])) {
-            header('Location: /login');
+            header('Location: /iCensus-ent/public/login');
             exit;
         }
+        // Add session refresh on every page load
+        $config = require __DIR__ . '/../../config/database.php';
+        $db = new Database($config);
+        $auth = new Auth($db);
+        $auth->refreshUserSession($_SESSION['user']['id']);
     }
 
-    /**
-     * Display the main analytics page.
-     */
     public function index() {
         $this->checkAuth();
         
@@ -26,15 +29,22 @@ class AnalyticsController {
             'theme' => $_SESSION['user']['theme'] ?? 'light',
             'puroks' => $analyticsModel->getDistinct('purok'),
             'civil_statuses' => $analyticsModel->getDistinct('civil_status'),
+            'available_columns' => [
+                'full_name' => 'Full Name', 'address' => 'Full Address', 'dob' => 'Date of Birth',
+                'age' => 'Age', 'gender' => 'Gender', 'civil_status' => 'Civil Status',
+                'contact_number' => 'Contact Number', 'email' => 'Email', 'blood_type' => 'Blood Type',
+                'nationality' => 'Nationality', 'status' => 'Resident Status', 'date_added' => 'Date Added'
+            ],
+            'available_charts' => [
+                'gender' => 'Gender Distribution (Pie)', 'age' => 'Age Groups (Column)',
+                'purok' => 'Population by Purok (Bar)', 'civil_status' => 'Civil Status (Donut)',
+                'blood_type' => 'Blood Types (Pie)', 'nationality' => 'Nationality (Bar)',
+            ]
         ];
         
         view('analytics/index', $data);
     }
 
-    /**
-     * Provide chart data based on the requested metric.
-     * Replaces core/analytics_data.php
-     */
     public function data() {
         $this->checkAuth();
         header('Content-Type: application/json');
@@ -54,10 +64,6 @@ class AnalyticsController {
         exit;
     }
 
-    /**
-     * Get the user's saved layout.
-     * Replaces core/get_layout.php
-     */
     public function getLayout() {
         $this->checkAuth();
         header('Content-Type: application/json');
@@ -71,10 +77,6 @@ class AnalyticsController {
         exit;
     }
 
-    /**
-     * Save the user's layout.
-     * Replaces core/save_layout.php
-     */
     public function saveLayout() {
         $this->checkAuth();
         header('Content-Type: application/json');
@@ -89,5 +91,31 @@ class AnalyticsController {
         
         echo json_encode(['status' => $success ? 'success' : 'error']);
         exit;
+    }
+
+    public function resetLayout() {
+        $this->checkAuth();
+        header('Content-Type: application/json');
+
+        $config = require __DIR__ . '/../../config/database.php';
+        $db = new Database($config);
+        $analyticsModel = new Analytics($db);
+
+        $success = $analyticsModel->deleteLayoutForUser($_SESSION['user']['id']);
+        echo json_encode(['status' => $success ? 'success' : 'error']);
+        exit;
+    }
+
+    public function generateReport() {
+        $this->checkAuth();
+        
+        $config = require __DIR__ . '/../../config/database.php';
+        $db = new Database($config);
+        $analyticsModel = new Analytics($db);
+        
+        // This is a placeholder for your report generation logic
+        $reportData = []; // You would populate this from the model
+
+        view('analytics/report', $reportData);
     }
 }

@@ -31,7 +31,7 @@ class AuthController {
 
         if ($result['success']) {
             $role = $_SESSION['user']['role_name'];
-            $base_url = '/icensus-ent/public';
+            $base_url = '/iCensus-ent/public';
 
             // Redirect based on role
             if ($role == 'System Admin') $redirect_to = $base_url . '/sysadmin/dashboard';

@@ -1,12 +1,13 @@
 <?php
 // app/controllers/SettingsController.php
-require_once __DIR__ . '/../models/User.php'; // We can reuse the User model
+require_once __DIR__ . '/../../core/Auth.php';
+require_once __DIR__ . '/../../core/functions.php';
 
 class SettingsController {
 
     private function checkAuth() {
         if (!isset($_SESSION['user'])) {
-            header('Location: /icensus-ent/iCensus-ent-overhaul-MVC-file-structure-implementation-/public/login');
+            header('Location: /iCensus-ent/public/login');
             exit;
         }
     }
@@ -14,8 +15,15 @@ class SettingsController {
     public function index() {
         $this->checkAuth();
 
+        // --- REFRESH LOGIC ADDED HERE ---
+        $config = require __DIR__ . '/../../config/database.php';
+        $db = new Database($config);
+        $auth = new Auth($db);
+        $auth->refreshUserSession($_SESSION['user']['id']);
+        // --- END REFRESH LOGIC ---
+
         $data = [
-            'user' => $_SESSION['user'],
+            'user' => $_SESSION['user'], // This is now fresh data
             'theme' => $_SESSION['user']['theme'] ?? 'light',
             'modalMessage' => $_SESSION['modal']['message'] ?? '',
             'modalType' => $_SESSION['modal']['type'] ?? ''
@@ -27,10 +35,10 @@ class SettingsController {
     
     public function process() {
         $this->checkAuth();
-
         $config = require __DIR__ . '/../../config/database.php';
         $db = new Database($config);
-        $auth = new Auth($db); // The Auth class has the update methods
+        $GLOBALS['db'] = $db; // Make db global for log_action
+        $auth = new Auth($db);
         $userId = $_SESSION['user']['id'];
         
         try {
@@ -39,7 +47,6 @@ class SettingsController {
                 log_action('INFO', 'SETTINGS_UPDATE', "User updated their username.");
                 $_SESSION['modal'] = ['message' => 'Username updated successfully', 'type' => 'success'];
             }
-            
             if (isset($_POST['update_password'])) {
                 $auth->updatePassword($userId, $_POST['password']);
                 log_action('INFO', 'SETTINGS_UPDATE', "User changed their password.");
@@ -50,24 +57,35 @@ class SettingsController {
             $_SESSION['modal'] = ['message' => 'An error occurred.', 'type' => 'error'];
         }
 
-        header('Location: /icensus-ent/iCensus-ent-overhaul-MVC-file-structure-implementation-/public/settings');
+        header('Location: /iCensus-ent/public/settings');
         exit;
     }
 
     public function updateTheme() {
         $this->checkAuth();
         header('Content-Type: application/json');
-
-        $theme = $_POST['theme'] ?? 'light';
-        $theme = ($theme === 'dark') ? 'dark' : 'light';
+        $theme = ($_POST['theme'] ?? 'light') === 'dark' ? 'dark' : 'light';
         $userId = $_SESSION['user']['id'];
-
         $config = require __DIR__ . '/../../config/database.php';
         $db = new Database($config);
         $auth = new Auth($db);
-        $auth->updateTheme($userId, $theme); // Assumes you add an updateTheme method to Auth.php
-
+        $auth->updateTheme($userId, $theme);
         echo json_encode(['status' => 'success', 'theme' => $theme]);
+        exit;
+    }
+
+    public function verifyPassword() {
+        $this->checkAuth();
+        header('Content-Type: application/json');
+        $currentPassword = $_POST['current_password'] ?? '';
+        $config = require __DIR__ . '/../../config/database.php';
+        $db = new Database($config);
+        $auth = new Auth($db);
+        if ($auth->verifyPassword($_SESSION['user']['id'], $currentPassword)) {
+            echo json_encode(['status' => 'success']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Incorrect password']);
+        }
         exit;
     }
 }

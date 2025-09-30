@@ -1,33 +1,34 @@
 <?php
 // app/controllers/DashboardController.php
+require_once __DIR__ . '/../../core/Auth.php';
 
 class DashboardController {
 
     /**
-     * Checks for a valid session and user role.
-     * If the role doesn't match, it redirects to the login page.
+     * Checks for a valid session, user role, and refreshes session data.
      * @param string $requiredRole The role required to view the page.
      */
-    private function requireAuth($requiredRole) {
-        if (!isset($_SESSION['user']) || $_SESSION['user']['role_name'] != $requiredRole) {
-            header("Location: /icensus-ent/iCensus-ent-overhaul-MVC-file-structure-implementation-/public/login");
+    private function requireAuthAndRefresh($requiredRole) {
+        if (!isset($_SESSION['user']) || $_SESSION['user']['role_name'] !== $requiredRole) {
+            header("Location: /iCensus-ent/public/login");
             exit;
         }
+        // --- REFRESH LOGIC ADDED HERE ---
+        $config = require __DIR__ . '/../../config/database.php';
+        $db = new Database($config);
+        $auth = new Auth($db);
+        $auth->refreshUserSession($_SESSION['user']['id']);
     }
 
     /**
      * Display the main dashboard for Barangay Admins.
      */
     public function index() {
-        $this->requireAuth('Barangay Admin');
-
-        // Prepare data to pass to the view
+        $this->requireAuthAndRefresh('Barangay Admin');
         $data = [
             'user' => $_SESSION['user'],
             'theme' => $_SESSION['user']['theme'] ?? 'light'
         ];
-        
-        // Load the view file
         view('dashboard/barangay_admin', $data);
     }
 
@@ -35,13 +36,11 @@ class DashboardController {
      * Display the dashboard for Encoders.
      */
     public function encoderDashboard() {
-        $this->requireAuth('Encoder');
-        
+        $this->requireAuthAndRefresh('Encoder');
         $data = [
             'user' => $_SESSION['user'],
             'theme' => $_SESSION['user']['theme'] ?? 'light'
         ];
-
         view('dashboard/encoder', $data);
     }
 }

@@ -7,7 +7,7 @@
 
         <h3 id="modalTitle" style="font-size:1.5rem; font-weight:600; margin-bottom:1rem; color:#333;">Resident Info</h3>
 
-        <form id="residentForm" method="POST" action="../core/residents_process.php">
+        <form id="residentForm" method="POST" action="/iCensus-ent/public/residents/process">
             <input type="hidden" name="resident_id" id="resident_id">
 
             <div style="display:flex; flex-wrap:wrap; gap:1rem;">

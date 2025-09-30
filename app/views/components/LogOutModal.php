@@ -1,5 +1,10 @@
-<link rel="stylesheet" href="../assets/css/logoutModal.css">
-<script src="../assets/js/logoutModal.js" defer></script>
+<?php
+// Define the base URL for asset paths
+$base_url = '/iCensus-ent/public'; 
+?>
+
+<link rel="stylesheet" href="<?= $base_url ?>/assets/css/LogOutModal.css">
+<script src="<?= $base_url ?>/assets/js/LogOutModal.js" defer></script>
 
 <div id="logoutModal" class="modal">
   <div class="modal-content">
