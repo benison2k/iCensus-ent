@@ -130,4 +130,42 @@ class SysadminController {
         header("Location: /icensus-ent/iCensus-ent-overhaul-MVC-file-structure-implementation-/public/sysadmin/db-tools");
         exit;
     }
+
+    public function systemLogs() {
+        $this->requireSysadmin();
+    
+        $config = require __DIR__ . '/../../config/database.php';
+        $db = new Database($config);
+        $logModel = new Log($db);
+    
+        // --- Filtering Logic ---
+        $filter = $_GET['filter'] ?? 'all';
+        $log_actions = [];
+    
+        switch ($filter) {
+            case 'auth': $log_actions = ['USER_LOGIN_SUCCESS', 'USER_LOGIN_FAIL', 'USER_LOGOUT']; break;
+            case 'data': $log_actions = ['RESIDENT_CREATE', 'RESIDENT_UPDATE', 'RESIDENT_DELETE']; break;
+            case 'user_management': $log_actions = ['USER_CREATE', 'USER_UPDATE', 'USER_DELETE']; break;
+            case 'system': $log_actions = ['SYSTEM_ERROR', 'DB_ERROR', 'SETTINGS_UPDATE']; break;
+        }
+    
+        $logData = $logModel->getLogs([
+            'actions' => $log_actions,
+            'start_date' => $_GET['start_date'] ?? '',
+            'end_date' => $_GET['end_date'] ?? '',
+            'page' => $_GET['page'] ?? 1
+        ]);
+        
+        $data = [
+            'user' => $_SESSION['user'],
+            'theme' => $_SESSION['user']['theme'] ?? 'light',
+            'logs' => $logData['logs'],
+            'totalLogs' => $logData['total'],
+            'totalPages' => $logData['totalPages'],
+            'currentPage' => $_GET['page'] ?? 1,
+            'currentFilter' => $filter
+        ];
+    
+        view('sysadmin/system_logs', $data);
+    }
 }

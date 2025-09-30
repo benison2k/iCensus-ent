@@ -118,4 +118,8 @@ switch ($route) {
     case 'sysadmin/db-tools/process':
         (new SysadminController())->processDbTools();
         break;
+    
+    case 'sysadmin/logs':
+        (new SysadminController())->systemLogs();
+        break;
 }
