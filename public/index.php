@@ -96,4 +96,9 @@ switch ($route) {
     case 'settings/theme':
         (new SettingsController())->updateTheme();
         break;
+
+    // --- System Admin Routes ---
+    case 'sysadmin/dashboard':
+        (new SysadminController())->dashboard();
+        break;
 }
