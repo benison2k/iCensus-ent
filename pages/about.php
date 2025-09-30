@@ -31,6 +31,7 @@ $themeClass = ($user['theme'] ?? 'light') === 'dark' ? 'dark-mode' : 'light-mode
 <title>iCensus - About</title>
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/css/about.css">
+<link rel="icon" type="image/png" href="../assets/img/iCensusLogoOnly.png">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <style>
 /* =========================

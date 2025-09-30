@@ -252,11 +252,12 @@ body.dark-mode text { /* Google Charts text elements */
     content: none; /* This removes the icon */
 }
 
-/* --- MODAL LAYOUT FIX --- */
+/* --- RESPONSIVE MODAL FIX --- */
 #chart-detail-modal .modal-content.large {
-    max-width: 90vw;
-    width: 1400px;
-    height: 80vh;
+    width: 90vw; /* Use 90% of the viewport width */
+    max-width: 1400px; /* But don't exceed 1400px on very large screens */
+    height: 85vh; /* Use 85% of the viewport height */
+    max-height: 800px; /* But don't exceed 800px */
     display: flex;
     flex-direction: column;
 }
@@ -265,8 +266,8 @@ body.dark-mode text { /* Google Charts text elements */
     display: grid;
     grid-template-columns: 2fr 1fr;
     gap: 2.5rem;
-    flex-grow: 1; /* Allow grid to fill modal content area */
-    min-height: 0; /* Prevent flexbox overflow issues */
+    flex-grow: 1; 
+    min-height: 0; 
 }
 
 #chart-detail-content, .chart-info-panel {
@@ -277,7 +278,7 @@ body.dark-mode text { /* Google Charts text elements */
 
 .chart-info-panel {
     justify-content: center;
-    padding-right: 1rem; /* Add some padding */
+    padding-right: 1rem; 
 }
 
 #chart-detail-title {
@@ -289,10 +290,28 @@ body.dark-mode text { /* Google Charts text elements */
 
 #chart-detail-explanation {
     font-size: 1rem;
-    line-height: 1.7; /* Increased for readability */
+    line-height: 1.7; 
     color: #555;
 }
 
 body.dark-mode #chart-detail-explanation {
     color: #cfd8dc;
+}
+
+/* Media query for laptops and smaller screens */
+@media (max-width: 1200px) {
+    #chart-detail-modal .modal-grid {
+        grid-template-columns: 1fr; /* Stack the columns vertically */
+        overflow-y: auto; /* Allow scrolling if content overflows */
+        padding-right: 1rem;
+    }
+
+    #chart-detail-title {
+        font-size: 1.5rem; /* Slightly smaller title on small screens */
+    }
+
+    .chart-info-panel {
+        justify-content: flex-start; /* Align info to the top */
+        padding-top: 1rem;
+    }
 }
