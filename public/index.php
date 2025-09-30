@@ -3,11 +3,11 @@
 
 // Start session and load essential files
 require_once __DIR__ . '/../core/init.php';
-require_once __DIR__ . '/../core/Database.php'; // We'll need this in our controllers
+require_once __DIR__ . '/../core/Database.php'; 
 
 // A simple helper function to load our view files easily
 function view($path, $data = []) {
-    extract($data); // This makes variables in the $data array available to the view
+    extract($data); 
     require __DIR__ . "/../app/views/{$path}.php";
 }
 
@@ -22,7 +22,7 @@ spl_autoload_register(function ($class_name) {
 // --- Basic Router ---
 $request_uri = strtok($_SERVER["REQUEST_URI"], '?');
 
-// IMPORTANT: Adjust this if your project is not in the root directory of your web server
+// IMPORTANT: Adjust if your project is in the root directory of your web server
 $base_path = '/icensus-ent/iCensus-ent-overhaul-MVC-file-structure-implementation-/public'; 
 $route = str_replace($base_path, '', $request_uri);
 $route = trim($route, '/');
@@ -35,10 +35,28 @@ switch ($route) {
         require __DIR__ . '/../index.php'; 
         break;
 
-    // We will add more routes here soon!
-    // case 'login':
-    //     (new AuthController())->showLoginForm();
-    //     break;
+    // --- Authentication Routes ---
+    case 'login':
+        // Handles both showing the form (GET) and processing it (POST)
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            (new AuthController())->login();
+        } else {
+            (new AuthController())->showLoginForm();
+        }
+        break;
+    
+    case 'logout':
+        (new AuthController())->logout();
+        break;
+
+    // --- Dashboard Routes ---
+    case 'dashboard':
+        (new DashboardController())->index();
+        break;
+    
+    case 'encoder-dashboard':
+        (new DashboardController())->encoderDashboard();
+        break;
 
     default:
         http_response_code(404);
