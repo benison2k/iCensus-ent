@@ -62,4 +62,13 @@ switch ($route) {
         http_response_code(404);
         echo "<h1>404 Not Found</h1><p>The page '{$route}' could not be found.</p>";
         break;
+
+    // --- Residents Routes ---
+    case 'residents':
+        (new ResidentController())->index();
+        break;
+    
+    case 'residents/process': // New endpoint for AJAX calls
+        (new ResidentController())->process();
+        break;
 }
