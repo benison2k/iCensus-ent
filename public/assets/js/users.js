@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalTitle = document.getElementById('userModalTitle');
     const userIdInput = document.getElementById('user_id');
     const passwordInput = document.getElementById('password');
-    const basePath = '/icensus-ent/iCensus-ent-overhaul-MVC-file-structure-implementation-/public';
+    const basePath = '/iCensus-ent/public';
 
     // Open Modal for Adding
     document.getElementById('addUserBtn')?.addEventListener('click', () => {
