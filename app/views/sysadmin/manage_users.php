@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>iCensus - Manage Users</title>
-<link rel="stylesheet" href="/icensus-ent/iCensus-ent-overhaul-MVC-file-structure-implementation-/public/assets/css/style.css">
-<link rel="stylesheet" href="/icensus-ent/iCensus-ent-overhaul-MVC-file-structure-implementation-/public/assets/css/users.css"> 
-<link rel="stylesheet" href="/icensus-ent/iCensus-ent-overhaul-MVC-file-structure-implementation-/public/assets/css/modal.css">
+<link rel="stylesheet" href="/iCensus-ent/public/assets/css/style.css">
+<link rel="stylesheet" href="/iCensus-ent/public/assets/css/users.css"> 
+<link rel="stylesheet" href="/iCensus-ent/public/assets/css/modal.css">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body class="<?= $theme==='dark'?'dark-mode':''; ?>">
@@ -46,10 +46,10 @@
 </div>
 </main>
 
-<?php $form_action = '/icensus-ent/iCensus-ent-overhaul-MVC-file-structure-implementation-/public/sysadmin/users/process'; ?>
+<?php $form_action = '/iCensus-ent/public/sysadmin/users/process'; ?>
 <?php include __DIR__ . '/../components/user_modal.php'; ?>
 <?php include __DIR__ . '/../components/footer.php'; ?>
-<script src="/icensus-ent/iCensus-ent-overhaul-MVC-file-structure-implementation-/public/assets/js/users.js"></script>
+<script src="/iCensus-ent/public/assets/js/users.js"></script>
 
 </body>
 </html>
