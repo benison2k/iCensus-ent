@@ -28,6 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const gotoPageInput = document.getElementById('gotoPage');
     const gotoPageBtn = document.getElementById('gotoPageBtn');
     const basePath = '/iCensus-ent/public';
+    const filteredResultsDiv = document.getElementById('filteredResults');
+    const filteredCountSpan = document.getElementById('filteredCount');
 
     // --- STATE ---
     let currentPage = 1;
@@ -121,6 +123,17 @@ document.addEventListener('DOMContentLoaded', () => {
             if (purok && r.purok !== purok) return false;
             return true;
         });
+
+        const totalResidents = allResidentsData.length;
+        const filteredCount = filteredResidents.length;
+
+        if (filteredCount < totalResidents) {
+            filteredCountSpan.textContent = filteredCount;
+            filteredResultsDiv.style.display = 'block';
+        } else {
+            filteredResultsDiv.style.display = 'none';
+        }
+        
         currentPage = 1;
         renderTable();
     };
@@ -172,7 +185,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // THIS IS THE NEWLY ADDED FIX
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
