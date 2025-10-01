@@ -67,7 +67,7 @@ class AuthController {
         }
         session_unset();
         session_destroy();
-        header("Location: /icensus-ent/public/login");
+        header("Location: /iCensus-ent/public/login");
         exit;
     }
 }
