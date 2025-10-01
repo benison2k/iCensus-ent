@@ -32,34 +32,53 @@
                  Filtered search results: <span id="filteredCount">0</span>
             </div>
 
-            <div style="margin-top:1rem; display:flex; gap:1rem; flex-wrap:wrap; align-items:center; background: #fff; padding: 1rem; border-radius: 8px; border: 1px solid #ddd;">
-                <input type="text" id="searchInput" placeholder="Search by name or address" style="padding:0.5rem; flex:1;">
-                <select id="statusFilter" style="padding:0.5rem;">
-                    <option value="">All Status</option>
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                    <option value="Moved">Moved</option>
-                    <option value="Deceased">Deceased</option>
-                </select>
-                <select id="genderFilter" style="padding:0.5rem;">
-                    <option value="">All Genders</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                </select>
-                <input type="number" id="ageMin" placeholder="Min Age" style="padding:0.5rem; width:100px;">
-                <input type="number" id="ageMax" placeholder="Max Age" style="padding:0.5rem; width:100px;">
-                <select id="purokFilter" style="padding:0.5rem;">
-                    <option value="">All Puroks</option>
-                    <?php
-                    // Logic to get unique puroks from the data passed by the controller
-                    $puroks = array_unique(array_column($residents, 'purok'));
-                    sort($puroks);
-                    foreach($puroks as $p) if(!empty($p)) echo "<option value=\"".htmlspecialchars($p)."\">".htmlspecialchars($p)."</option>";
-                    ?>
-                </select>
-                <button id="clearFiltersBtn" style="padding:0.5rem; background:#6c757d; color:white; border:none; border-radius:5px; cursor:pointer;">
-                    Clear Filters
-                </button>
+            <div class="filter-container">
+                <div class="filter-group search-filter">
+                    <label for="searchInput">Search Resident</label>
+                    <input type="text" id="searchInput" placeholder="by name or address...">
+                </div>
+                <div class="filter-group">
+                    <label for="statusFilter">Status</label>
+                    <select id="statusFilter">
+                        <option value="">All</option>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                        <option value="Moved">Moved</option>
+                        <option value="Deceased">Deceased</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="genderFilter">Gender</label>
+                    <select id="genderFilter">
+                        <option value="">All</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
+                <div class="filter-group age-filter">
+                    <label>Age Range</label>
+                    <div class="age-inputs">
+                        <input type="number" id="ageMin" placeholder="Min">
+                        <span>-</span>
+                        <input type="number" id="ageMax" placeholder="Max">
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label for="purokFilter">Purok</label>
+                    <select id="purokFilter">
+                        <option value="">All</option>
+                        <?php
+                        $puroks = array_unique(array_column($residents, 'purok'));
+                        sort($puroks);
+                        foreach($puroks as $p) if(!empty($p)) echo "<option value=\"".htmlspecialchars($p)."\">".htmlspecialchars($p)."</option>";
+                        ?>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <button id="clearFiltersBtn" class="clear-btn">
+                        Clear Filters
+                    </button>
+                </div>
             </div>
 
             <div style="margin: 1rem 0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
