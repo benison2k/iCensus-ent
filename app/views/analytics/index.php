@@ -87,6 +87,19 @@
     </div>
 </div>
 
+<div id="chart-detail-modal" class="modal">
+    <div class="modal-content large">
+        <span class="close-btn">&times;</span> <div class="modal-grid">
+            <div id="chart-detail-content">
+            </div>
+            <div class="chart-info-panel">
+                <h3 id="chart-detail-title"></h3>
+                <p id="chart-detail-explanation"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
 <?php include __DIR__ . '/../components/footer.php'; ?>
 <script src="<?= $base_url ?>/assets/js/analytics.js"></script>
 </body>
