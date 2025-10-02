@@ -243,9 +243,6 @@ body.dark-mode .chart-error {
     background-color: #3e2723;
     color: #ef9a9a;
 }
-body.dark-mode text { /* Google Charts text elements */
-    fill: #CFD8DC !important;
-}
 
 /* --- Remove the visible resize icon --- */
 .grid-stack-item > .ui-resizable-handle::after {
@@ -320,9 +317,8 @@ body.dark-mode #chart-detail-explanation {
    Chart Detail Modal Styles
 ========================= */
 
-/* This is the NEW, correct rule */
 #chart-detail-modal {
-    display: none; /* This now correctly hides the modal by default */
+    display: none; 
     position: fixed;
     z-index: 1001;
     left: 0;
@@ -337,7 +333,7 @@ body.dark-mode #chart-detail-explanation {
 }
 
 #chart-detail-modal .modal-content.large {
-    background-color: #ffffff; /* Solid white for light mode */
+    background-color: #ffffff;
     color: #333;
     width: 90vw;
     max-width: 1400px;
@@ -369,10 +365,10 @@ body.dark-mode #chart-detail-explanation {
 
 #chart-detail-modal .modal-grid {
     display: grid;
-    grid-template-columns: 3fr 1fr; /* Make chart area 3x wider */
+    grid-template-columns: 3fr 1fr; 
     gap: 2.5rem;
     flex-grow: 1;
-    min-height: 0; /* Important for grid/flex layouts */
+    min-height: 0;
 }
 
 #chart-detail-content,
@@ -383,7 +379,7 @@ body.dark-mode #chart-detail-explanation {
 }
 
 #chart-detail-content {
-    height: 100%; /* Make chart container fill its grid cell */
+    height: 100%;
 }
 
 .chart-info-panel {
@@ -406,7 +402,7 @@ body.dark-mode #chart-detail-explanation {
 
 /* Dark Mode Overrides */
 body.dark-mode #chart-detail-modal .modal-content.large {
-    background-color: #2C3E50; /* Solid dark blue for dark mode */
+    background-color: #2C3E50;
     color: #fff;
 }
 
