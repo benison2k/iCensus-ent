@@ -3,13 +3,22 @@ $base_url = '/iCensus-ent/public'; // The correct base URL for all links
 
 // Check if a session is active and if the user is a System Admin
 $isAdmin = isset($_SESSION['user']) && $_SESSION['user']['role_name'] === 'System Admin';
+$isEncoder = isset($_SESSION['user']) && $_SESSION['user']['role_name'] === 'Encoder';
 
-// Determine the correct dashboard link
-$dashboardLink = $isAdmin ? $base_url . '/sysadmin/dashboard' : $base_url . '/dashboard';
+// Determine the correct dashboard link for the logo
+$dashboardLink = $isAdmin ? $base_url . '/sysadmin/dashboard' : ($isEncoder ? $base_url . '/encoder-dashboard' : $base_url . '/dashboard');
 
-// Get the current request URI to determine if we are on a dashboard page
+// Get the current request URI to determine the page
 $requestUri = $_SERVER['REQUEST_URI'];
 $isDashboardPage = (strpos($requestUri, 'dashboard') !== false);
+
+// --- NEW LOGIC: Determine the correct "UP" URL for the back button ---
+$parentUrl = $dashboardLink; // Default to the user's main dashboard
+if (strpos($requestUri, '/sysadmin/') !== false && !$isDashboardPage) {
+    // If we are anywhere inside /sysadmin/ (except the dashboard itself), the parent is the sysadmin dashboard
+    $parentUrl = $base_url . '/sysadmin/dashboard';
+}
+
 ?>
 
 <head>
@@ -20,9 +29,9 @@ $isDashboardPage = (strpos($requestUri, 'dashboard') !== false);
 
 <header class="header">
     <?php if (!$isDashboardPage): ?>
-        <button class="back-button" id="backButton" title="Go Back">
+        <a href="<?= $parentUrl ?>" class="back-button" title="Go Back">
             <span class="material-icons">arrow_back</span>
-        </button>
+        </a>
     <?php else: ?>
         <div class="header-slot"></div>
     <?php endif; ?>
@@ -39,15 +48,3 @@ $isDashboardPage = (strpos($requestUri, 'dashboard') !== false);
 </header>
 
 <?php include __DIR__ . "/LogOutModal.php"; ?>
-
-<script>
-(function() {
-  const backButton = document.getElementById('backButton');
-  if (backButton) {
-    backButton.addEventListener('click', function() {
-      // A simpler, more reliable way to go back
-      window.history.back();
-    });
-  }
-})();
-</script>

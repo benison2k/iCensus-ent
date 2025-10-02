@@ -1,6 +1,12 @@
 <?php
 // app/controllers/SysadminController.php
 
+require_once __DIR__ . '/../../core/functions.php';
+require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../models/Log.php';
+require_once __DIR__ . '/../../core/Database.php';
+
+
 class SysadminController {
 
     /**
@@ -9,7 +15,7 @@ class SysadminController {
      */
     private function requireSysadmin() {
         if (!isset($_SESSION['user']) || $_SESSION['user']['role_name'] !== 'System Admin') {
-            header("Location: /icensus-ent/iCensus-ent-overhaul-MVC-file-structure-implementation-/public/login");
+            header("Location: /iCensus-ent/public/login");
             exit;
         }
     }
@@ -20,9 +26,17 @@ class SysadminController {
     public function dashboard() {
         $this->requireSysadmin();
 
+        $config = require __DIR__ . '/../../config/database.php';
+        $db = new Database($config);
+        $logModel = new Log($db);
+        
+        // Get unseen log count from the database
+        $new_log_count = $logModel->getUnseenLogCount();
+
         $data = [
             'user' => $_SESSION['user'],
-            'theme' => $_SESSION['user']['theme'] ?? 'light'
+            'theme' => $_SESSION['user']['theme'] ?? 'light',
+            'new_log_count' => $new_log_count
         ];
 
         view('sysadmin/dashboard', $data);
@@ -53,24 +67,65 @@ class SysadminController {
         
         $config = require __DIR__ . '/../../config/database.php';
         $db = new Database($config);
+        $GLOBALS['db'] = $db;
         $userModel = new User($db);
         
         $action = $_REQUEST['action'] ?? 'save';
 
         try {
             if ($action === 'save') {
-                $userModel->save($_POST);
+                $is_new_user = empty($_POST['user_id']);
+
+                if (!$is_new_user) {
+                    $old_data = $userModel->find($_POST['user_id']);
+                }
+
+                $user_id = $userModel->save($_POST);
+                
+                if ($is_new_user) {
+                    log_action('INFO', 'USER_CREATE', "New user account '" . htmlspecialchars($_POST['username']) . "' (ID#{$user_id}) was created.");
+                } else {
+                    $new_data = $userModel->find($_POST['user_id']);
+                    unset($old_data['password'], $new_data['password']);
+
+                    $changes = array_diff_assoc($new_data, $old_data);
+                    $log_details = "Updated user account for '" . htmlspecialchars($new_data['username']) . "'.";
+
+                    if (!empty($changes)) {
+                        $log_details .= " Changes: ";
+                        foreach($changes as $key => $value) {
+                            $log_details .= "{$key} changed from '{$old_data[$key]}' to '{$value}'; ";
+                        }
+                        $log_details = rtrim($log_details, '; ');
+                        $log_details .= ".";
+                    } else if (!empty($_POST['password'])) {
+                        $log_details .= " Password was changed.";
+                    } else {
+                        $log_details .= " No data fields were changed.";
+                    }
+                    log_action('INFO', 'USER_UPDATE', $log_details);
+                }
+
                 $_SESSION['modal'] = ['message' => 'User saved successfully.', 'type' => 'success'];
-            }
-            if ($action === 'delete') {
-                $userModel->delete($_POST['user_id']);
-                $_SESSION['modal'] = ['message' => 'User deleted successfully.', 'type' => 'success'];
+
+            } elseif ($action === 'delete') {
+                $user_id_to_delete = $_POST['user_id'];
+                $user_to_delete = $userModel->find($user_id_to_delete);
+                if ($user_to_delete) {
+                    $userModel->delete($user_id_to_delete);
+                    $log_message = "User account '" . htmlspecialchars($user_to_delete['username']) . "' (ID#{$user_id_to_delete}) was deleted.";
+                    log_action('INFO', 'USER_DELETE', $log_message);
+                    $_SESSION['modal'] = ['message' => 'User deleted successfully.', 'type' => 'success'];
+                } else {
+                     $_SESSION['modal'] = ['message' => 'User not found for deletion.', 'type' => 'error'];
+                }
             }
         } catch (Exception $e) {
+            log_action('ERROR', 'USER_MANAGE_ERROR', 'Error processing user: ' . $e->getMessage());
             $_SESSION['modal'] = ['message' => 'An error occurred: ' . $e->getMessage(), 'type' => 'error'];
         }
         
-        header("Location: /icensus-ent/iCensus-ent-overhaul-MVC-file-structure-implementation-/public/sysadmin/users");
+        header("Location: /iCensus-ent/public/sysadmin/users");
         exit;
     }
 
@@ -106,28 +161,46 @@ class SysadminController {
         
         $config = require __DIR__ . '/../../config/database.php';
         $db = new Database($config);
-        $pdo = $db->getPdo();
+        $GLOBALS['db'] = $db;
         $action = $_POST['action'] ?? '';
     
-        // Note: This uses a simplified version of your backup logic
         try {
             if ($action === 'backup_db') {
-                // Simplified backup logic, can be expanded
-                $backupFile = __DIR__ . '/../../backups/icensus_db_' . date('Y-m-d_H-i-s') . '.sql';
-                // This is a placeholder for your detailed backup function
-                file_put_contents($backupFile, "-- Backup Created: " . date('Y-m-d H:i:s')); 
+                $backupDir = __DIR__ . '/../../backups/';
+                if (!is_dir($backupDir)) {
+                    mkdir($backupDir, 0777, true);
+                }
+                $backupFile = $backupDir . 'icensus_db_' . date('Y-m-d_H-i-s') . '.sql';
+
+                $mysql_path = "C:\\xampp\\mysql\\bin\\mysqldump";
+                $command = sprintf(
+                    '"%s" --user=%s --password=%s --host=%s %s > %s',
+                    $mysql_path,
+                    $config['user'],
+                    $config['password'],
+                    $config['host'],
+                    $config['dbname'],
+                    $backupFile
+                );
                 
-                log_action('INFO', 'DB_BACKUP', 'Database backup successful.');
-                $_SESSION['modal'] = ['message' => 'Database backup successful.', 'type' => 'success'];
+                system($command, $return_var);
+
+                if ($return_var === 0) {
+                    log_action('INFO', 'DB_BACKUP', 'Database backup successful.');
+                    $_SESSION['modal'] = ['message' => 'Database backup successful.', 'type' => 'success'];
+                } else {
+                     throw new Exception("Backup command failed with return code: $return_var");
+                }
+
             } else {
                 throw new Exception('Invalid action.');
             }
         } catch (Exception $e) {
-            log_action('ERROR', 'DB_TOOLS_ERROR', 'An error occurred: ' . $e->getMessage());
-            $_SESSION['modal'] = ['message' => 'An error occurred.', 'type' => 'error'];
+            log_action('ERROR', 'DB_BACKUP_FAIL', 'Database backup failed: ' . $e->getMessage());
+            $_SESSION['modal'] = ['message' => 'An error occurred during backup. Check system logs for details.', 'type' => 'error'];
         }
     
-        header("Location: /icensus-ent/iCensus-ent-overhaul-MVC-file-structure-implementation-/public/sysadmin/db-tools");
+        header("Location: /iCensus-ent/public/sysadmin/db-tools");
         exit;
     }
 
@@ -137,23 +210,37 @@ class SysadminController {
         $config = require __DIR__ . '/../../config/database.php';
         $db = new Database($config);
         $logModel = new Log($db);
+        $userModel = new User($db);
     
-        // --- Filtering Logic ---
+        // Get all filter, sort, and pagination parameters from the request
         $filter = $_GET['filter'] ?? 'all';
+        $pageSize = $_GET['pageSize'] ?? 10;
+        $sort_by = $_GET['sort_by'] ?? 'timestamp';
+        $sort_order = $_GET['sort_order'] ?? 'DESC';
+        $page = $_GET['page'] ?? 1;
+        $user_id = $_GET['user_id'] ?? '';
+        $level = $_GET['level'] ?? '';
+        $search = $_GET['search'] ?? '';
+
         $log_actions = [];
-    
         switch ($filter) {
             case 'auth': $log_actions = ['USER_LOGIN_SUCCESS', 'USER_LOGIN_FAIL', 'USER_LOGOUT']; break;
             case 'data': $log_actions = ['RESIDENT_CREATE', 'RESIDENT_UPDATE', 'RESIDENT_DELETE']; break;
             case 'user_management': $log_actions = ['USER_CREATE', 'USER_UPDATE', 'USER_DELETE']; break;
-            case 'system': $log_actions = ['SYSTEM_ERROR', 'DB_ERROR', 'SETTINGS_UPDATE']; break;
+            case 'system': $log_actions = ['SYSTEM_ERROR', 'DB_ERROR', 'SETTINGS_UPDATE', 'DB_BACKUP', 'DB_BACKUP_FAIL']; break;
         }
     
         $logData = $logModel->getLogs([
             'actions' => $log_actions,
             'start_date' => $_GET['start_date'] ?? '',
             'end_date' => $_GET['end_date'] ?? '',
-            'page' => $_GET['page'] ?? 1
+            'user_id' => $user_id,
+            'level' => $level,
+            'search' => $search,
+            'page' => $page,
+            'pageSize' => $pageSize,
+            'sort_by' => $sort_by,
+            'sort_order' => $sort_order
         ]);
         
         $data = [
@@ -162,10 +249,47 @@ class SysadminController {
             'logs' => $logData['logs'],
             'totalLogs' => $logData['total'],
             'totalPages' => $logData['totalPages'],
-            'currentPage' => $_GET['page'] ?? 1,
-            'currentFilter' => $filter
+            'currentPage' => $page,
+            'all_users' => $userModel->getAll(),
+            'currentUserId' => $user_id,
+            'currentFilter' => $filter,
+            'currentLevel' => $level,
+            'currentSearch' => $search,
+            'currentPageSize' => $pageSize,
+            'currentSortBy' => $sort_by,
+            'currentSortOrder' => $sort_order,
         ];
     
         view('sysadmin/system_logs', $data);
+    }
+
+    public function markLogAsSeen() {
+        $this->requireSysadmin();
+        header('Content-Type: application/json');
+
+        $logId = $_POST['id'] ?? null;
+        if ($logId) {
+            $config = require __DIR__ . '/../../config/database.php';
+            $db = new Database($config);
+            $logModel = new Log($db);
+            $logModel->markAsSeen($logId);
+            echo json_encode(['status' => 'success']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'No ID provided']);
+        }
+        exit;
+    }
+
+    public function markAllLogsAsSeen() {
+        $this->requireSysadmin();
+        header('Content-Type: application/json');
+        
+        $config = require __DIR__ . '/../../config/database.php';
+        $db = new Database($config);
+        $logModel = new Log($db);
+        $logModel->markAllAsSeen();
+
+        echo json_encode(['status' => 'success']);
+        exit;
     }
 }

@@ -21,6 +21,7 @@
 
 /* Animate cards on load */
 .card {
+    position: relative; /* <-- THIS IS THE KEY ADDITION */
     padding: 3rem 2rem;
     border-radius: 12px;
     box-shadow: 0 6px 15px rgba(0,0,0,0.1);
@@ -151,3 +152,34 @@ body.dark-mode .card-icon {
     }
 }
 
+/* =========================
+   NOTIFICATION BADGE
+========================= */
+.card .notification-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background-color: #d32f2f;
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.9rem;
+    font-weight: 600;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    animation: badge-pop 0.5s ease-out;
+}
+
+@keyframes badge-pop {
+    from {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}

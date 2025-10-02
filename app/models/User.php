@@ -8,6 +8,15 @@ class User {
         $this->pdo = $db->getPdo();
     }
 
+    /**
+     * Gets all users for filtering purposes.
+     * @return array
+     */
+    public function getAll() {
+        $stmt = $this->pdo->query("SELECT id, username FROM users ORDER BY username ASC");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     // Gets all users EXCEPT System Admins
     public function getManageableUsers() {
         $stmt = $this->pdo->query("
@@ -38,6 +47,7 @@ class User {
             $hashed_password = password_hash($data['password'], PASSWORD_DEFAULT);
             $stmt = $this->pdo->prepare("INSERT INTO users (username, full_name, role_id, password) VALUES (?, ?, ?, ?)");
             $stmt->execute([$data['username'], $data['full_name'], $data['role_id'], $hashed_password]);
+            return $this->pdo->lastInsertId();
         } else { // Update existing user
             if (!empty($data['password'])) {
                 $hashed_password = password_hash($data['password'], PASSWORD_DEFAULT);
@@ -47,6 +57,7 @@ class User {
                 $stmt = $this->pdo->prepare("UPDATE users SET username=?, full_name=?, role_id=? WHERE id=?");
                 $stmt->execute([$data['username'], $data['full_name'], $data['role_id'], $data['user_id']]);
             }
+            return $data['user_id'];
         }
     }
 

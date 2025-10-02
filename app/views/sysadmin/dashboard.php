@@ -35,6 +35,9 @@
         </a>
         
         <a href="/iCensus-ent/public/sysadmin/logs" class="card clickable-card">
+            <?php if ($new_log_count > 0): ?>
+                <span class="notification-badge"><?= $new_log_count ?></span>
+            <?php endif; ?>
             <span class="material-icons card-icon">receipt_long</span>
             <h3 class="card-title">System Logs</h3>
             <p class="card-desc">View system-wide activity and error logs.</p>

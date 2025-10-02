@@ -130,6 +130,21 @@ switch ($route) {
         // Simple pages can be loaded directly if no controller logic is needed
         view('about/index', ['theme' => $_SESSION['user']['theme'] ?? 'light']);
         break;
+    
+        case 'sysadmin/db-tools/process':
+            (new SysadminController())->processDbTools();
+            break;
+        case 'sysadmin/logs':
+            (new SysadminController())->systemLogs();
+            break;
+        
+        // --- NEW ROUTES FOR LOGS ---
+        case 'sysadmin/logs/mark-as-seen':
+            (new SysadminController())->markLogAsSeen();
+            break;
+        case 'sysadmin/logs/mark-all-as-seen':
+            (new SysadminController())->markAllLogsAsSeen();
+            break;
 
     default:
         http_response_code(404);

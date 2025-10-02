@@ -40,21 +40,26 @@ class SettingsController {
         $GLOBALS['db'] = $db; // Make db global for log_action
         $auth = new Auth($db);
         $userId = $_SESSION['user']['id'];
+        $oldUsername = $_SESSION['user']['username'];
         
         try {
             if (isset($_POST['update_username'])) {
-                $auth->updateUsername($userId, $_POST['username']);
-                log_action('INFO', 'SETTINGS_UPDATE', "User updated their username.");
-                $_SESSION['modal'] = ['message' => 'Username updated successfully', 'type' => 'success'];
+                $newUsername = $_POST['username'];
+                if ($oldUsername !== $newUsername) {
+                    $auth->updateUsername($userId, $newUsername);
+                    log_action('INFO', 'SETTINGS_UPDATE', "User updated their username from '{$oldUsername}' to '{$newUsername}'.");
+                    $_SESSION['modal'] = ['message' => 'Username updated successfully', 'type' => 'success'];
+                }
             }
             if (isset($_POST['update_password'])) {
+                // Password verification should happen on the frontend/JS before enabling the save button
                 $auth->updatePassword($userId, $_POST['password']);
                 log_action('INFO', 'SETTINGS_UPDATE', "User changed their password.");
                 $_SESSION['modal'] = ['message' => 'Password updated successfully', 'type' => 'success'];
             }
         } catch (Exception $e) {
             log_action('ERROR', 'SETTINGS_ERROR', $e->getMessage());
-            $_SESSION['modal'] = ['message' => 'An error occurred.', 'type' => 'error'];
+            $_SESSION['modal'] = ['message' => 'An error occurred: ' . $e->getMessage(), 'type' => 'error'];
         }
 
         header('Location: /iCensus-ent/public/settings');
