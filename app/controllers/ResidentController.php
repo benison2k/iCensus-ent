@@ -58,15 +58,42 @@ class ResidentController {
                     break;
 
                 case 'save':
+                    $is_new = empty($_POST['resident_id']);
+                    if (!$is_new) {
+                        $old_data = $residentModel->find($_POST['resident_id']);
+                    }
+                    
                     $residentId = $residentModel->save($_POST);
-                    log_action('INFO', empty($_POST['resident_id']) ? 'RESIDENT_CREATE' : 'RESIDENT_UPDATE', "Resident ID#{$residentId} was saved.");
+                    $full_name = htmlspecialchars($_POST['first_name'] . ' ' . $_POST['last_name']);
+
+                    if ($is_new) {
+                        log_action('INFO', 'RESIDENT_CREATE', "New resident record created: {$full_name} (ID#{$residentId}).");
+                    } else {
+                        $new_data = $residentModel->find($residentId);
+                        $changes = array_diff_assoc($new_data, $old_data);
+                        $log_details = "Updated resident ID#{$residentId}.";
+                        if (!empty($changes)) {
+                            $log_details .= " Changes: ";
+                            foreach($changes as $key => $value) {
+                                $log_details .= "{$key} changed from '{$old_data[$key]}' to '{$value}', ";
+                            }
+                            $log_details = rtrim($log_details, ', ');
+                            $log_details .= ".";
+                        }
+                        log_action('INFO', 'RESIDENT_UPDATE', $log_details);
+                    }
+                    
                     $_SESSION['modal'] = ['message' => 'Resident saved successfully', 'type' => 'success'];
                     echo json_encode(['status' => 'success']);
                     break;
                 
                 case 'delete':
-                    $residentModel->delete($_POST['id']);
-                    log_action('INFO', 'RESIDENT_DELETE', "Resident record ID#{$_POST['id']} was deleted.");
+                    $resident_to_delete = $residentModel->find($_POST['id']);
+                    if($resident_to_delete) {
+                        $residentModel->delete($_POST['id']);
+                        $full_name = htmlspecialchars($resident_to_delete['first_name'] . ' ' . $resident_to_delete['last_name']);
+                        log_action('INFO', 'RESIDENT_DELETE', "Resident record for {$full_name} (ID#{$_POST['id']}) was deleted.");
+                    }
                     echo json_encode(['status' => 'success']);
                     break;
             }

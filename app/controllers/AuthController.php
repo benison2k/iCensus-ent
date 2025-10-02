@@ -22,14 +22,27 @@ class AuthController {
     public function login() {
         $config = require __DIR__ . '/../../config/database.php';
         $db = new Database($config);
+        
+        // --- THIS IS THE FIX ---
+        // Make the database connection globally available for the log_action function.
+        $GLOBALS['db'] = $db;
+        
         $auth = new Auth($db);
 
         $username = trim($_POST['username']);
         $password = $_POST['password'];
 
+        // Temporarily store last logout time if it exists
+        $last_logout = $_SESSION['last_logout'] ?? null;
+
         $result = $auth->login($username, $password);
 
         if ($result['success']) {
+            // If login is successful, store the last logout time in the new session
+            if ($last_logout) {
+                $_SESSION['user']['last_log_view'] = $last_logout;
+            }
+
             $role = $_SESSION['user']['role_name'];
             $base_url = '/iCensus-ent/public';
 
@@ -55,18 +68,27 @@ class AuthController {
      * Handles user logout.
      */
     public function logout() {
-        // This logic is from your old /pages/logout.php
-        session_start();
-        $config = require __DIR__ . '/../../core/config.php';
+        $config = require __DIR__ . '/../../config/database.php';
         require_once __DIR__ . '/../../core/Database.php';
         require_once __DIR__ . '/../../core/functions.php';
         $db = new Database($config);
+        $GLOBALS['db'] = $db;
 
         if (isset($_SESSION['user'])) {
             log_action('INFO', 'USER_LOGOUT', "User '" . $_SESSION['user']['username'] . "' logged out.");
         }
+        
+        // Store the logout timestamp to track new logs later
+        $last_logout_time = date('Y-m-d H:i:s');
+        
         session_unset();
         session_destroy();
+
+        // Start a new, clean session just to hold the last_logout time
+        session_start();
+        $_SESSION['last_logout'] = $last_logout_time;
+
+
         header("Location: /iCensus-ent/public/login");
         exit;
     }
