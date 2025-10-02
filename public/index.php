@@ -65,6 +65,17 @@ switch ($route) {
         (new ResidentController())->process();
         break;
 
+    case 'residents/approve':
+        (new ResidentController())->approve();
+        break;
+    case 'residents/approve-all':
+        (new ResidentController())->approveAll();
+        break;
+
+    case 'residents/reject':
+        (new ResidentController())->reject();
+        break;
+
     // --- Analytics Routes ---
     case 'analytics':
         (new AnalyticsController())->index();

@@ -224,5 +224,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- INITIALIZATION ---
-    applyFilters();
+// This is the new logic. It checks the 'isPendingView' variable from the PHP file.
+    if (!isPendingView) {
+        applyFilters(); // Only run the dynamic table filtering if we are in the "Approved" view.
+    } else {
+        // If we are in the pending view, the PHP table is already correct.
+        // We don't need to do anything here.
+    }
 });

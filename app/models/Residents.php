@@ -9,18 +9,43 @@ class Resident {
     }
 
     /**
-     * Fetches all residents from the database.
+     * Fetches all APPROVED residents from the database for the main view.
      * @return array
      */
     public function getAll() {
-        // We add the age calculation directly in the query for efficiency
-        $sql = "SELECT *, TIMESTAMPDIFF(YEAR, dob, CURDATE()) as age FROM residents ORDER BY last_name ASC, first_name ASC";
+        // MODIFIED: This now only fetches residents that have been approved.
+        $sql = "SELECT *, TIMESTAMPDIFF(YEAR, dob, CURDATE()) as age 
+                FROM residents 
+                WHERE approval_status = 'approved' 
+                ORDER BY last_name ASC, first_name ASC";
         $stmt = $this->pdo->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
-     * Finds a single resident by their ID.
+     * NEW: Fetches all residents awaiting approval.
+     * @return array
+     */
+    public function getPending() {
+        $sql = "SELECT *, TIMESTAMPDIFF(YEAR, dob, CURDATE()) as age 
+                FROM residents 
+                WHERE approval_status = 'pending' 
+                ORDER BY created_at ASC";
+        $stmt = $this->pdo->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * NEW: Gets the count of pending residents for notification badges.
+     * @return int
+     */
+    public function getPendingCount() {
+        $stmt = $this->pdo->query("SELECT COUNT(*) FROM residents WHERE approval_status = 'pending'");
+        return $stmt->fetchColumn();
+    }
+
+    /**
+     * Finds a single resident by their ID. (No changes needed here)
      * @param int $id
      * @return mixed
      */
@@ -31,7 +56,7 @@ class Resident {
     }
 
     /**
-     * Saves a resident's data (creates or updates).
+     * Saves a resident's data (creates or updates). (No changes needed here)
      * @param array $data
      * @return int The ID of the saved resident.
      */
@@ -39,7 +64,7 @@ class Resident {
         if (empty($data['resident_id'])) {
             // Create new resident
             $data['date_added'] = date('Y-m-d H:i:s');
-            unset($data['resident_id']); // remove the empty id
+            unset($data['resident_id']);
             
             $fields = array_keys($data);
             $placeholders = array_fill(0, count($fields), '?');
@@ -64,7 +89,38 @@ class Resident {
     }
 
     /**
-     * Deletes a resident by their ID.
+     * NEW: Approves a resident.
+     * @param int $id The ID of the resident to approve.
+     * @param int $adminId The ID of the admin approving.
+     * @return bool
+     */
+    public function approve($id, $adminId) {
+        $stmt = $this->pdo->prepare("UPDATE residents SET approval_status = 'approved', approved_by = ? WHERE id = ?");
+        return $stmt->execute([$adminId, $id]);
+    }
+
+    public function approveAll($adminId) {
+        $stmt = $this->pdo->prepare(
+            "UPDATE residents SET approval_status = 'approved', approved_by = ? WHERE approval_status = 'pending'"
+        );
+        $stmt->execute([$adminId]);
+        return $stmt->rowCount();
+    }
+
+    /**
+     * NEW: Rejects (deletes) a pending resident entry.
+     * @param int $id The ID of the resident to reject.
+     * @return bool
+     */
+    public function reject($id) {
+        // This permanently deletes the pending record.
+        // If you'd rather set approval_status to 'rejected', change DELETE to UPDATE.
+        $stmt = $this->pdo->prepare("DELETE FROM residents WHERE id = ? AND approval_status = 'pending'");
+        return $stmt->execute([$id]);
+    }
+
+    /**
+     * Deletes a resident by their ID. (No changes needed here)
      * @param int $id
      * @return bool
      */

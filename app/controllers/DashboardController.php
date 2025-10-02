@@ -25,9 +25,16 @@ class DashboardController {
      */
     public function index() {
         $this->requireAuthAndRefresh('Barangay Admin');
+
+        require_once __DIR__ . '/../models/Residents.php';
+        $db = new Database(require __DIR__ . '/../../config/database.php');
+        $residentModel = new Resident($db);
+        $pending_count = $residentModel->getPendingCount();
+
         $data = [
             'user' => $_SESSION['user'],
-            'theme' => $_SESSION['user']['theme'] ?? 'light'
+            'theme' => $_SESSION['user']['theme'] ?? 'light',
+            'pending_count' => $pending_count // <-- Pass the count to the view
         ];
         view('dashboard/barangay_admin', $data);
     }
@@ -42,5 +49,73 @@ class DashboardController {
             'theme' => $_SESSION['user']['theme'] ?? 'light'
         ];
         view('dashboard/encoder', $data);
+    }
+
+        /**
+         * NEW: Display the page for reviewing pending resident entries.
+         */    
+    public function review() {
+        $this->requireAuthAndRefresh('Barangay Admin');
+        
+        // We need the Resident model here
+        require_once __DIR__ . '/../models/Residents.php';
+        $db = new Database(require __DIR__ . '/../../config/database.php');
+        $residentModel = new Resident($db);
+        
+        $data = [
+            'user' => $_SESSION['user'],
+            'theme' => $_SESSION['user']['theme'] ?? 'light',
+            'pending_residents' => $residentModel->getPending(),
+            'modalMessage' => $_SESSION['modal']['message'] ?? '',
+            'modalType' => $_SESSION['modal']['type'] ?? ''
+        ];
+        unset($_SESSION['modal']);
+        
+        // We will create this new view file in a later step
+        view('dashboard/review', $data);
+    }
+
+    /**
+     * NEW: Process the approval of a resident.
+     */
+    public function approveResident() {
+        $this->requireAuthAndRefresh('Barangay Admin');
+        
+        require_once __DIR__ . '/../models/Residents.php';
+        $db = new Database(require __DIR__ . '/../../config/database.php');
+        $GLOBALS['db'] = $db; // For logging
+        $residentModel = new Resident($db);
+
+        $residentId = $_GET['id'] ?? null;
+        if ($residentId) {
+            $residentModel->approve($residentId, $_SESSION['user']['id']);
+            log_action('INFO', 'RESIDENT_APPROVED', "Admin approved resident entry ID#{$residentId}.");
+            $_SESSION['modal'] = ['message' => 'Resident approved successfully.', 'type' => 'success'];
+        }
+        
+        header("Location: /iCensus-ent/public/review");
+        exit;
+    }
+
+    /**
+     * NEW: Process the rejection of a resident.
+     */
+    public function rejectResident() {
+        $this->requireAuthAndRefresh('Barangay Admin');
+
+        require_once __DIR__ . '/../models/Residents.php';
+        $db = new Database(require __DIR__ . '/../../config/database.php');
+        $GLOBALS['db'] = $db; // For logging
+        $residentModel = new Resident($db);
+        
+        $residentId = $_GET['id'] ?? null;
+        if ($residentId) {
+            $residentModel->reject($residentId);
+            log_action('INFO', 'RESIDENT_REJECTED', "Admin rejected pending resident entry ID#{$residentId}.");
+            $_SESSION['modal'] = ['message' => 'Resident entry rejected.', 'type' => 'success'];
+        }
+
+        header("Location: /iCensus-ent/public/review");
+        exit;
     }
 }

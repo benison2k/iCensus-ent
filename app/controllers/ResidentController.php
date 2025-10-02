@@ -14,19 +14,28 @@ class ResidentController {
              die("<h1>403 Forbidden</h1>");
         }
 
-        // --- REFRESH LOGIC ADDED HERE ---
         $config = require __DIR__ . '/../../config/database.php';
         $db = new Database($config);
         $auth = new Auth($db);
         $auth->refreshUserSession($_SESSION['user']['id']);
-        // --- END REFRESH LOGIC ---
 
         $residentModel = new Resident($db);
         
+        $viewMode = $_GET['view'] ?? 'approved';
+        $isPendingView = ($user_role === 'Barangay Admin' && $viewMode === 'pending');
+
+        if ($isPendingView) {
+            $residents = $residentModel->getPending();
+        } else {
+            $residents = $residentModel->getAll();
+        }
+
         $data = [
-            'user' => $_SESSION['user'], // This is now fresh data
+            'user' => $_SESSION['user'],
             'theme' => $_SESSION['user']['theme'] ?? 'light',
-            'residents' => $residentModel->getAll(),
+            'residents' => $residents,
+            'isPendingView' => $isPendingView,
+            'pending_count' => ($user_role === 'Barangay Admin') ? $residentModel->getPendingCount() : 0,
             'modalMessage' => $_SESSION['modal']['message'] ?? '',
             'modalType' => $_SESSION['modal']['type'] ?? ''
         ];
@@ -61,6 +70,9 @@ class ResidentController {
                     $is_new = empty($_POST['resident_id']);
                     if (!$is_new) {
                         $old_data = $residentModel->find($_POST['resident_id']);
+                    }
+                    if ($is_new) {
+                        $_POST['encoded_by'] = $_SESSION['user']['id'];
                     }
                     
                     $residentId = $residentModel->save($_POST);
@@ -101,6 +113,65 @@ class ResidentController {
             log_action('ERROR', 'DB_ERROR', 'Error in ResidentController: ' . $e->getMessage());
             echo json_encode(['status' => 'error', 'message' => 'An internal error occurred.']);
         }
+        exit;
+    }
+
+    public function approve() {
+        if ($_SESSION['user']['role_name'] !== 'Barangay Admin') { die("Forbidden"); }
+        
+        require_once __DIR__ . '/../models/Residents.php';
+        $db = new Database(require __DIR__ . '/../../config/database.php');
+        $GLOBALS['db'] = $db;
+        $residentModel = new Resident($db);
+
+        $residentId = $_GET['id'] ?? null;
+        if ($residentId) {
+            $residentModel->approve($residentId, $_SESSION['user']['id']);
+            log_action('INFO', 'RESIDENT_APPROVED', "Admin approved resident entry ID#{$residentId}.");
+            $_SESSION['modal'] = ['message' => 'Resident approved successfully.', 'type' => 'success'];
+        }
+        
+        header("Location: /iCensus-ent/public/residents?view=pending");
+        exit;
+    }
+
+    public function reject() {
+        if ($_SESSION['user']['role_name'] !== 'Barangay Admin') { die("Forbidden"); }
+
+        require_once __DIR__ . '/../models/Residents.php';
+        $db = new Database(require __DIR__ . '/../../config/database.php');
+        $GLOBALS['db'] = $db;
+        $residentModel = new Resident($db);
+        
+        $residentId = $_GET['id'] ?? null;
+        if ($residentId) {
+            $residentModel->reject($residentId);
+            log_action('INFO', 'RESIDENT_REJECTED', "Admin rejected pending resident entry ID#{$residentId}.");
+            $_SESSION['modal'] = ['message' => 'Resident entry rejected.', 'type' => 'success'];
+        }
+
+        header("Location: /iCensus-ent/public/residents?view=pending");
+        exit;
+    } // <-- THIS WAS THE MISSING BRACE
+
+    public function approveAll() {
+        if ($_SESSION['user']['role_name'] !== 'Barangay Admin') { die("Forbidden"); }
+        
+        require_once __DIR__ . '/../models/Residents.php';
+        $db = new Database(require __DIR__ . '/../../config/database.php');
+        $GLOBALS['db'] = $db;
+        $residentModel = new Resident($db);
+
+        $approvedCount = $residentModel->approveAll($_SESSION['user']['id']);
+        
+        if ($approvedCount > 0) {
+            log_action('INFO', 'RESIDENT_APPROVE_ALL', "Admin approved all {$approvedCount} pending resident entries.");
+            $_SESSION['modal'] = ['message' => "Successfully approved all {$approvedCount} residents.", 'type' => 'success'];
+        } else {
+            $_SESSION['modal'] = ['message' => "No pending residents to approve.", 'type' => 'info'];
+        }
+        
+        header("Location: /iCensus-ent/public/residents?view=pending");
         exit;
     }
 }
