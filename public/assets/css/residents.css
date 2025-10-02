@@ -35,17 +35,8 @@
 .status-moved { background-color: #0277bd; }
 .status-deceased { background-color: #c62828; }
 
-/* Add Resident Button */
-#addResidentBtn {
-    border-radius: 12px;
-    padding: 1rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transition: transform 0.2s, background-color 0.4s, color 0.4s;
-}
-#addResidentBtn:hover { transform: translateY(-3px); }
-
 /* =========================
-   NEW: Enhanced Filter Styles
+   Enhanced Filter Styles
 ========================= */
 .filter-container {
     margin-top: 1.5rem;
@@ -129,20 +120,11 @@
 }
 
 /* =========================
-   Modal Base & Scrollable ...
-========================= */
-/* (The rest of the CSS for the modal remains unchanged) */
-
-
-/* =========================
    Dark Mode Overrides
 ========================= */
 body.dark-mode .resident-table th { background-color: #3b4a59; }
 body.dark-mode .resident-table tr:hover { background-color: rgba(255, 255, 255, 0.05); }
-body.dark-mode #addResidentBtn { background-color: #1e1e2f; color: #fff; }
-body.dark-mode #addResidentBtn:hover { background-color: #161626; }
 
-/* NEW: Dark mode for filter container */
 body.dark-mode .filter-container {
     background-color: #1e1e2f;
     border-color: #4a5a6a;
@@ -169,4 +151,59 @@ body.dark-mode .clear-btn {
 }
 body.dark-mode .clear-btn:hover {
     background-color: #343a40;
+}
+
+/* =========================
+   Page Action Buttons
+========================= */
+.page-actions-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.action-button-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative; 
+    border: 1px solid transparent;
+}
+
+/* Light Mode Buttons */
+body:not(.dark-mode) .action-button-link {
+    background-color: #ffffff;
+    color: #333;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+body:not(.dark-mode) .action-button-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Dark Mode Buttons */
+body.dark-mode .action-button-link {
+    background-color: #2C3E50;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+body.dark-mode .action-button-link:hover {
+    background-color: #34495e;
+}
+
+/* ================================
+   GUARANTEED Badge Placement Fix
+================================ */
+.action-button-link .notification-badge {
+    top: -10px !important;      /* Pulls the badge up */
+    right: -10px !important;     /* Pushes the badge to the right */
 }

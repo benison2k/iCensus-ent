@@ -1,6 +1,7 @@
 <?php
 // Define the single, correct base URL for all links on this page.
 $base_url = '/iCensus-ent/public'; 
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
