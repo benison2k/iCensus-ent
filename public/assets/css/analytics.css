@@ -8,19 +8,21 @@
     backdrop-filter: blur(10px);
     border: 1px solid rgba(0, 0, 0, 0.05);
     padding: 2rem;
-    border-radius: 24px; /* Softer corners */
+    border-radius: 24px;
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.1);
-    width: 95%; /* Wider for more space */
+    width: 95%;
     max-width: 1800px;
 }
 
-/* --- Controls Area --- */
+/* --- Controls & Filters --- */
 .controls-wrapper {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
     padding: 0 0.5rem;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    gap: 1rem;
 }
 
 .buttons-container button {
@@ -33,6 +35,49 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+}
+
+.filter-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.filter-controls input,
+.filter-controls select,
+.filter-controls button {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: #fff;
+    font-size: 0.9rem;
+}
+.filter-controls button {
+    background-color: #f1f1f1;
+    cursor: pointer;
+}
+
+#active-filters-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0 0.5rem 1rem;
+}
+
+.filter-tag {
+    background-color: #e0e0e0;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-tag .remove-filter {
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
 }
 
 #reset-layout-btn {
@@ -53,54 +98,11 @@
     transform: translateY(-2px);
 }
 
-.tooltip-container {
-    position: relative;
-    display: inline-block;
-}
-
-.info-icon {
-    cursor: pointer;
-    color: #757575;
-}
-
-.tooltip-text {
-    visibility: hidden;
-    width: 220px;
-    background-color: #333;
-    color: #fff;
-    text-align: center;
-    border-radius: 6px;
-    padding: 8px 12px;
-    position: absolute;
-    z-index: 1001;
-    bottom: 135%;
-    left: 50%;
-    margin-left: -110px;
-    opacity: 0;
-    transition: opacity 0.3s;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
-
-.tooltip-text::after {
-    content: "";
-    position: absolute;
-    top: 100%; left: 50%;
-    margin-left: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: #333 transparent transparent transparent;
-}
-
-.tooltip-container:hover .tooltip-text {
-    visibility: visible;
-    opacity: 1;
-}
-
 .separator-line {
     border: 0;
     height: 1px;
     background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0));
-    margin: 1rem 0 2rem 0; /* More space after the line */
+    margin: 1rem 0 2rem 0;
 }
 
 
@@ -131,7 +133,7 @@
     font-weight: 600;
     margin-bottom: 1rem;
     text-align: center;
-    color: #37474f; /* Darker, less harsh than black */
+    color: #37474f;
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -142,6 +144,16 @@
 .chart-icon {
     font-size: 1.5rem;
     color: #546e7a;
+}
+.export-chart-btn {
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #90a4ae;
+    transition: color 0.2s;
+    margin-left: auto;
+}
+.export-chart-btn:hover {
+    color: #37474f;
 }
 
 .chart-div {
@@ -160,9 +172,9 @@
     text-align: center;
 }
 .kpi-value {
-    font-size: 3.5rem; /* Larger font */
+    font-size: 3.5rem;
     font-weight: 700;
-    color: #3949ab; /* Primary accent color */
+    color: #3949ab;
     line-height: 1.1;
 }
 .kpi-label {
@@ -188,14 +200,14 @@
    DARK MODE ENHANCEMENTS
 ========================= */
 body.dark-mode .dashboard-card {
-    background-color: rgba(28, 42, 56, 0.7); /* Darker semi-transparent */
+    background-color: rgba(28, 42, 56, 0.7);
     backdrop-filter: blur(15px);
     border-color: rgba(255, 255, 255, 0.1);
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
 }
 
 body.dark-mode .grid-stack-item-content {
-    background-color: #263238; /* Dark blue-grey */
+    background-color: #263238;
     border-color: #37474f;
 }
 
@@ -209,6 +221,9 @@ body.dark-mode .chart-title {
 
 body.dark-mode .chart-icon {
     color: #90a4ae;
+}
+body.dark-mode .export-chart-btn:hover {
+    color: #fff;
 }
 
 body.dark-mode .kpi-value {
@@ -243,86 +258,30 @@ body.dark-mode .chart-error {
     background-color: #3e2723;
     color: #ef9a9a;
 }
-body.dark-mode text { /* Google Charts text elements */
-    fill: #CFD8DC !important;
+
+body.dark-mode .filter-controls input,
+body.dark-mode .filter-controls select,
+body.dark-mode .filter-controls button {
+    background-color: #2C3E50;
+    border-color: #4a5a6a;
+    color: #fff;
 }
+body.dark-mode .filter-tag {
+    background-color: #37474f;
+    color: #eceff1;
+}
+
 
 /* --- Remove the visible resize icon --- */
 .grid-stack-item > .ui-resizable-handle::after {
-    content: none; /* This removes the icon */
-}
-
-/* --- RESPONSIVE MODAL FIX --- */
-#chart-detail-modal .modal-content.large {
-    width: 90vw; /* Use 90% of the viewport width */
-    max-width: 1400px; /* But don't exceed 1400px on very large screens */
-    height: 85vh; /* Use 85% of the viewport height */
-    max-height: 800px; /* But don't exceed 800px */
-    display: flex;
-    flex-direction: column;
-}
-
-#chart-detail-modal .modal-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 2.5rem;
-    flex-grow: 1; 
-    min-height: 0; 
-}
-
-#chart-detail-content, .chart-info-panel {
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-}
-
-.chart-info-panel {
-    justify-content: center;
-    padding-right: 1rem; 
-}
-
-#chart-detail-title {
-    margin-top: 0;
-    margin-bottom: 1.5rem;
-    font-size: 1.8rem;
-    text-align: left;
-}
-
-#chart-detail-explanation {
-    font-size: 1rem;
-    line-height: 1.7; 
-    color: #555;
-}
-
-body.dark-mode #chart-detail-explanation {
-    color: #cfd8dc;
-}
-
-/* Media query for laptops and smaller screens */
-@media (max-width: 1200px) {
-    #chart-detail-modal .modal-grid {
-        grid-template-columns: 1fr; /* Stack the columns vertically */
-        overflow-y: auto; /* Allow scrolling if content overflows */
-        padding-right: 1rem;
-    }
-
-    #chart-detail-title {
-        font-size: 1.5rem; /* Slightly smaller title on small screens */
-    }
-
-    .chart-info-panel {
-        justify-content: flex-start; /* Align info to the top */
-        padding-top: 1rem;
-    }
+    content: none;
 }
 
 /* =========================
    Chart Detail Modal Styles
 ========================= */
-
-/* This is the NEW, correct rule */
 #chart-detail-modal {
-    display: none; /* This now correctly hides the modal by default */
+    display: none; 
     position: fixed;
     z-index: 1001;
     left: 0;
@@ -337,7 +296,7 @@ body.dark-mode #chart-detail-explanation {
 }
 
 #chart-detail-modal .modal-content.large {
-    background-color: #ffffff; /* Solid white for light mode */
+    background-color: #ffffff;
     color: #333;
     width: 90vw;
     max-width: 1400px;
@@ -369,10 +328,10 @@ body.dark-mode #chart-detail-explanation {
 
 #chart-detail-modal .modal-grid {
     display: grid;
-    grid-template-columns: 3fr 1fr; /* Make chart area 3x wider */
+    grid-template-columns: 3fr 1fr; 
     gap: 2.5rem;
     flex-grow: 1;
-    min-height: 0; /* Important for grid/flex layouts */
+    min-height: 0;
 }
 
 #chart-detail-content,
@@ -383,7 +342,7 @@ body.dark-mode #chart-detail-explanation {
 }
 
 #chart-detail-content {
-    height: 100%; /* Make chart container fill its grid cell */
+    height: 100%;
 }
 
 .chart-info-panel {
@@ -406,7 +365,7 @@ body.dark-mode #chart-detail-explanation {
 
 /* Dark Mode Overrides */
 body.dark-mode #chart-detail-modal .modal-content.large {
-    background-color: #2C3E50; /* Solid dark blue for dark mode */
+    background-color: #2C3E50;
     color: #fff;
 }
 

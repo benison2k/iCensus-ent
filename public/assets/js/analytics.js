@@ -22,6 +22,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (event.target === detailModal) detailModal.style.display = 'none';
         });
     }
+
+    // --- Filter listeners ---
+    document.getElementById('start_date_filter').addEventListener('change', applyFilters);
+    document.getElementById('end_date_filter').addEventListener('change', applyFilters);
+    document.getElementById('purok_filter').addEventListener('change', applyFilters);
+    document.getElementById('status_filter').addEventListener('change', applyFilters);
+    document.getElementById('clear-filters-btn').addEventListener('click', clearFilters);
 });
 
 // --- GOOGLE CHARTS & GRIDSTACK SETUP ---
@@ -31,6 +38,7 @@ google.charts.setOnLoadCallback(initializeDashboard);
 let grid;
 const chartsToDraw = {};
 const basePath = '/iCensus-ent/public';
+let currentFilters = {};
 
 function debounce(func, wait) {
     let timeout;
@@ -52,12 +60,27 @@ function initializeDashboard() {
     grid.on('added', (event, items) => {
         items.forEach(item => {
             const metric = item.id;
+            const content = item.el.querySelector('.grid-stack-item-content');
+            
+            const titleDiv = content.querySelector('.chart-title');
+            if (getChartType(metric) !== 'KPI' && !titleDiv.querySelector('.export-chart-btn')) {
+                const exportBtn = document.createElement('span');
+                exportBtn.className = 'material-icons export-chart-btn';
+                exportBtn.title = 'Export as PNG';
+                exportBtn.textContent = 'download';
+                exportBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    exportChart(metric);
+                });
+                titleDiv.appendChild(exportBtn);
+            }
+
             if (chartsToDraw[metric]) {
                 chartsToDraw[metric]();
                 delete chartsToDraw[metric];
             }
             if (getChartType(metric) !== 'KPI' && item.el) {
-                 item.el.addEventListener('click', () => showDetailModal(metric));
+                 content.addEventListener('click', () => showDetailModal(metric));
             }
         });
     });
@@ -90,7 +113,8 @@ function loadLayout() {
         .then(response => response.json())
         .then(layoutData => {
             if (!layoutData || layoutData.length === 0) return;
-            grid.removeAll();
+            grid.removeAll(false);
+            clearFilters(); // Clear filters on a full layout load
             layoutData.forEach(node => {
                 chartsToDraw[node.id] = () => drawChart(node.id);
                 const isKpi = getChartType(node.id) === 'KPI';
@@ -122,7 +146,8 @@ function resetLayout() {
 }
 
 function drawChart(metric) {
-    fetch(`${basePath}/analytics/data?metric=${metric}`)
+    const query = new URLSearchParams(currentFilters).toString();
+    fetch(`${basePath}/analytics/data?metric=${metric}&${query}`)
         .then(response => response.json())
         .then(apiData => {
             const chartDiv = document.getElementById(`${metric}_chart_div`);
@@ -136,26 +161,53 @@ function drawChart(metric) {
                 chartDiv.innerHTML = `<div class="kpi-value">${apiData.value}</div><div class="kpi-label">${apiData.label || ''}</div>`;
                 return;
             }
-            let data, options = {
-                title: '', legend: { position: 'bottom' },
-                width: '100%', height: '100%',
+            
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            const fontColor = isDarkMode ? '#CFD8DC' : '#333';
+
+            let data;
+            let options = {
+                title: '',
+                width: '100%',
+                height: '100%',
                 backgroundColor: 'transparent',
-                chartArea: {'width': '85%', 'height': '70%'}
+                chartArea: {'width': '85%', 'height': '70%'},
+                legend: { position: 'bottom', textStyle: { color: fontColor } },
+                hAxis: { textStyle: { color: fontColor }, titleTextStyle: { color: fontColor } },
+                vAxis: { textStyle: { color: fontColor }, titleTextStyle: { color: fontColor } }
             };
 
+
             if(chartType === 'PopulationPyramid'){
-                let maxVal = 0;
                 const pyramidData = [['Age', 'Male', { role: 'style' }, 'Female', { role: 'style' }]];
                 for (const age in apiData) {
                     const maleVal = Math.abs(apiData[age]['Male'] || 0);
                     const femaleVal = Math.abs(apiData[age]['Female'] || 0);
-                    maxVal = Math.max(maxVal, maleVal, femaleVal);
-                    pyramidData.push([age, -maleVal, 'color: #3366cc', femaleVal, 'color: #dc3912']);
+                    pyramidData.push([age, maleVal, 'color: #3366cc', femaleVal, 'color: #ffc0cb']);
                 }
                 data = google.visualization.arrayToDataTable(pyramidData);
-                options.isStacked = true;
-                const tickMax = Math.ceil(maxVal / 5) * 5;
-                options.hAxis = { ticks: Array.from({length: (tickMax/5)*2+1}, (_, i) => (i - tickMax/5)*5).map(v => ({v:v, f:String(Math.abs(v))})) };
+                options.isStacked = false;
+                options.hAxis.title = 'Population';
+
+            } else if (chartType === 'GroupedBar') {
+                const categories = Object.keys(apiData);
+                if (categories.length === 0) {
+                     chartDiv.innerHTML = `<div class="chart-error">No data available.</div>`;
+                     return;
+                }
+                const firstCategoryData = apiData[categories[0]];
+                const groups = Object.keys(firstCategoryData);
+                const dataArray = [[getChartTitle(metric), ...groups]];
+                for (const category in apiData) {
+                    const row = [category];
+                    groups.forEach(group => {
+                        row.push(apiData[category][group] || 0);
+                    });
+                    dataArray.push(row);
+                }
+                data = google.visualization.arrayToDataTable(dataArray);
+                options.hAxis.title = '';
+
             } else {
                 const dataArray = [[getChartTitle(metric), 'Count']];
                 for (const key in apiData) { dataArray.push([key, apiData[key]]); }
@@ -167,13 +219,24 @@ function drawChart(metric) {
             chartDiv.chartOptions = options;
 
             let chart;
-            if (chartType === 'PopulationPyramid') chart = new google.charts.Bar(chartDiv);
+            if (chartType === 'PopulationPyramid' || chartType === 'GroupedBar') chart = new google.charts.Bar(chartDiv);
             else if (chartType === 'ColumnChart') chart = new google.visualization.ColumnChart(chartDiv);
             else if (chartType === 'BarChart') chart = new google.visualization.BarChart(chartDiv);
             else chart = new google.visualization.PieChart(chartDiv);
 
+            if (isFilterableMetric(metric)) {
+                 google.visualization.events.addListener(chart, 'select', () => {
+                    const selection = chart.getSelection();
+                    if (selection.length > 0) {
+                        const row = selection[0].row;
+                        const filterValue = data.getValue(row, 0);
+                        addFilter(metric, filterValue);
+                    }
+                });
+            }
+
             chartDiv.chartInstance = chart;
-            if(chartType === 'PopulationPyramid') chart.draw(data, google.charts.Bar.convertOptions(options));
+            if(chartType === 'PopulationPyramid' || chartType === 'GroupedBar') chart.draw(data, google.charts.Bar.convertOptions(options));
             else chart.draw(data, options);
         })
         .catch(error => {
@@ -183,7 +246,6 @@ function drawChart(metric) {
         });
 }
 
-// *** THIS IS THE CORRECTED FUNCTION ***
 function showDetailModal(metric) {
     const originalChartDiv = document.getElementById(`${metric}_chart_div`);
     if (!originalChartDiv || !originalChartDiv.chartData) {
@@ -205,6 +267,19 @@ function showDetailModal(metric) {
     modalOptions.width = '100%';
     modalOptions.chartArea = {'width': '80%', 'height': '80%'};
     modalOptions.legend.position = 'right';
+    
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    const fontColor = isDarkMode ? '#CFD8DC' : '#333';
+    
+    modalOptions.legend.textStyle = { color: fontColor };
+    if (modalOptions.hAxis) {
+        modalOptions.hAxis.textStyle = { color: fontColor };
+        modalOptions.hAxis.titleTextStyle = { color: fontColor };
+    }
+    if (modalOptions.vAxis) {
+        modalOptions.vAxis.textStyle = { color: fontColor };
+        modalOptions.vAxis.titleTextStyle = { color: fontColor };
+    }
 
     const chartType = originalChartDiv.chartType;
     let chart;
@@ -213,10 +288,8 @@ function showDetailModal(metric) {
     else if (chartType === 'BarChart') chart = new google.visualization.BarChart(chartContentDiv);
     else chart = new google.visualization.PieChart(chartContentDiv);
 
-    // FIX: Show the modal using 'flex' to trigger the centering styles
     modal.style.display = 'flex';
 
-    // FIX: Delay the chart drawing to allow the modal to render
     setTimeout(() => {
         if (chartType === 'PopulationPyramid' || chartType === 'GroupedBar') {
             chart.draw(originalChartDiv.chartData, google.charts.Bar.convertOptions(modalOptions));
@@ -225,6 +298,113 @@ function showDetailModal(metric) {
         }
     }, 50);
 }
+
+// --- NEW/CORRECTED Filter functions ---
+
+function applyFilters() {
+    // Get values from the main filter controls
+    const mainFilters = {
+        start_date: document.getElementById('start_date_filter').value,
+        end_date: document.getElementById('end_date_filter').value,
+        purok: document.getElementById('purok_filter').value,
+        status: document.getElementById('status_filter').value,
+    };
+
+    // Update currentFilters, preserving any click-based filters
+    Object.assign(currentFilters, mainFilters);
+
+    // Clean up any empty/null values
+    for (const key in currentFilters) {
+        if (!currentFilters[key]) {
+            delete currentFilters[key];
+        }
+    }
+    
+    updateActiveFilterTags();
+    redrawAllCharts();
+}
+
+function addFilter(type, value) {
+    const filterKey = (type === 'sex_ratio') ? 'gender' : type;
+
+    if (currentFilters[filterKey] === value) return; // Avoid re-applying same filter
+    
+    currentFilters[filterKey] = value;
+    
+    updateActiveFilterTags();
+    redrawAllCharts();
+}
+
+function removeFilter(key) {
+    delete currentFilters[key];
+    
+    // Clear the corresponding main filter control
+    if (key === 'purok') document.getElementById('purok_filter').value = '';
+    if (key === 'status') document.getElementById('status_filter').value = '';
+    if (key === 'start_date') document.getElementById('start_date_filter').value = '';
+    if (key === 'end_date') document.getElementById('end_date_filter').value = '';
+
+    updateActiveFilterTags();
+    redrawAllCharts();
+}
+
+function clearFilters() {
+    currentFilters = {};
+    document.getElementById('start_date_filter').value = '';
+    document.getElementById('end_date_filter').value = '';
+    document.getElementById('purok_filter').value = '';
+    document.getElementById('status_filter').value = '';
+    updateActiveFilterTags();
+    redrawAllCharts();
+}
+
+function updateActiveFilterTags() {
+    const container = document.getElementById('active-filters-container');
+    container.innerHTML = '';
+    for (const key in currentFilters) {
+        const tag = document.createElement('div');
+        tag.className = 'filter-tag';
+        // Format the display value for better readability
+        let displayValue = currentFilters[key];
+        if (key === 'civil_status' || key === 'gender') {
+            displayValue = displayValue.split('(')[0].trim(); // Remove count from display
+        }
+        tag.textContent = `${key.replace(/_/g, ' ')}: ${displayValue}`;
+
+        const removeBtn = document.createElement('span');
+        removeBtn.className = 'material-icons remove-filter';
+        removeBtn.textContent = 'close';
+        removeBtn.onclick = () => removeFilter(key);
+        tag.appendChild(removeBtn);
+        container.appendChild(tag);
+    }
+}
+
+function redrawAllCharts() {
+    if (grid && grid.engine && grid.engine.nodes) {
+        grid.engine.nodes.forEach(node => {
+            drawChart(node.id);
+        });
+    }
+}
+
+function isFilterableMetric(metric) {
+    return ['sex_ratio', 'civil_status'].includes(metric);
+}
+
+function exportChart(metric) {
+    const chartDiv = document.getElementById(`${metric}_chart_div`);
+    if (chartDiv && chartDiv.chartInstance) {
+        const dataUri = chartDiv.chartInstance.getImageURI();
+        const link = document.createElement('a');
+        link.href = dataUri;
+        link.download = `${metric}_chart.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+}
+
 
 // --- METADATA HELPERS ---
 function getChartTitle(metric) {
@@ -255,7 +435,9 @@ function getChartIcon(metric) {
 function getChartType(metric) {
     const t = {
         average_age_of_residents: 'KPI', average_household_size: 'KPI', dependency_ratio: 'KPI',
-        population_pyramid: 'PopulationPyramid', civil_status_distribution_by_gender: 'GroupedBar',
+        population_pyramid: 'PopulationPyramid', 
+        civil_status_distribution_by_gender: 'GroupedBar',
+        school_age_population_by_purok: 'GroupedBar',
         age: 'ColumnChart', detailed_age_brackets: 'ColumnChart', purok: 'BarChart'
     };
     return t[metric] || 'PieChart';

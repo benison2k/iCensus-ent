@@ -23,12 +23,32 @@
 <main class="dashboard">
     <div class="dashboard-card">
         <div class="controls-wrapper">
-            <div class="buttons-container">
+             <div class="buttons-container">
                 <button id="generate-report-btn"><span class="material-icons">assessment</span> Generate Report</button>
                 <button id="reset-layout-btn"><span class="material-icons">refresh</span> Reset Layout</button>
                 <button id="save-layout-btn"><span class="material-icons">save</span> Save Layout</button>
             </div>
+            <div class="filter-controls">
+                <input type="date" id="start_date_filter" title="Start Date">
+                <input type="date" id="end_date_filter" title="End Date">
+                <select id="purok_filter">
+                    <option value="">All Puroks</option>
+                    <?php foreach ($puroks as $purok): ?>
+                        <option value="<?= htmlspecialchars($purok) ?>"><?= htmlspecialchars($purok) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <select id="status_filter">
+                    <option value="">All Statuses</option>
+                     <?php foreach ($statuses as $status): ?>
+                        <option value="<?= htmlspecialchars($status) ?>"><?= htmlspecialchars($status) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <button id="clear-filters-btn" title="Clear All Filters"><span class="material-icons">clear</span></button>
+            </div>
         </div>
+
+        <div id="active-filters-container"></div>
+
         <hr class="separator-line">
         <div class="grid-stack"></div>
     </div>

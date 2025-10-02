@@ -8,45 +8,56 @@ class Analytics {
         $this->pdo = $db->getPdo();
     }
 
-    public function getDistinct($column) {
-        $stmt = $this->pdo->prepare("SELECT DISTINCT {$column} FROM residents WHERE {$column} IS NOT NULL AND {$column} != '' ORDER BY {$column}");
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    public function getFilterOptions() {
+        $puroks_stmt = $this->pdo->query("SELECT DISTINCT purok FROM residents WHERE purok IS NOT NULL AND purok != '' AND approval_status = 'approved' ORDER BY purok");
+        $status_stmt = $this->pdo->query("SELECT DISTINCT status FROM residents WHERE status IS NOT NULL AND status != '' AND approval_status = 'approved' ORDER BY status");
+        
+        return [
+            'puroks' => $puroks_stmt->fetchAll(PDO::FETCH_COLUMN),
+            'statuses' => $status_stmt->fetchAll(PDO::FETCH_COLUMN)
+        ];
     }
-    
-    public function getLayoutForUser($userId) {
-        $stmt = $this->pdo->prepare("SELECT layout FROM user_analytics_layouts WHERE user_id = ?");
-        $stmt->execute([$userId]);
-        $result = $stmt->fetchColumn();
-        $layout = json_decode($result);
 
-        if (!$result || empty($layout)) {
-            $defaultLayoutPath = __DIR__ . '/../../config/default_layout.json';
-            if (file_exists($defaultLayoutPath)) {
-                return json_decode(file_get_contents($defaultLayoutPath));
-            }
-            return [];
+    public function getChartData($metric, $filters = []) {
+        $where_clauses = ["approval_status = 'approved'"];
+        $params = [];
+
+        if (!empty($filters['start_date'])) {
+            $where_clauses[] = "created_at >= ?";
+            $params[] = $filters['start_date'];
         }
-        return $layout;
-    }
-    
-    public function saveLayoutForUser($userId, $layoutData) {
-        $stmt = $this->pdo->prepare("INSERT INTO user_analytics_layouts (user_id, layout) VALUES (?, ?) ON DUPLICATE KEY UPDATE layout = ?");
-        return $stmt->execute([$userId, $layoutData, $layoutData]);
-    }
+        if (!empty($filters['end_date'])) {
+            $where_clauses[] = "created_at <= ?";
+            $params[] = $filters['end_date'] . ' 23:59:59';
+        }
+        if (!empty($filters['purok'])) {
+            $where_clauses[] = "purok = ?";
+            $params[] = $filters['purok'];
+        }
+        if (!empty($filters['status'])) {
+            $where_clauses[] = "status = ?";
+            $params[] = $filters['status'];
+        }
+        
+        // Handle click-to-filter from other charts
+        if (!empty($filters['gender'])) {
+            $where_clauses[] = "gender = ?";
+            $params[] = $filters['gender'];
+        }
+         if (!empty($filters['civil_status'])) {
+            $where_clauses[] = "civil_status = ?";
+            $params[] = $filters['civil_status'];
+        }
 
-    public function deleteLayoutForUser($userId) {
-        $stmt = $this->pdo->prepare("DELETE FROM user_analytics_layouts WHERE user_id = ?");
-        return $stmt->execute([$userId]);
-    }
-    
-    public function getChartData($metric) {
-        // Fetch all necessary data in one go
-        $stmt = $this->pdo->query("SELECT * FROM residents");
+
+        $where_sql = count($where_clauses) > 0 ? 'WHERE ' . implode(' AND ', $where_clauses) : '';
+        
+        $stmt = $this->pdo->prepare("SELECT * FROM residents " . $where_sql);
+        $stmt->execute($params);
         $residents = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
         $data = [];
 
-        // Helper functions
         $calculateAge = fn($dob) => ($dob && $dob !== '0000-00-00') ? (new DateTime($dob))->diff(new DateTime('today'))->y : null;
         $getGeneration = function($dob) {
             if (!$dob) return 'Unknown';
@@ -56,19 +67,15 @@ class Analytics {
             if ($birthYear >= 1946) return 'Baby Boomers'; return 'Older';
         };
 
-        // Pre-calculate ages
         foreach ($residents as &$r) { $r['age'] = $calculateAge($r['dob']); }
         unset($r);
 
         switch ($metric) {
-            // SIMPLE COUNTS
             case 'gender': case 'civil_status': case 'blood_type': case 'nationality': case 'purok': case 'relationship':
             case 'resident_status_overview':
                 $column = ($metric === 'resident_status_overview') ? 'status' : $metric;
                 foreach ($residents as $r) $data[trim($r[$column]) ?: 'Unknown'] = ($data[trim($r[$column]) ?: 'Unknown'] ?? 0) + 1;
                 break;
-
-            // AGE-BASED
             case 'age':
                 $groups = ['0-17' => 0, '18-35' => 0, '36-59' => 0, '60+' => 0];
                 foreach ($residents as $r) {
@@ -104,8 +111,6 @@ class Analytics {
                 }
                 $data = $pyramid;
                 break;
-
-            // KPIS
             case 'average_age_of_residents':
                 $ages = array_column(array_filter($residents, fn($r) => $r['age'] !== null), 'age');
                 $avg = count($ages) > 0 ? round(array_sum($ages) / count($ages), 1) : 0;
@@ -132,8 +137,6 @@ class Analytics {
                 $female = count(array_filter($residents, fn($r) => strtolower($r['gender']) == 'female'));
                 $data = ['Male' => $male, 'Female' => $female];
                 break;
-
-            // GROUPED CHARTS
             case 'civil_status_distribution_by_gender':
                 $civilStatusByGender = [];
                 foreach($residents as $r) {
@@ -157,8 +160,6 @@ class Analytics {
                 }
                 $data = $schoolAge;
                 break;
-            
-            // OTHER
             case 'voter_population_by_purok': case 'senior_citizens_by_purok':
                 $byPurok = [];
                 foreach($residents as $r) {
@@ -201,8 +202,6 @@ class Analytics {
                 }
                 $data = $heads;
                 break;
-
-            // DATA HEALTH
             case 'profile_completeness':
                 $completeness = ['Contact Info' => 0, 'Email' => 0, 'Emergency Contact' => 0, 'Blood Type' => 0];
                 $total = count($residents);
@@ -222,14 +221,41 @@ class Analytics {
                 $with = count(array_filter($residents, fn($r) => !empty(trim($r['emergency_name']))));
                 $data = ['Has Contact' => $with, 'None' => count($residents) - $with];
                 break;
-
             default:
                 $data = ['error' => 'Metric not found: ' . htmlspecialchars($metric)];
                 break;
         }
         return $data;
     }
+    
+    public function getLayoutForUser($userId) {
+        $stmt = $this->pdo->prepare("SELECT layout FROM user_analytics_layouts WHERE user_id = ?");
+        $stmt->execute([$userId]);
+        $result = $stmt->fetchColumn();
+        $layout = json_decode($result);
 
-    public function getDataForReport($postData) { /* ... same as before ... */ }
+        if (!$result || empty($layout)) {
+            $defaultLayoutPath = __DIR__ . '/../../config/default_layout.json';
+            if (file_exists($defaultLayoutPath)) {
+                return json_decode(file_get_contents($defaultLayoutPath));
+            }
+            return [];
+        }
+        return $layout;
+    }
+    
+    public function saveLayoutForUser($userId, $layoutData) {
+        $stmt = $this->pdo->prepare("INSERT INTO user_analytics_layouts (user_id, layout) VALUES (?, ?) ON DUPLICATE KEY UPDATE layout = ?");
+        return $stmt->execute([$userId, $layoutData, $layoutData]);
+    }
+
+    public function deleteLayoutForUser($userId) {
+        $stmt = $this->pdo->prepare("DELETE FROM user_analytics_layouts WHERE user_id = ?");
+        return $stmt->execute([$userId]);
+    }
+
+    public function getDataForReport($postData) {
+        // This method is now handled directly in AnalyticsController::generateReport()
+        return [];
+    }
 }
-
