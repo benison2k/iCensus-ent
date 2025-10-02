@@ -35,6 +35,7 @@ class SettingsController {
     
     public function process() {
         $this->checkAuth();
+        header('Content-Type: application/json'); // Set header for JSON response
         $config = require __DIR__ . '/../../config/database.php';
         $db = new Database($config);
         $GLOBALS['db'] = $db; // Make db global for log_action
@@ -43,27 +44,31 @@ class SettingsController {
         $oldUsername = $_SESSION['user']['username'];
         
         try {
+            $message = '';
             if (isset($_POST['update_username'])) {
                 $newUsername = $_POST['username'];
                 if ($oldUsername !== $newUsername) {
                     $auth->updateUsername($userId, $newUsername);
                     log_action('INFO', 'SETTINGS_UPDATE', "User updated their username from '{$oldUsername}' to '{$newUsername}'.");
-                    $_SESSION['modal'] = ['message' => 'Username updated successfully', 'type' => 'success'];
+                    $message = 'Username updated successfully';
+                } else {
+                    $message = 'Username is the same, no changes made.';
                 }
             }
             if (isset($_POST['update_password'])) {
-                // Password verification should happen on the frontend/JS before enabling the save button
                 $auth->updatePassword($userId, $_POST['password']);
                 log_action('INFO', 'SETTINGS_UPDATE', "User changed their password.");
-                $_SESSION['modal'] = ['message' => 'Password updated successfully', 'type' => 'success'];
+                $message = 'Password updated successfully';
             }
+            echo json_encode(['status' => 'success', 'message' => $message]);
+
         } catch (Exception $e) {
             log_action('ERROR', 'SETTINGS_ERROR', $e->getMessage());
-            $_SESSION['modal'] = ['message' => 'An error occurred: ' . $e->getMessage(), 'type' => 'error'];
+            http_response_code(500); // Internal Server Error
+            echo json_encode(['status' => 'error', 'message' => 'An error occurred: ' . $e->getMessage()]);
         }
 
-        header('Location: /iCensus-ent/public/settings');
-        exit;
+        exit; // Important to stop execution after sending JSON
     }
 
     public function updateTheme() {

@@ -47,24 +47,40 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Handle Deletion
+    // --- IMPROVED DELETE HANDLING WITH AJAX ---
     document.querySelectorAll('.deleteBtn').forEach(button => {
-        button.addEventListener('click', (e) => {
+        button.addEventListener('click', async (e) => {
             const id = e.currentTarget.dataset.id;
             if (confirm('Are you sure you want to delete this user?')) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                // --- ACTION URL UPDATED ---
-                form.action = `${basePath}/sysadmin/users/process`;
-                form.innerHTML = `
-                    <input type="hidden" name="action" value="delete">
-                    <input type="hidden" name="user_id" value="${id}">
-                `;
-                document.body.appendChild(form);
-                form.submit();
+                try {
+                    const response = await fetch(`${basePath}/sysadmin/users/process`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: new URLSearchParams({
+                            'action': 'delete',
+                            'user_id': id
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.status === 'success') {
+                        // Reload the page to show the updated user list
+                        window.location.reload();
+                    } else {
+                        alert('Error: ' + (result.message || 'Could not delete user.'));
+                    }
+                } catch (error) {
+                    console.error('Deletion failed:', error);
+                    alert('An unexpected error occurred. Please try again.');
+                }
             }
         });
     });
+    // --- END OF IMPROVEMENTS ---
 
     // Close Modal Logic
     closeModalBtn.addEventListener('click', () => userModal.style.display = 'none');
