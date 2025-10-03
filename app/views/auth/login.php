@@ -28,6 +28,15 @@
                 <h1 class="hero-title">Sign in</h1>
                 <p class="text-muted">Please enter your credentials</p>
             </div>
+
+            <?php
+                // Display and then clear the timeout message if it exists
+                if (isset($_SESSION['timeout_message'])) {
+                    echo '<div class="error-text" style="color: #0d6efd; margin-bottom: 1rem;">' . htmlspecialchars($_SESSION['timeout_message']) . '</div>';
+                    unset($_SESSION['timeout_message']);
+                }
+            ?>
+
             <form method="POST" action="/iCensus-ent/public/login" novalidate>
                 <div class="input-wrapper mb-3">
                     <input type="text" name="username" class="form-control <?= $error ? 'error' : '' ?>" placeholder="Username" value="<?= $usernameValue ?>" autofocus>
