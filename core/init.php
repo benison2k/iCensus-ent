@@ -16,7 +16,7 @@ function checkAuth() {
 }
 
 // Session timeout (1800 = 30 minutes)
-$timeout = 10; 
+$timeout = 1800; 
 
 if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > $timeout)) {
     // Unset all session variables
