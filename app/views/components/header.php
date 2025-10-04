@@ -1,9 +1,10 @@
 <?php
 $base_url = '/iCensus-ent/public'; // The correct base URL for all links
 
-// Check if a session is active and if the user is a System Admin
-$isAdmin = isset($_SESSION['user']) && $_SESSION['user']['role_name'] === 'System Admin';
-$isEncoder = isset($_SESSION['user']) && $_SESSION['user']['role_name'] === 'Encoder';
+// Check if a session is active
+$isUserLoggedIn = isset($_SESSION['user']);
+$isAdmin = $isUserLoggedIn && $_SESSION['user']['role_name'] === 'System Admin';
+$isEncoder = $isUserLoggedIn && $_SESSION['user']['role_name'] === 'Encoder';
 
 // Determine the correct dashboard link for the logo
 $dashboardLink = $isAdmin ? $base_url . '/sysadmin/dashboard' : ($isEncoder ? $base_url . '/encoder-dashboard' : $base_url . '/dashboard');
@@ -12,10 +13,9 @@ $dashboardLink = $isAdmin ? $base_url . '/sysadmin/dashboard' : ($isEncoder ? $b
 $requestUri = $_SERVER['REQUEST_URI'];
 $isDashboardPage = (strpos($requestUri, 'dashboard') !== false);
 
-// --- NEW LOGIC: Determine the correct "UP" URL for the back button ---
-$parentUrl = $dashboardLink; // Default to the user's main dashboard
+// Determine the correct "UP" URL for the back button
+$parentUrl = $dashboardLink; 
 if (strpos($requestUri, '/sysadmin/') !== false && !$isDashboardPage) {
-    // If we are anywhere inside /sysadmin/ (except the dashboard itself), the parent is the sysadmin dashboard
     $parentUrl = $base_url . '/sysadmin/dashboard';
 }
 
@@ -25,6 +25,22 @@ if (strpos($requestUri, '/sysadmin/') !== false && !$isDashboardPage) {
     <link rel="stylesheet" href="<?= $base_url ?>/assets/css/header2.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <?php if ($isUserLoggedIn): ?>
+    <script>
+        // The session timeout is set to 1800 seconds (30 minutes) on the server.
+        // We'll set a JavaScript timer for the same duration.
+        const SESSION_TIMEOUT_MS = 1801 * 1000;
+
+        // When the timer finishes, reload the page. The server-side code in 'init.php'
+        // will see that the session has expired and will handle the redirect to the login page.
+        setTimeout(() => {
+            // You can optionally alert the user before reloading
+            // alert("Your session has expired due to inactivity. You will be redirected to the login page.");
+            window.location.reload();
+        }, SESSION_TIMEOUT_MS);
+    </script>
+    <?php endif; ?>
 </head>
 
 <header class="header">
