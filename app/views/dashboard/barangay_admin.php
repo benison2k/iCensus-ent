@@ -25,6 +25,12 @@ $base_url = '/iCensus-ent/public';
 <main class="dashboard">
     <div class="card-grid">
         <a href="<?= $base_url ?>/residents" class="card clickable-card">
+            
+            <?php // This block adds the notification badge if there are pending residents ?>
+            <?php if (isset($pending_count) && $pending_count > 0): ?>
+                <span class="notification-badge"><?= $pending_count ?></span>
+            <?php endif; ?>
+
             <span class="material-icons card-icon">groups</span>
             <h3 class="card-title">Residents</h3>
             <p class="card-desc">Manage and view registered residents</p>
