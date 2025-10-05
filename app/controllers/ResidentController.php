@@ -43,6 +43,26 @@ class ResidentController {
 
         view('residents/index', $data);
     }
+    
+    public function findByAddress() {
+        header('Content-Type: application/json');
+        $house_no = $_GET['house_no'] ?? '';
+        $street = $_GET['street'] ?? '';
+        $purok = $_GET['purok'] ?? '';
+
+        if (empty($house_no) || empty($street) || empty($purok)) {
+            echo json_encode([]);
+            exit;
+        }
+
+        $config = require __DIR__ . '/../../config/database.php';
+        $db = new Database($config);
+        $residentModel = new Resident($db);
+
+        $residents = $residentModel->findByAddress($house_no, $street, $purok);
+        echo json_encode($residents);
+        exit;
+    }
 
     public function process() {
         header('Content-Type: application/json');
@@ -134,6 +154,19 @@ class ResidentController {
         header("Location: /iCensus-ent/public/residents?view=pending");
         exit;
     }
+    
+    public function searchHeads() {
+        header('Content-Type: application/json');
+        $term = $_GET['term'] ?? '';
+    
+        $config = require __DIR__ . '/../../config/database.php';
+        $db = new Database($config);
+        $residentModel = new Resident($db);
+    
+        $heads = $residentModel->searchHeads($term);
+        echo json_encode($heads);
+        exit;
+    }
 
     public function reject() {
         if ($_SESSION['user']['role_name'] !== 'Barangay Admin') { die("Forbidden"); }
@@ -152,7 +185,7 @@ class ResidentController {
 
         header("Location: /iCensus-ent/public/residents?view=pending");
         exit;
-    } // <-- THIS WAS THE MISSING BRACE
+    }
 
     public function approveAll() {
         if ($_SESSION['user']['role_name'] !== 'Barangay Admin') { die("Forbidden"); }

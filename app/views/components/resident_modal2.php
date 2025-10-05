@@ -63,13 +63,32 @@
                         <span class="material-icons" style="font-size:18px; vertical-align:middle;">home</span> Address
                     </h4>
                     <label><span class="material-icons">home</span> House No.
-                        <input type="text" name="house_no" required style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
+                        <input type="number" name="house_no" required style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
                     </label>
                     <label><span class="material-icons">streetview</span> Street
                         <input type="text" name="street" required style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
                     </label>
                     <label><span class="material-icons">apartment</span> Purok
-                        <input type="text" name="purok" required style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
+                        <input type="number" name="purok" required style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
+                    </label>
+                     <div id="householdDetector" style="display:none; margin-top: 1rem; padding: 0.8rem; background: #f0f8ff; border-radius: 6px;">
+                        <label for="householdHeadSelect" style="font-weight: 600;">Household Found!</label>
+                        <p style="font-size: 0.9em; margin: 0.2rem 0;">We found other residents at this address. You can select the Head of Household from the list below.</p>
+                        <select id="householdHeadSelect" style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc; margin-top:0.5rem;">
+                            <option value="">Select Head of Household</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="flex:1 1 22%; min-width:220px; display:flex; flex-direction:column; gap:0.8rem;">
+                    <h4 class="modal-header-text" style="border-bottom:1px solid #ddd; padding-bottom:0.3rem; color:#444;">
+                        <span class="material-icons" style="font-size:18px; vertical-align:middle;">family_restroom</span> Household Info
+                    </h4>
+                    <label><span class="material-icons">family_restroom</span> Head of Household
+                        <input type="text" name="head_of_household" style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
+                    </label>
+                    <label><span class="material-icons">group</span> Relationship to Head
+                        <input type="text" name="relationship" style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
                     </label>
                 </div>
 
@@ -105,6 +124,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const closeBtn = modal.querySelector('.close');
     const body = document.body;
+    const basePath = '/iCensus-ent/public';
 
     function openModal() { modal.style.display = 'block'; }
     function closeModal() { modal.style.display = 'none'; }
@@ -114,6 +134,62 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     window.addEventListener('click', e => { if(e.target === modal) closeModal(); });
+
+    // --- START: NEW VALIDATION & HOUSEHOLD LOGIC ---
+    const houseNoInput = modal.querySelector('input[name="house_no"]');
+    const streetInput = modal.querySelector('input[name="street"]');
+    const purokInput = modal.querySelector('input[name="purok"]');
+    const householdDetector = document.getElementById('householdDetector');
+    const householdHeadSelect = document.getElementById('householdHeadSelect');
+    const headOfHouseholdInput = modal.querySelector('input[name="head_of_household"]');
+
+    // Allow only numbers for House No and Purok
+    [houseNoInput, purokInput].forEach(input => {
+        input.addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, '');
+            checkForHousehold();
+        });
+    });
+
+    // Allow only letters and spaces for Street
+    streetInput.addEventListener('input', function() {
+        this.value = this.value.replace(/[^a-zA-Z\s]/g, '');
+        checkForHousehold();
+    });
+    
+    const checkForHousehold = async () => {
+        const houseNo = houseNoInput.value.trim();
+        const street = streetInput.value.trim();
+        const purok = purokInput.value.trim();
+
+        if (houseNo && street && purok) {
+            const response = await fetch(`${basePath}/residents/find-by-address?house_no=${houseNo}&street=${street}&purok=${purok}`);
+            const residents = await response.json();
+            
+            if (residents.length > 0) {
+                householdDetector.style.display = 'block';
+                householdHeadSelect.innerHTML = '<option value="">Select Head of Household</option>';
+                residents.forEach(resident => {
+                    const fullName = `${resident.first_name} ${resident.last_name}`;
+                    const option = new Option(fullName, fullName);
+                    if(resident.relationship === 'Self') {
+                        option.selected = true;
+                        headOfHouseholdInput.value = fullName;
+                    }
+                    householdHeadSelect.add(option);
+                });
+            } else {
+                householdDetector.style.display = 'none';
+            }
+        } else {
+            householdDetector.style.display = 'none';
+        }
+    };
+    
+    householdHeadSelect.addEventListener('change', function() {
+        headOfHouseholdInput.value = this.value;
+    });
+    // --- END: NEW LOGIC ---
 
     // Function to apply dark mode styles
     function applyDarkModeStyles() {
