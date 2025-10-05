@@ -38,11 +38,14 @@
 /* =========================
    Enhanced Filter Styles
 ========================= */
-.filter-container {
+.filter-wrapper {
+    position: relative; /* Make this a positioning context */
     margin-top: 1.5rem;
+}
+
+.filter-container {
     display: flex;
     gap: 1.5rem;
-    flex-wrap: wrap;
     align-items: flex-end; /* Align items to the bottom */
     background: #f8f9fa;
     padding: 1rem;
@@ -50,6 +53,37 @@
     border: 1px solid #dee2e6;
     transition: background-color 0.3s, border-color 0.3s;
 }
+
+#advanced-filters {
+    display: none; /* Hidden by default */
+    position: absolute; /* Take it out of the document flow */
+    top: 100%; /* Position it right below the main filter bar */
+    left: 0;
+    right: 0;
+    z-index: 10;
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    border-top: 1px solid #dee2e6;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    animation: fadeIn 0.3s ease;
+}
+
+#toggleFiltersBtn .material-icons {
+    transition: transform 0.3s ease;
+}
+
+#toggleFiltersBtn.expanded .material-icons {
+    transform: rotate(180deg);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
 
 .filter-group {
     display: flex;
@@ -129,6 +163,12 @@ body.dark-mode .filter-container {
     background-color: #1e1e2f;
     border-color: #4a5a6a;
 }
+
+body.dark-mode #advanced-filters {
+    background-color: #1e1e2f;
+    border-color: #4a5a6a;
+}
+
 body.dark-mode .filter-group label {
     color: #adb5bd;
 }
@@ -175,7 +215,7 @@ body.dark-mode .clear-btn:hover {
     font-weight: 500;
     transition: all 0.2s ease;
     cursor: pointer;
-    position: relative; 
+    position: relative;
     border: 1px solid transparent;
 }
 

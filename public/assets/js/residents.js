@@ -33,6 +33,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const basePath = '/iCensus-ent/public';
     const filteredResultsDiv = document.getElementById('filteredResults');
     const filteredCountSpan = document.getElementById('filteredCount');
+    const toggleFiltersBtn = document.getElementById('toggleFiltersBtn');
+    const advancedFilters = document.getElementById('advanced-filters');
 
     // --- STATE ---
     let currentPage = 1;
@@ -213,6 +215,12 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             alert('An error occurred while saving the resident.');
         }
+    });
+
+    toggleFiltersBtn.addEventListener('click', () => {
+        const isExpanded = advancedFilters.style.display === 'flex';
+        advancedFilters.style.display = isExpanded ? 'none' : 'flex';
+        toggleFiltersBtn.classList.toggle('expanded', !isExpanded);
     });
 
     // --- FINAL FIX FOR ALL FILTERS ---

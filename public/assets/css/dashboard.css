@@ -11,6 +11,13 @@
     overflow: hidden; /* Prevents scrollbars during animation */
 }
 
+/* NEW: Style for full-width management pages */
+.dashboard-management {
+    align-items: flex-start; /* Align content to the top */
+    justify-content: center; /* Keep content centered horizontally */
+}
+
+
 .card-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
