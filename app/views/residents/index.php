@@ -66,8 +66,29 @@
 
             <div class="filter-container" style="<?= $isPendingView ? 'display:none;' : '' ?>">
                 <div class="filter-group search-filter">
-                    <label for="searchInput">Search Resident</label>
-                    <input type="text" id="searchInput" placeholder="by name or address...">
+                    <label for="searchInput">Search by Name</label>
+                    <input type="text" id="searchInput" placeholder="Enter name...">
+                </div>
+                 <div class="filter-group">
+                    <label for="houseNoFilter">House No.</label>
+                    <input type="text" id="houseNoFilter" placeholder="Enter house no...">
+                </div>
+                 <div class="filter-group">
+                    <label for="streetFilter">Street</label>
+                    <input type="text" id="streetFilter" placeholder="Enter street name...">
+                </div>
+                <div class="filter-group">
+                    <label for="purokFilter">Purok</label>
+                    <select id="purokFilter">
+                        <option value="">All</option>
+                        <?php
+                        if (!$isPendingView) {
+                            $puroks = array_unique(array_column($residents, 'purok'));
+                            sort($puroks);
+                            foreach($puroks as $p) if(!empty($p)) echo "<option value=\"".htmlspecialchars($p)."\">".htmlspecialchars($p)."</option>";
+                        }
+                        ?>
+                    </select>
                 </div>
                 <div class="filter-group">
                     <label for="statusFilter">Status</label>
@@ -94,19 +115,6 @@
                         <span>-</span>
                         <input type="number" id="ageMax" placeholder="Max">
                     </div>
-                </div>
-                <div class="filter-group">
-                    <label for="purokFilter">Purok</label>
-                    <select id="purokFilter">
-                        <option value="">All</option>
-                        <?php
-                        if (!$isPendingView) {
-                            $puroks = array_unique(array_column($residents, 'purok'));
-                            sort($puroks);
-                            foreach($puroks as $p) if(!empty($p)) echo "<option value=\"".htmlspecialchars($p)."\">".htmlspecialchars($p)."</option>";
-                        }
-                        ?>
-                    </select>
                 </div>
                 <div class="filter-group">
                     <button id="clearFiltersBtn" class="clear-btn">

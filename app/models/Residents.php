@@ -8,6 +8,16 @@ class Resident {
         $this->pdo = $db->getPdo();
     }
     
+    public function getHouseholdHeads() {
+        $stmt = $this->pdo->query("
+            SELECT DISTINCT head_of_household 
+            FROM residents 
+            WHERE head_of_household IS NOT NULL AND head_of_household != ''
+            ORDER BY head_of_household ASC
+        ");
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+    
     public function findByAddress($house_no, $street, $purok) {
         $stmt = $this->pdo->prepare("
             SELECT id, first_name, last_name, relationship 

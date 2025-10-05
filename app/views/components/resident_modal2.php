@@ -71,13 +71,9 @@
                     <label><span class="material-icons">apartment</span> Purok
                         <input type="number" name="purok" required style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
                     </label>
-                     <div id="householdDetector" style="display:none; margin-top: 1rem; padding: 0.8rem; background: #f0f8ff; border-radius: 6px;">
-                        <label for="householdHeadSelect" style="font-weight: 600;">Household Found!</label>
-                        <p style="font-size: 0.9em; margin: 0.2rem 0;">We found other residents at this address. You can select the Head of Household from the list below.</p>
-                        <select id="householdHeadSelect" style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc; margin-top:0.5rem;">
-                            <option value="">Select Head of Household</option>
-                        </select>
-                    </div>
+                    <button type="button" id="checkHouseholdBtn" style="margin-top:0.5rem; padding:0.5rem; border-radius:6px; border:1px solid #0d6efd; background:#e7f1ff; color:#0d6efd; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:0.3rem;">
+                        <span class="material-icons">search</span> Check for Household
+                    </button>
                 </div>
                 
                 <div style="flex:1 1 22%; min-width:220px; display:flex; flex-direction:column; gap:0.8rem;">
@@ -90,6 +86,14 @@
                     <label><span class="material-icons">group</span> Relationship to Head
                         <input type="text" name="relationship" style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
                     </label>
+                    <!-- NEW: Household Detector Section -->
+                    <div id="householdDetector" style="display:none; margin-top: 1rem; padding: 0.8rem; background: #f0f8ff; border-radius: 6px;">
+                        <label for="householdHeadSelect" style="font-weight: 600;">Household Found!</label>
+                        <p style="font-size: 0.9em; margin: 0.2rem 0;">Select the Head of Household from the list below.</p>
+                        <select id="householdHeadSelect" style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc; margin-top:0.5rem;">
+                            <option value="">Select Head of Household</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div style="flex:1 1 22%; min-width:220px; display:flex; flex-direction:column; gap:0.8rem;">
@@ -142,22 +146,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const householdDetector = document.getElementById('householdDetector');
     const householdHeadSelect = document.getElementById('householdHeadSelect');
     const headOfHouseholdInput = modal.querySelector('input[name="head_of_household"]');
+    const checkHouseholdBtn = document.getElementById('checkHouseholdBtn');
 
     // Allow only numbers for House No and Purok
     [houseNoInput, purokInput].forEach(input => {
         input.addEventListener('input', function() {
             this.value = this.value.replace(/\D/g, '');
-            checkForHousehold();
         });
     });
 
     // Allow only letters and spaces for Street
     streetInput.addEventListener('input', function() {
         this.value = this.value.replace(/[^a-zA-Z\s]/g, '');
-        checkForHousehold();
     });
     
-    const checkForHousehold = async () => {
+    checkHouseholdBtn.addEventListener('click', async () => {
         const houseNo = houseNoInput.value.trim();
         const street = streetInput.value.trim();
         const purok = purokInput.value.trim();
@@ -166,25 +169,34 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch(`${basePath}/residents/find-by-address?house_no=${houseNo}&street=${street}&purok=${purok}`);
             const residents = await response.json();
             
+            householdDetector.style.display = 'block';
+            householdHeadSelect.innerHTML = '<option value="">Select Head of Household</option>'; // Reset
+            
             if (residents.length > 0) {
-                householdDetector.style.display = 'block';
-                householdHeadSelect.innerHTML = '<option value="">Select Head of Household</option>';
+                let foundHead = false;
                 residents.forEach(resident => {
                     const fullName = `${resident.first_name} ${resident.last_name}`;
                     const option = new Option(fullName, fullName);
+                    householdHeadSelect.add(option);
+                    // If a head is already defined for this household, pre-select them
                     if(resident.relationship === 'Self') {
                         option.selected = true;
                         headOfHouseholdInput.value = fullName;
+                        foundHead = true;
                     }
-                    householdHeadSelect.add(option);
                 });
+                if (!foundHead) {
+                     headOfHouseholdInput.value = ''; // Clear if no head is found yet
+                }
             } else {
-                householdDetector.style.display = 'none';
+                 householdHeadSelect.innerHTML += '<option value="" disabled>No residents found at this address.</option>';
+                 headOfHouseholdInput.value = '';
             }
         } else {
+            alert('Please fill in the House No., Street, and Purok fields first.');
             householdDetector.style.display = 'none';
         }
-    };
+    });
     
     householdHeadSelect.addEventListener('change', function() {
         headOfHouseholdInput.value = this.value;
