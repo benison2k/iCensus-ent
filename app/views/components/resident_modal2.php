@@ -71,9 +71,6 @@
                     <label><span class="material-icons">apartment</span> Purok
                         <input type="text" name="purok" required style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
                     </label>
-                    <label><span class="material-icons">location_city</span> Barangay
-                        <input type="text" name="barangay" required style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
-                    </label>
                 </div>
 
                 <div style="flex:1 1 22%; min-width:220px; display:flex; flex-direction:column; gap:0.8rem;">
@@ -101,7 +98,6 @@
         </form>
     </div>
 </div>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('residentModal');
