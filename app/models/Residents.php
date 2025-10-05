@@ -7,6 +7,28 @@ class Resident {
     public function __construct(Database $db) {
         $this->pdo = $db->getPdo();
     }
+    
+    public function findByAddress($house_no, $street, $purok) {
+        $stmt = $this->pdo->prepare("
+            SELECT id, first_name, last_name, relationship 
+            FROM residents 
+            WHERE house_no = ? AND street = ? AND purok = ?
+        ");
+        $stmt->execute([$house_no, $street, $purok]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    public function searchHeads($term) {
+        $stmt = $this->pdo->prepare("
+            SELECT CONCAT(first_name, ' ', last_name) as name 
+            FROM residents 
+            WHERE (relationship = 'Self' OR relationship = '')
+            AND CONCAT(first_name, ' ', last_name) LIKE ?
+            LIMIT 10
+        ");
+        $stmt->execute(['%' . $term . '%']);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
 
     /**
      * Fetches all APPROVED residents from the database for the main view.

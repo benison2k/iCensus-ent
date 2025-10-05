@@ -64,7 +64,12 @@ switch ($route) {
     case 'residents/process':
         (new ResidentController())->process();
         break;
-
+    case 'residents/find-by-address': // <-- NEW ROUTE
+        (new ResidentController())->findByAddress();
+        break;
+    case 'residents/search-heads':
+        (new ResidentController())->searchHeads();
+        break;
     case 'residents/approve':
         (new ResidentController())->approve();
         break;
