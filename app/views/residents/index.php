@@ -17,8 +17,8 @@
 
     <div class="welcome"><h2>Residents Management</h2></div>
 
-    <main class="dashboard">
-        <div style="padding:0 2rem; max-width:1400px; margin:auto;">
+    <main class="dashboard dashboard-management">
+        <div style="padding:0 2rem; max-width:1400px; margin:auto; width: 100%;">
 
         <div class="page-actions-container">
                 <button id="addResidentBtn" class="action-button-link">
@@ -64,75 +64,85 @@
                  Filtered search results: <span id="filteredCount">0</span>
             </div>
 
-            <div class="filter-container" style="<?= $isPendingView ? 'display:none;' : '' ?>">
-                <div class="filter-group search-filter">
-                    <label for="searchInput">Search by Name</label>
-                    <input type="text" id="searchInput" placeholder="Enter name...">
-                </div>
-                 <div class="filter-group">
-                    <label for="houseNoFilter">House No.</label>
-                    <input type="text" id="houseNoFilter" placeholder="Enter house no...">
-                </div>
-                 <div class="filter-group">
-                    <label for="streetFilter">Street</label>
-                    <input type="text" id="streetFilter" placeholder="Enter street name...">
-                </div>
-                <div class="filter-group">
-                    <label for="purokFilter">Purok</label>
-                    <select id="purokFilter">
-                        <option value="">All</option>
-                        <?php
-                        if (!$isPendingView) {
-                            $puroks = array_unique(array_column($residents, 'purok'));
-                            sort($puroks);
-                            foreach($puroks as $p) if(!empty($p)) echo "<option value=\"".htmlspecialchars($p)."\">".htmlspecialchars($p)."</option>";
-                        }
-                        ?>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="householdFilter">Head of Household</label>
-                    <select id="householdFilter">
-                        <option value="">All</option>
-                        <?php
-                        if (!$isPendingView) {
-                            foreach($household_heads as $head) {
-                                echo "<option value=\"".htmlspecialchars($head)."\">".htmlspecialchars($head)."</option>";
-                            }
-                        }
-                        ?>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="statusFilter">Status</label>
-                    <select id="statusFilter">
-                        <option value="">All</option>
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                        <option value="Moved">Moved</option>
-                        <option value="Deceased">Deceased</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="genderFilter">Gender</label>
-                    <select id="genderFilter">
-                        <option value="">All</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                    </select>
-                </div>
-                <div class="filter-group age-filter">
-                    <label>Age Range</label>
-                    <div class="age-inputs">
-                        <input type="number" id="ageMin" placeholder="Min">
-                        <span>-</span>
-                        <input type="number" id="ageMax" placeholder="Max">
+            <div class="filter-wrapper" style="<?= $isPendingView ? 'display:none;' : '' ?>">
+                <div class="filter-container">
+                    <div class="filter-group search-filter">
+                        <label for="searchInput">Search by Name</label>
+                        <input type="text" id="searchInput" placeholder="Enter name...">
+                    </div>
+                    <div class="filter-group">
+                        <button id="toggleFiltersBtn" class="clear-btn" style="background-color: #17a2b8;">
+                            Advanced Filters <span class="material-icons">expand_more</span>
+                        </button>
                     </div>
                 </div>
-                <div class="filter-group">
-                    <button id="clearFiltersBtn" class="clear-btn">
-                        Clear Filters
-                    </button>
+
+                <div id="advanced-filters">
+                    <div class="filter-group">
+                        <label for="houseNoFilter">House No.</label>
+                        <input type="text" id="houseNoFilter" placeholder="Enter house no...">
+                    </div>
+                    <div class="filter-group">
+                        <label for="streetFilter">Street</label>
+                        <input type="text" id="streetFilter" placeholder="Enter street name...">
+                    </div>
+                    <div class="filter-group">
+                        <label for="purokFilter">Purok</label>
+                        <select id="purokFilter">
+                            <option value="">All</option>
+                            <?php
+                            if (!$isPendingView) {
+                                $puroks = array_unique(array_column($residents, 'purok'));
+                                sort($puroks);
+                                foreach($puroks as $p) if(!empty($p)) echo "<option value=\"".htmlspecialchars($p)."\">".htmlspecialchars($p)."</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="householdFilter">Head of Household</label>
+                        <select id="householdFilter">
+                            <option value="">All</option>
+                            <?php
+                            if (!$isPendingView) {
+                                foreach($household_heads as $head) {
+                                    echo "<option value=\"".htmlspecialchars($head)."\">".htmlspecialchars($head)."</option>";
+                                }
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="statusFilter">Status</label>
+                        <select id="statusFilter">
+                            <option value="">All</option>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                            <option value="Moved">Moved</option>
+                            <option value="Deceased">Deceased</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="genderFilter">Gender</label>
+                        <select id="genderFilter">
+                            <option value="">All</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+                    <div class="filter-group age-filter">
+                        <label>Age Range</label>
+                        <div class="age-inputs">
+                            <input type="number" id="ageMin" placeholder="Min">
+                            <span>-</span>
+                            <input type="number" id="ageMax" placeholder="Max">
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <button id="clearFiltersBtn" class="clear-btn">
+                            Clear Filters
+                        </button>
+                    </div>
                 </div>
             </div>
 
