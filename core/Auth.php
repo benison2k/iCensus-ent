@@ -45,7 +45,6 @@ class Auth {
             'role_id' => $user['role_id'],
             'role_name' => $user['role_name'],
             'full_name' => $user['full_name'],
-            'barangay_id' => $user['barangay_id'] ?? null, // Added for security and scoping
             'theme' => $user['theme'] ?? 'light',
             'language' => $user['language'] ?? 'en',
             'two_fa' => $user['two_fa'] ?? 0
@@ -69,7 +68,6 @@ class Auth {
         if ($user) {
             $_SESSION['user']['username'] = $user['username'];
             $_SESSION['user']['role_name'] = $user['role_name'];
-            $_SESSION['user']['barangay_id'] = $user['barangay_id'] ?? null; // Also refresh the barangay_id
             $_SESSION['user']['theme'] = $user['theme'] ?? 'light';
             $_SESSION['user']['language'] = $user['language'] ?? 'en';
             $_SESSION['user']['two_fa'] = $user['two_fa'] ?? 0;
