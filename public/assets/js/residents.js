@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ageMin = document.getElementById('ageMin');
     const ageMax = document.getElementById('ageMax');
     const purokFilter = document.getElementById('purokFilter');
+    const householdFilter = document.getElementById('householdFilter');
     const clearBtn = document.getElementById('clearFiltersBtn');
     const pageSizeSelect = document.getElementById('pageSizeSelect');
     const prevPageBtn = document.getElementById('prevPageBtn');
@@ -52,10 +53,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch(`${basePath}/residents/process?action=get&resident_id=${id}`);
             const result = await res.json();
             if (result.status !== 'success') return alert('Resident not found.');
-            
+
             const data = result.resident;
             Object.keys(data).forEach(key => { if (form[key]) form[key].value = data[key]; });
-            
+
             setFormEditable(false);
             modalTitle.textContent = `View Resident Info`;
             hiddenId.value = id;
@@ -111,17 +112,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const applyFilters = () => {
         const searchTerm = searchInput.value.toLowerCase();
-        const houseNo = houseNoFilter.value.toLowerCase(); 
-        const street = streetFilter.value.toLowerCase(); 
+        const houseNo = houseNoFilter.value.toLowerCase();
+        const street = streetFilter.value.toLowerCase();
         const status = statusFilter.value;
         const gender = genderFilter.value;
         const minAge = ageMin.value ? parseInt(ageMin.value, 10) : null;
         const maxAge = ageMax.value ? parseInt(ageMax.value, 10) : null;
         const purok = purokFilter.value;
-        
+        const household = householdFilter.value;
+
         filteredResidents = allResidentsData.filter(r => {
             const fullName = `${r.first_name} ${r.last_name}`.toLowerCase();
-            
+
             if (searchTerm && !fullName.includes(searchTerm)) return false;
             if (houseNo && r.house_no && !r.house_no.toString().toLowerCase().includes(houseNo)) return false;
             if (street && r.street && !r.street.toLowerCase().includes(street)) return false;
@@ -130,6 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (minAge !== null && r.age < minAge) return false;
             if (maxAge !== null && r.age > maxAge) return false;
             if (purok && r.purok != purok) return false;
+            if (household && r.head_of_household !== household) return false;
             return true;
         });
 
@@ -142,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             filteredResultsDiv.style.display = 'none';
         }
-        
+
         currentPage = 1;
         renderTable();
     };
@@ -175,12 +178,12 @@ document.addEventListener('DOMContentLoaded', () => {
     closeModal.addEventListener('click', () => modal.style.display = 'none');
     window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
     editBtn.addEventListener('click', () => setFormEditable(true));
-    
+
     deleteBtn.addEventListener('click', async () => {
         const id = hiddenId.value;
         if (!id) return;
         if (!confirm('Are you sure you want to delete this resident? This action cannot be undone.')) return;
-        
+
         const response = await fetch(`${basePath}/residents/process`, {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
@@ -196,15 +199,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+
         const formData = new FormData(form);
         const response = await fetch(form.action, {
             method: 'POST',
             body: formData
         });
-        
+
         const result = await response.json();
-        
+
         if (result.status === 'success') {
             window.location.reload();
         } else {
@@ -213,14 +216,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- FINAL FIX FOR ALL FILTERS ---
-    
+
     // This single block handles all text-based filters for instant updates.
     [searchInput, houseNoFilter, streetFilter, ageMin, ageMax].forEach(el => {
         el.addEventListener('input', applyFilters);
     });
-    
+
     // This handles all dropdown filters.
-    [statusFilter, genderFilter, purokFilter].forEach(el => {
+    [statusFilter, genderFilter, purokFilter, householdFilter].forEach(el => {
         el.addEventListener('change', applyFilters);
     });
 
@@ -232,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
         this.value = this.value.replace(/[^a-zA-Z\s]/g, '');
     });
     // --- END FIX ---
-    
+
     pageSizeSelect.addEventListener('change', (e) => {
         pageSize = parseInt(e.target.value, 10);
         currentPage = 1;
@@ -246,19 +249,20 @@ document.addEventListener('DOMContentLoaded', () => {
     gotoPageBtn.addEventListener('click', jumpToPage);
     gotoPageInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') jumpToPage(); });
     clearBtn.addEventListener('click', () => {
-        searchInput.value = ''; 
-        houseNoFilter.value = ''; 
-        streetFilter.value = ''; 
-        statusFilter.value = ''; 
+        searchInput.value = '';
+        houseNoFilter.value = '';
+        streetFilter.value = '';
+        statusFilter.value = '';
         genderFilter.value = '';
-        ageMin.value = ''; 
-        ageMax.value = ''; 
+        ageMin.value = '';
+        ageMax.value = '';
         purokFilter.value = '';
+        householdFilter.value = '';
         applyFilters();
     });
 
     // --- INITIALIZATION ---
     if (!isPendingView) {
-        applyFilters(); 
+        applyFilters();
     }
 });

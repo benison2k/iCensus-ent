@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/style.css">
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/modal.css">
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/residents.css">
-<link rel="stylesheet" href="<?= $base_url ?>/assets/css/dashboard.css"> 
+<link rel="stylesheet" href="<?= $base_url ?>/assets/css/dashboard.css">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body class="<?= $theme==='dark'?'dark-mode':''; ?>">
@@ -19,22 +19,22 @@
 
     <main class="dashboard">
         <div style="padding:0 2rem; max-width:1400px; margin:auto;">
-            
+
         <div class="page-actions-container">
                 <button id="addResidentBtn" class="action-button-link">
                     <span class="material-icons">person_add</span> Add Resident
                 </button>
 
                 <?php if ($user['role_name'] === 'Barangay Admin'): ?>
-                    
-                    <a href="<?= $base_url ?>/residents?view=pending" 
-                       class="action-button-link card" 
+
+                    <a href="<?= $base_url ?>/residents?view=pending"
+                       class="action-button-link card"
                        style="text-decoration: none; border-width: 2px; border-style: solid; border-color: <?= $isPendingView ? '#0d6efd' : 'transparent' ?>; padding: 0.6rem 1rem; min-width: auto; min-height: auto;">
-                        
+
                         <?php if ($pending_count > 0): ?>
                             <span class="notification-badge"><?= $pending_count ?></span>
                         <?php endif; ?>
-                        
+
                         <span class="material-icons">rate_review</span> Pending Review
                     </a>
 
@@ -43,14 +43,14 @@
                     </a>
 
                     <?php if ($isPendingView && $pending_count > 0): ?>
-                        <a href="<?= $base_url ?>/residents/approve-all" 
-                           class="action-button-link" 
-                           style="background-color: #28a745; color: white; margin-left: auto;" 
+                        <a href="<?= $base_url ?>/residents/approve-all"
+                           class="action-button-link"
+                           style="background-color: #28a745; color: white; margin-left: auto;"
                            onclick="return confirm('Are you sure you want to approve all <?= $pending_count ?> pending entries?');">
                             <span class="material-icons">done_all</span> Approve All (<?= $pending_count ?>)
                         </a>
                     <?php endif; ?>
-                    
+
                 <?php endif; ?>
             </div>
 
@@ -86,6 +86,19 @@
                             $puroks = array_unique(array_column($residents, 'purok'));
                             sort($puroks);
                             foreach($puroks as $p) if(!empty($p)) echo "<option value=\"".htmlspecialchars($p)."\">".htmlspecialchars($p)."</option>";
+                        }
+                        ?>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="householdFilter">Head of Household</label>
+                    <select id="householdFilter">
+                        <option value="">All</option>
+                        <?php
+                        if (!$isPendingView) {
+                            foreach($household_heads as $head) {
+                                echo "<option value=\"".htmlspecialchars($head)."\">".htmlspecialchars($head)."</option>";
+                            }
                         }
                         ?>
                     </select>
@@ -144,7 +157,7 @@
                     <button id="gotoPageBtn" style="padding:0.3rem 0.5rem;">Go</button>
                 </div>
             </div>
-            
+
             <div class="table-responsive">
                 <table class="resident-table" id="residentsTable">
                     <thead>
@@ -189,7 +202,7 @@
 
         <?php include __DIR__ . '/../components/resident_modal2.php'; ?>
     </main>
-    
+
     <?php include __DIR__ . '/../components/footer.php'; ?>
 
     <script>
@@ -200,7 +213,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (!isPendingView) {
-                applyFilters(); 
+                applyFilters();
             }
         });
     </script>
