@@ -34,6 +34,7 @@ class ResidentController {
             'user' => $_SESSION['user'],
             'theme' => $_SESSION['user']['theme'] ?? 'light',
             'residents' => $residents,
+            'household_heads' => $residentModel->getHouseholdHeads(), // New
             'isPendingView' => $isPendingView,
             'pending_count' => ($user_role === 'Barangay Admin') ? $residentModel->getPendingCount() : 0,
             'modalMessage' => $_SESSION['modal']['message'] ?? '',

@@ -123,13 +123,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const fullName = `${r.first_name} ${r.last_name}`.toLowerCase();
             
             if (searchTerm && !fullName.includes(searchTerm)) return false;
-            if (houseNo && r.house_no.toLowerCase() !== houseNo) return false; 
-            if (street && !r.street.toLowerCase().includes(street)) return false; 
+            if (houseNo && r.house_no && !r.house_no.toString().toLowerCase().includes(houseNo)) return false;
+            if (street && r.street && !r.street.toLowerCase().includes(street)) return false;
             if (status && r.status !== status) return false;
             if (gender && r.gender !== gender) return false;
             if (minAge !== null && r.age < minAge) return false;
             if (maxAge !== null && r.age > maxAge) return false;
-            if (purok && r.purok !== purok) return false;
+            if (purok && r.purok != purok) return false;
             return true;
         });
 
@@ -214,26 +214,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- FINAL FIX FOR ALL FILTERS ---
     
-    // Handle House No filter: validate and then apply
-    houseNoFilter.addEventListener('input', function() {
-        this.value = this.value.replace(/\D/g, '');
-        applyFilters();
-    });
-
-    // Handle Street filter: validate and then apply
-    streetFilter.addEventListener('input', function() {
-        this.value = this.value.replace(/[^a-zA-Z\s]/g, '');
-        applyFilters();
-    });
-    
-    // Handle the rest of the text/number-based filters
-    [searchInput, ageMin, ageMax].forEach(el => {
+    // This single block handles all text-based filters for instant updates.
+    [searchInput, houseNoFilter, streetFilter, ageMin, ageMax].forEach(el => {
         el.addEventListener('input', applyFilters);
     });
     
     // This handles all dropdown filters.
     [statusFilter, genderFilter, purokFilter].forEach(el => {
         el.addEventListener('change', applyFilters);
+    });
+
+    // This adds the validation on top of the filtering for specific fields.
+    houseNoFilter.addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '');
+    });
+    streetFilter.addEventListener('input', function() {
+        this.value = this.value.replace(/[^a-zA-Z\s]/g, '');
     });
     // --- END FIX ---
     
