@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- TABLE & FILTER ELEMENTS ---
     const tableBody = document.getElementById('residentsTableBody');
     const searchInput = document.getElementById('searchInput');
+    const houseNoFilter = document.getElementById('houseNoFilter');
+    const streetFilter = document.getElementById('streetFilter');
     const statusFilter = document.getElementById('statusFilter');
     const genderFilter = document.getElementById('genderFilter');
     const ageMin = document.getElementById('ageMin');
@@ -86,25 +88,31 @@ document.addEventListener('DOMContentLoaded', () => {
         const end = start + pageSize;
         const pageSlice = filteredResidents.slice(start, end);
 
-        pageSlice.forEach(r => {
-            const middleInitial = r.middle_name ? `${r.middle_name.charAt(0).toUpperCase()}.` : '';
-            const fullName = `${r.first_name} ${middleInitial} ${r.last_name}`.trim();
-            const address = `${r.house_no} ${r.street}, Purok ${r.purok}`;
-            const safeStatus = (r.status || '').toLowerCase();
-            tableBody.innerHTML += `
-                <tr data-id="${r.id}">
-                    <td>${fullName}</td><td>${r.age}</td><td>${r.gender}</td>
-                    <td>${address}</td>
-                    <td><span class="status-label status-${safeStatus}">${r.status}</span></td>
-                    <td><button class="moreBtn material-icons" data-id="${r.id}" title="View Resident Info">more_vert</button></td>
-                </tr>`;
-        });
+        if (pageSlice.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No residents found matching the criteria.</td></tr>';
+        } else {
+            pageSlice.forEach(r => {
+                const middleInitial = r.middle_name ? `${r.middle_name.charAt(0).toUpperCase()}.` : '';
+                const fullName = `${r.first_name} ${middleInitial} ${r.last_name}`.trim();
+                const address = `${r.house_no} ${r.street}, Purok ${r.purok}`;
+                const safeStatus = (r.status || '').toLowerCase();
+                tableBody.innerHTML += `
+                    <tr data-id="${r.id}">
+                        <td>${fullName}</td><td>${r.age}</td><td>${r.gender}</td>
+                        <td>${address}</td>
+                        <td><span class="status-label status-${safeStatus}">${r.status}</span></td>
+                        <td><button class="moreBtn material-icons" data-id="${r.id}" title="View Resident Info">more_vert</button></td>
+                    </tr>`;
+            });
+        }
         updatePagination();
         attachEventListenersToRows();
     };
 
     const applyFilters = () => {
         const searchTerm = searchInput.value.toLowerCase();
+        const houseNo = houseNoFilter.value.toLowerCase(); 
+        const street = streetFilter.value.toLowerCase(); 
         const status = statusFilter.value;
         const gender = genderFilter.value;
         const minAge = ageMin.value ? parseInt(ageMin.value, 10) : null;
@@ -113,9 +121,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
         filteredResidents = allResidentsData.filter(r => {
             const fullName = `${r.first_name} ${r.last_name}`.toLowerCase();
-            const address = `${r.house_no} ${r.street}, Purok ${r.purok}`.toLowerCase();
             
-            if (searchTerm && !fullName.includes(searchTerm) && !address.includes(searchTerm)) return false;
+            if (searchTerm && !fullName.includes(searchTerm)) return false;
+            if (houseNo && r.house_no.toLowerCase() !== houseNo) return false; 
+            if (street && !r.street.toLowerCase().includes(street)) return false; 
             if (status && r.status !== status) return false;
             if (gender && r.gender !== gender) return false;
             if (minAge !== null && r.age < minAge) return false;
@@ -203,8 +212,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    [searchInput, ageMin, ageMax].forEach(el => el.addEventListener('input', applyFilters));
-    [statusFilter, genderFilter, purokFilter].forEach(el => el.addEventListener('change', applyFilters));
+    // --- FINAL FIX FOR ALL FILTERS ---
+    
+    // Handle House No filter: validate and then apply
+    houseNoFilter.addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '');
+        applyFilters();
+    });
+
+    // Handle Street filter: validate and then apply
+    streetFilter.addEventListener('input', function() {
+        this.value = this.value.replace(/[^a-zA-Z\s]/g, '');
+        applyFilters();
+    });
+    
+    // Handle the rest of the text/number-based filters
+    [searchInput, ageMin, ageMax].forEach(el => {
+        el.addEventListener('input', applyFilters);
+    });
+    
+    // This handles all dropdown filters.
+    [statusFilter, genderFilter, purokFilter].forEach(el => {
+        el.addEventListener('change', applyFilters);
+    });
+    // --- END FIX ---
+    
     pageSizeSelect.addEventListener('change', (e) => {
         pageSize = parseInt(e.target.value, 10);
         currentPage = 1;
@@ -218,17 +250,19 @@ document.addEventListener('DOMContentLoaded', () => {
     gotoPageBtn.addEventListener('click', jumpToPage);
     gotoPageInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') jumpToPage(); });
     clearBtn.addEventListener('click', () => {
-        searchInput.value = ''; statusFilter.value = ''; genderFilter.value = '';
-        ageMin.value = ''; ageMax.value = ''; purokFilter.value = '';
+        searchInput.value = ''; 
+        houseNoFilter.value = ''; 
+        streetFilter.value = ''; 
+        statusFilter.value = ''; 
+        genderFilter.value = '';
+        ageMin.value = ''; 
+        ageMax.value = ''; 
+        purokFilter.value = '';
         applyFilters();
     });
 
     // --- INITIALIZATION ---
-// This is the new logic. It checks the 'isPendingView' variable from the PHP file.
     if (!isPendingView) {
-        applyFilters(); // Only run the dynamic table filtering if we are in the "Approved" view.
-    } else {
-        // If we are in the pending view, the PHP table is already correct.
-        // We don't need to do anything here.
+        applyFilters(); 
     }
 });
