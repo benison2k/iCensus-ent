@@ -177,4 +177,110 @@ class Resident {
         $stmt = $this->pdo->prepare("DELETE FROM residents WHERE id = ?");
         return $stmt->execute([$id]);
     }
+
+        /**
+     * NEW: Generic function to get filtered residents based on URL params
+     * @param array $filters The filter parameters from the request.
+     * @return array
+     */
+    public function getFiltered($filters) {
+        $query = "SELECT *, TIMESTAMPDIFF(YEAR, dob, CURDATE()) as age FROM residents WHERE approval_status = 'approved'";
+        $params = [];
+
+        if (!empty($filters['gender'])) {
+            $query .= " AND gender = ?";
+            $params[] = $filters['gender'];
+        }
+        if (!empty($filters['civil_status'])) {
+            $query .= " AND civil_status = ?";
+            $params[] = $filters['civil_status'];
+        }
+        if (!empty($filters['purok'])) {
+            $query .= " AND purok = ?";
+            $params[] = $filters['purok'];
+        }
+        if (!empty($filters['blood_type'])) {
+            $query .= " AND blood_type = ?";
+            $params[] = $filters['blood_type'];
+        }
+        if (!empty($filters['educational_attainment'])) {
+            $query .= " AND educational_attainment = ?";
+            $params[] = $filters['educational_attainment'];
+        }
+        if (!empty($filters['occupation'])) {
+            $query .= " AND occupation = ?";
+            $params[] = $filters['occupation'];
+        }
+        if (!empty($filters['is_pwd'])) {
+            $query .= " AND is_pwd = ?";
+            $params[] = $filters['is_pwd'];
+        }
+        if (!empty($filters['is_solo_parent'])) {
+            $query .= " AND is_solo_parent = ?";
+            $params[] = $filters['is_solo_parent'];
+        }
+        if (!empty($filters['is_4ps_member'])) {
+            $query .= " AND is_4ps_member = ?";
+            $params[] = $filters['is_4ps_member'];
+        }
+        if (!empty($filters['age_min'])) {
+            $query .= " AND TIMESTAMPDIFF(YEAR, dob, CURDATE()) >= ?";
+            $params[] = $filters['age_min'];
+        }
+        if (!empty($filters['age_max'])) {
+            $query .= " AND TIMESTAMPDIFF(YEAR, dob, CURDATE()) <= ?";
+            $params[] = $filters['age_max'];
+        }
+        if (!empty($filters['relationship'])) {
+            $query .= " AND relationship = ?";
+            $params[] = $filters['relationship'];
+        }
+
+        // --- ADDED FILTER LOGIC ---
+        if (!empty($filters['generation'])) {
+            $generation = $filters['generation'];
+            $yearCondition = '';
+            switch ($generation) {
+                case 'Gen Alpha': $yearCondition = "YEAR(dob) >= 2013"; break;
+                case 'Gen Z': $yearCondition = "YEAR(dob) BETWEEN 1997 AND 2012"; break;
+                case 'Millennials': $yearCondition = "YEAR(dob) BETWEEN 1981 AND 1996"; break;
+                case 'Gen X': $yearCondition = "YEAR(dob) BETWEEN 1965 AND 1980"; break;
+                case 'Baby Boomers': $yearCondition = "YEAR(dob) BETWEEN 1946 AND 1964"; break;
+                case 'Older': $yearCondition = "YEAR(dob) < 1946"; break;
+                case 'Unknown': $yearCondition = "(dob IS NULL OR dob = '0000-00-00')"; break;
+            }
+            if ($yearCondition) {
+                $query .= " AND ($yearCondition)";
+            }
+        }
+        
+        if (!empty($filters['is_head']) && $filters['is_head'] === 'Yes') {
+            $query .= " AND relationship = 'Self'";
+        }
+        
+        if (!empty($filters['street'])) {
+            $query .= " AND street = ?";
+            $params[] = $filters['street'];
+        }
+
+        if (!empty($filters['has_field'])) {
+            $allowed_fields = ['contact_number', 'email', 'emergency_name', 'blood_type'];
+            $field = $filters['has_field'];
+            if (in_array($field, $allowed_fields)) {
+                $query .= " AND ({$field} IS NOT NULL AND {$field} != '')";
+            }
+        }
+
+        if (!empty($filters['household_size'])) {
+            $size = intval($filters['household_size']);
+            $operator = str_contains($filters['household_size'], '+') ? '>=' : '=';
+            $query .= " AND household_no IN (SELECT household_no FROM residents WHERE household_no IS NOT NULL AND household_no != '' GROUP BY household_no HAVING COUNT(*) {$operator} ?)";
+            $params[] = $size;
+        } 
+        $query .= " ORDER BY last_name, first_name";
+        
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

@@ -2,6 +2,9 @@
 // app/controllers/AnalyticsController.php
 require_once __DIR__ . '/../../core/Auth.php';
 require_once __DIR__ . '/../models/Analytics.php';
+// --- NEW: Add the Residents model ---
+require_once __DIR__ . '/../models/Residents.php';
+
 
 class AnalyticsController {
 
@@ -12,6 +15,22 @@ class AnalyticsController {
         $GLOBALS['db'] = $db; // For logging
         $auth = new Auth($db);
         $auth->refreshUserSession($_SESSION['user']['id']);
+    }
+
+    // --- NEW: Method to get filtered residents ---
+    public function getFilteredResidents() {
+        $this->checkAuth(); // <-- THIS LINE WAS CORRECTED
+        header('Content-Type: application/json');
+
+        $db = new Database(require __DIR__ . '/../../config/database.php');
+        $residentModel = new Resident($db);
+
+        // This will receive all filter params from our JS
+        $filters = $_GET; 
+
+        $residents = $residentModel->getFiltered($filters);
+        echo json_encode(['status' => 'success', 'residents' => $residents]);
+        exit;
     }
 
     public function index() {

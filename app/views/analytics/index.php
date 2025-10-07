@@ -89,18 +89,54 @@
 
 <div id="chart-detail-modal" class="modal">
     <div class="modal-content large">
-        <span class="close-btn">&times;</span> <div class="modal-grid">
+        <span class="close-btn">&times;</span>
+        <div class="modal-grid">
             <div id="chart-detail-content">
-            </div>
+                </div>
             <div class="chart-info-panel">
                 <h3 id="chart-detail-title"></h3>
                 <p id="chart-detail-explanation"></p>
+                <div class="chart-interaction-tip">
+                    <span class="material-icons">ads_click</span>
+                    <p>Click on a chart segment (e.g., a pie slice or bar) to view the filtered residents.</p>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+<div id="filtered-residents-modal" class="modal">
+    <div class="modal-content large">
+        <span class="close-btn">&times;</span>
+        <h3 id="filtered-title">Filtered Residents</h3>
+        <div class="table-responsive" style="overflow-y: auto; max-height: 60vh;">
+            <table class="resident-table" id="filtered-residents-table">
+                <thead>
+                    <tr>
+                        <th>Full Name</th>
+                        <th>Age</th>
+                        <th>Gender</th>
+                        <th>Address</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="analytics-resident-detail-modal" class="modal">
+    <div class="modal-content large"> <span class="close-btn">&times;</span>
+        <h3 id="detail-modal-title">Resident Details</h3>
+        <div id="detail-modal-content" class="resident-details-grid">
+            <p>Loading...</p>
+        </div>
+    </div>
+</div>
+
 <?php include __DIR__ . '/../components/footer.php'; ?>
-<script src="<?= $base_url ?>/assets/js/analytics.js"></script>
+<script type="module" src="<?= $base_url ?>/assets/js/analytics1.js"></script>
 </body>
 </html>
