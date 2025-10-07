@@ -7,6 +7,23 @@ class Resident {
     public function __construct(Database $db) {
         $this->pdo = $db->getPdo();
     }
+
+    /**
+     * NEW: Generic function to get distinct, non-empty values from a column.
+     * @param string $column The name of the column.
+     * @return array
+     */
+    public function getDistinctValues($column) {
+        // The query is built to be safe as the column name is controlled internally.
+        $stmt = $this->pdo->prepare("
+            SELECT DISTINCT {$column} 
+            FROM residents 
+            WHERE {$column} IS NOT NULL AND {$column} != '' 
+            ORDER BY {$column} ASC
+        ");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
     
     public function getHouseholdHeads() {
         $stmt = $this->pdo->query("

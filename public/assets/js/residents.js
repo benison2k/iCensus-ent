@@ -21,6 +21,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const ageMax = document.getElementById('ageMax');
     const purokFilter = document.getElementById('purokFilter');
     const householdFilter = document.getElementById('householdFilter');
+    const civilStatusFilter = document.getElementById('civilStatusFilter');
+    const bloodTypeFilter = document.getElementById('bloodTypeFilter');
+    const residencyStatusFilter = document.getElementById('residencyStatusFilter');
+    const relationshipFilter = document.getElementById('relationshipFilter');
+    const isHeadFilter = document.getElementById('isHeadFilter');
+    const birthMonthFilter = document.getElementById('birthMonthFilter');
+    const dateAddedMin = document.getElementById('dateAddedMin');
+    const dateAddedMax = document.getElementById('dateAddedMax');
+    const emergencyContactFilter = document.getElementById('emergencyContactFilter');
+    const demographicButtons = document.querySelectorAll('.demographic-btn');
+    const isVoterFilter = document.getElementById('isVoterFilter');
+    const educationFilter = document.getElementById('educationFilter');
+    const occupationFilter = document.getElementById('occupationFilter');
+    const isPwdFilter = document.getElementById('isPwdFilter');
+    const isSoloParentFilter = document.getElementById('isSoloParentFilter');
+    const is4psMemberFilter = document.getElementById('is4psMemberFilter');
     const clearBtn = document.getElementById('clearFiltersBtn');
     const pageSizeSelect = document.getElementById('pageSizeSelect');
     const prevPageBtn = document.getElementById('prevPageBtn');
@@ -57,7 +73,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (result.status !== 'success') return alert('Resident not found.');
 
             const data = result.resident;
-            Object.keys(data).forEach(key => { if (form[key]) form[key].value = data[key]; });
+            Object.keys(data).forEach(key => {
+                const el = form[key];
+                if (el) {
+                    if (el.type === 'checkbox') {
+                        el.checked = (data[key] == 1);
+                    } else {
+                        el.value = data[key];
+                    }
+                }
+            });
 
             setFormEditable(false);
             modalTitle.textContent = `View Resident Info`;
@@ -90,16 +115,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const start = (currentPage - 1) * pageSize;
         const end = start + pageSize;
         const pageSlice = filteredResidents.slice(start, end);
-
-        if (pageSlice.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No residents found matching the criteria.</td></tr>';
+        let rowsHtml = '';
+    
+        if (filteredResidents.length === 0) {
+            rowsHtml = '<tr><td colspan="6" style="text-align: center; height: 380px; vertical-align: middle;">No residents found matching the criteria.</td></tr>';
         } else {
             pageSlice.forEach(r => {
                 const middleInitial = r.middle_name ? `${r.middle_name.charAt(0).toUpperCase()}.` : '';
                 const fullName = `${r.first_name} ${middleInitial} ${r.last_name}`.trim();
                 const address = `${r.house_no} ${r.street}, Purok ${r.purok}`;
                 const safeStatus = (r.status || '').toLowerCase();
-                tableBody.innerHTML += `
+                rowsHtml += `
                     <tr data-id="${r.id}">
                         <td>${fullName}</td><td>${r.age}</td><td>${r.gender}</td>
                         <td>${address}</td>
@@ -108,9 +134,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     </tr>`;
             });
         }
+    
+        tableBody.innerHTML = rowsHtml;
+    
+        if (filteredResidents.length > 0) {
+            const placeholdersNeeded = pageSize - pageSlice.length;
+            for (let i = 0; i < placeholdersNeeded; i++) {
+                tableBody.innerHTML += '<tr><td colspan="6">&nbsp;</td></tr>';
+            }
+        }
+    
         updatePagination();
         attachEventListenersToRows();
-    };
+    };    
 
     const applyFilters = () => {
         const searchTerm = searchInput.value.toLowerCase();
@@ -122,6 +158,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const maxAge = ageMax.value ? parseInt(ageMax.value, 10) : null;
         const purok = purokFilter.value;
         const household = householdFilter.value;
+        const civilStatus = civilStatusFilter.value;
+        const bloodType = bloodTypeFilter.value;
+        const residencyStatus = residencyStatusFilter.value;
+        const relationship = relationshipFilter.value;
+        const isHead = isHeadFilter.value;
+        const birthMonth = birthMonthFilter.value;
+        const minDateAdded = dateAddedMin.value;
+        const maxDateAdded = dateAddedMax.value;
+        const hasEmergency = emergencyContactFilter.value;
+        const isVoter = isVoterFilter.checked;
+        const education = educationFilter.value;
+        const occupation = occupationFilter.value;
+        const isPwd = isPwdFilter.value;
+        const isSoloParent = isSoloParentFilter.value;
+        const is4ps = is4psMemberFilter.value;
 
         filteredResidents = allResidentsData.filter(r => {
             const fullName = `${r.first_name} ${r.last_name}`.toLowerCase();
@@ -135,6 +186,23 @@ document.addEventListener('DOMContentLoaded', () => {
             if (maxAge !== null && r.age > maxAge) return false;
             if (purok && r.purok != purok) return false;
             if (household && r.head_of_household !== household) return false;
+            if (civilStatus && r.civil_status !== civilStatus) return false;
+            if (bloodType && r.blood_type !== bloodType) return false;
+            if (residencyStatus && r.residency_status !== residencyStatus) return false;
+            if (relationship && r.relationship !== relationship) return false;
+            if (isHead === 'Yes' && r.relationship !== 'Self') return false;
+            if (isHead === 'No' && r.relationship === 'Self') return false;
+            if (birthMonth && r.dob && new Date(r.dob).getMonth() + 1 != birthMonth) return false;
+            if (minDateAdded && r.date_added && r.date_added < minDateAdded) return false;
+            if (maxDateAdded && r.date_added && r.date_added.split(' ')[0] > maxDateAdded) return false;
+            if (hasEmergency === 'Yes' && !r.emergency_name) return false;
+            if (hasEmergency === 'No' && r.emergency_name) return false;
+            if (isVoter && !r.is_registered_voter) return false;
+            if (education && r.educational_attainment !== education) return false;
+            if (occupation && r.occupation !== occupation) return false;
+            if (isPwd !== "" && r.is_pwd != isPwd) return false;
+            if (isSoloParent !== "" && r.is_solo_parent != isSoloParent) return false;
+            if (is4ps !== "" && r.is_4ps_member != is4ps) return false;
             return true;
         });
 
@@ -218,31 +286,39 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     toggleFiltersBtn.addEventListener('click', () => {
-        const isExpanded = advancedFilters.style.display === 'flex';
-        advancedFilters.style.display = isExpanded ? 'none' : 'flex';
+        const isExpanded = advancedFilters.style.display === 'grid';
+        advancedFilters.style.display = isExpanded ? 'none' : 'grid';
         toggleFiltersBtn.classList.toggle('expanded', !isExpanded);
     });
 
-    // --- FINAL FIX FOR ALL FILTERS ---
+    // --- NEW: Click outside to close advanced filters ---
+    window.addEventListener('click', (e) => {
+        const filterWrapper = document.querySelector('.filter-wrapper');
+        if (!filterWrapper.contains(e.target) && advancedFilters.style.display === 'grid') {
+            advancedFilters.style.display = 'none';
+            toggleFiltersBtn.classList.remove('expanded');
+        }
+    });
+    // --- END NEW ---
 
-    // This single block handles all text-based filters for instant updates.
-    [searchInput, houseNoFilter, streetFilter, ageMin, ageMax].forEach(el => {
+    [searchInput, houseNoFilter, streetFilter, ageMin, ageMax, dateAddedMin, dateAddedMax].forEach(el => {
         el.addEventListener('input', applyFilters);
     });
 
-    // This handles all dropdown filters.
-    [statusFilter, genderFilter, purokFilter, householdFilter].forEach(el => {
+    [statusFilter, genderFilter, purokFilter, householdFilter, civilStatusFilter, bloodTypeFilter, residencyStatusFilter, relationshipFilter, isHeadFilter, birthMonthFilter, emergencyContactFilter, isVoterFilter, educationFilter, occupationFilter, isPwdFilter, isSoloParentFilter, is4psMemberFilter].forEach(el => {
         el.addEventListener('change', applyFilters);
     });
+    
+    demographicButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            ageMin.value = btn.dataset.min || '';
+            ageMax.value = btn.dataset.max || '';
+            applyFilters();
+        });
+    });
 
-    // This adds the validation on top of the filtering for specific fields.
-    houseNoFilter.addEventListener('input', function() {
-        this.value = this.value.replace(/\D/g, '');
-    });
-    streetFilter.addEventListener('input', function() {
-        this.value = this.value.replace(/[^a-zA-Z\s]/g, '');
-    });
-    // --- END FIX ---
+    houseNoFilter.addEventListener('input', function() { this.value = this.value.replace(/\D/g, ''); });
+    streetFilter.addEventListener('input', function() { this.value = this.value.replace(/[^a-zA-Z\s]/g, ''); });
 
     pageSizeSelect.addEventListener('change', (e) => {
         pageSize = parseInt(e.target.value, 10);
@@ -256,16 +332,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     gotoPageBtn.addEventListener('click', jumpToPage);
     gotoPageInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') jumpToPage(); });
+    
     clearBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        houseNoFilter.value = '';
-        streetFilter.value = '';
-        statusFilter.value = '';
-        genderFilter.value = '';
-        ageMin.value = '';
-        ageMax.value = '';
-        purokFilter.value = '';
-        householdFilter.value = '';
+        searchInput.value = ''; houseNoFilter.value = ''; streetFilter.value = '';
+        statusFilter.value = ''; genderFilter.value = ''; ageMin.value = '';
+        ageMax.value = ''; purokFilter.value = ''; householdFilter.value = '';
+        civilStatusFilter.value = ''; bloodTypeFilter.value = ''; residencyStatusFilter.value = '';
+        relationshipFilter.value = ''; isHeadFilter.value = ''; birthMonthFilter.value = '';
+        dateAddedMin.value = ''; dateAddedMax.value = ''; emergencyContactFilter.value = '';
+        isVoterFilter.checked = false;
+        educationFilter.value = ''; occupationFilter.value = ''; isPwdFilter.value = '';
+        isSoloParentFilter.value = ''; is4psMemberFilter.value = '';
         applyFilters();
     });
 

@@ -10,106 +10,99 @@
         <form id="residentForm" method="POST" action="/iCensus-ent/public/residents/process">
             <input type="hidden" name="resident_id" id="resident_id">
 
-            <div style="display:flex; flex-wrap:wrap; gap:1rem;">
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem;">
 
-                <div style="flex:1 1 22%; min-width:220px; display:flex; flex-direction:column; gap:0.8rem;">
+                <div style="display:flex; flex-direction:column; gap:0.8rem;">
                     <h4 class="modal-header-text" style="border-bottom:1px solid #ddd; padding-bottom:0.3rem; color:#444;">
                         <span class="material-icons" style="font-size:18px; vertical-align:middle;">person</span> Personal Info
                     </h4>
-                    <label><span class="material-icons">person</span> First Name
-                        <input type="text" name="first_name" required style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
+                    <label>First Name <input type="text" name="first_name" required></label>
+                    <label>Middle Name <input type="text" name="middle_name"></label>
+                    <label>Last Name <input type="text" name="last_name" required></label>
+                    <label>Suffix <input type="text" name="suffix"></label>
+                    <label>Date of Birth <input type="date" name="dob" required></label>
+                    <label>Gender
+                        <select name="gender" required>
+                            <option value="">Select</option> <option value="Male">Male</option> <option value="Female">Female</option>
+                        </select>
                     </label>
-                    <label><span class="material-icons">badge</span> Middle Name
-                        <input type="text" name="middle_name" style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
+                    <label>Civil Status
+                        <select name="civil_status">
+                            <option value="">Select</option><option value="Single">Single</option><option value="Married">Married</option><option value="Widowed">Widowed</option><option value="Separated">Separated</option>
+                        </select>
                     </label>
-                    <label><span class="material-icons">badge</span> Last Name
-                        <input type="text" name="last_name" required style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:0.8rem;">
+                     <h4 class="modal-header-text" style="border-bottom:1px solid #ddd; padding-bottom:0.3rem; color:#444;">
+                        <span class="material-icons" style="font-size:18px; vertical-align:middle;">home</span> Address & Household
+                    </h4>
+                    <label>House No. <input type="number" name="house_no" required></label>
+                    <label>Street <input type="text" name="street" required></label>
+                    <label>Purok <input type="number" name="purok" required></label>
+                    <label>Household No. <input type="text" name="household_no" placeholder="e.g., FAM-001"></label>
+                     <label>Ownership Status
+                        <select name="ownership_status">
+                            <option value="">Select</option><option value="Owned">Owned</option><option value="Rented">Rented</option><option value="Living with Relatives">Living with Relatives</option>
+                        </select>
                     </label>
-                    <label><span class="material-icons">cake</span> Date of Birth
-                        <input type="date" name="dob" required style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
-                    </label>
-                    <label><span class="material-icons">wc</span> Gender
-                        <select name="gender" required style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
+                    <label>Head of Household <input type="text" name="head_of_household"></label>
+                    <label>Relationship to Head <input type="text" name="relationship"></label>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:0.8rem;">
+                    <h4 class="modal-header-text" style="border-bottom:1px solid #ddd; padding-bottom:0.3rem; color:#444;">
+                        <span class="material-icons" style="font-size:18px; vertical-align:middle;">contact_phone</span> Contact & Health
+                    </h4>
+                    <label>Contact Number <input type="text" name="contact_number"></label>
+                    <label>Email <input type="email" name="email"></label>
+                    <label>PhilHealth No. <input type="text" name="philhealth_no"></label>
+                    <label>Blood Type <input type="text" name="blood_type"></label>
+                    <label>Emergency Name <input type="text" name="emergency_name"></label>
+                    <label>Emergency Relation <input type="text" name="emergency_relation"></label>
+                    <label>Emergency Number <input type="text" name="emergency_number"></label>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:0.8rem;">
+                    <h4 class="modal-header-text" style="border-bottom:1px solid #ddd; padding-bottom:0.3rem; color:#444;">
+                        <span class="material-icons" style="font-size:18px; vertical-align:middle;">work</span> Education & Occupation
+                    </h4>
+                    <label>Educational Attainment
+                        <select name="educational_attainment">
                             <option value="">Select</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
+                            <option value="No Formal Education">No Formal Education</option>
+                            <option value="Pre-school">Pre-school</option>
+                            <option value="Elementary Level">Elementary Level</option>
+                            <option value="Elementary Graduate">Elementary Graduate</option>
+                            <option value="High School Level">High School Level</option>
+                            <option value="High School Graduate">High School Graduate</option>
+                            <option value="Vocational Graduate">Vocational Graduate</option>
+                            <option value="College Level">College Level</option>
+                            <option value="College Graduate">College Graduate</option>
+                            <option value="Doctorate Degree">Doctorate Degree</option>
                         </select>
                     </label>
+                    <label>Occupation <input type="text" name="occupation"></label>
+                    <label>Nationality <input type="text" name="nationality" value="Filipino"></label>
                 </div>
 
-                <div style="flex:1 1 22%; min-width:220px; display:flex; flex-direction:column; gap:0.8rem;">
+                <div style="display:flex; flex-direction:column; gap:0.8rem;">
                     <h4 class="modal-header-text" style="border-bottom:1px solid #ddd; padding-bottom:0.3rem; color:#444;">
-                        <span class="material-icons" style="font-size:18px; vertical-align:middle;">phone</span> Contact Info
+                        <span class="material-icons" style="font-size:18px; vertical-align:middle;">admin_panel_settings</span> Administrative
                     </h4>
-                    <label><span class="material-icons">phone</span> Contact Number
-                        <input type="text" name="contact_number" style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
-                    </label>
-                    <label><span class="material-icons">email</span> Email
-                        <input type="email" name="email" style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
-                    </label>
-                    <label><span class="material-icons">person_add</span> Emergency Name
-                        <input type="text" name="emergency_name" style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
-                    </label>
-                    <label><span class="material-icons">supervised_user_circle</span> Relation
-                        <input type="text" name="emergency_relation" style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
-                    </label>
-                    <label><span class="material-icons">phone_in_talk</span> Emergency Number
-                        <input type="text" name="emergency_number" style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
-                    </label>
-                </div>
-
-                <div style="flex:1 1 22%; min-width:220px; display:flex; flex-direction:column; gap:0.8rem;">
-                    <h4 class="modal-header-text" style="border-bottom:1px solid #ddd; padding-bottom:0.3rem; color:#444;">
-                        <span class="material-icons" style="font-size:18px; vertical-align:middle;">home</span> Address
-                    </h4>
-                    <label><span class="material-icons">home</span> House No.
-                        <input type="number" name="house_no" required style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
-                    </label>
-                    <label><span class="material-icons">streetview</span> Street
-                        <input type="text" name="street" required style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
-                    </label>
-                    <label><span class="material-icons">apartment</span> Purok
-                        <input type="number" name="purok" required style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
-                    </label>
-                    <button type="button" id="checkHouseholdBtn" style="margin-top:0.5rem; padding:0.5rem; border-radius:6px; border:1px solid #0d6efd; background:#e7f1ff; color:#0d6efd; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:0.3rem;">
-                        <span class="material-icons">search</span> Check for Household
-                    </button>
-                </div>
-                
-                <div style="flex:1 1 22%; min-width:220px; display:flex; flex-direction:column; gap:0.8rem;">
-                    <h4 class="modal-header-text" style="border-bottom:1px solid #ddd; padding-bottom:0.3rem; color:#444;">
-                        <span class="material-icons" style="font-size:18px; vertical-align:middle;">family_restroom</span> Household Info
-                    </h4>
-                    <label><span class="material-icons">family_restroom</span> Head of Household
-                        <input type="text" name="head_of_household" style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
-                    </label>
-                    <label><span class="material-icons">group</span> Relationship to Head
-                        <input type="text" name="relationship" style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
-                    </label>
-                    <!-- NEW: Household Detector Section -->
-                    <div id="householdDetector" style="display:none; margin-top: 1rem; padding: 0.8rem; background: #f0f8ff; border-radius: 6px;">
-                        <label for="householdHeadSelect" style="font-weight: 600;">Household Found!</label>
-                        <p style="font-size: 0.9em; margin: 0.2rem 0;">Select the Head of Household from the list below.</p>
-                        <select id="householdHeadSelect" style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc; margin-top:0.5rem;">
-                            <option value="">Select Head of Household</option>
+                    <label>Status
+                        <select name="status">
+                            <option value="Active">Active</option> <option value="Inactive">Inactive</option> <option value="Moved">Moved</option> <option value="Deceased">Deceased</option>
                         </select>
+                    </label>
+                     <div class="checkbox-group" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                        <label style="flex-direction: row; align-items: center;"><input type="hidden" name="is_registered_voter" value="0"><input type="checkbox" name="is_registered_voter" value="1" style="width: auto;"> Registered Voter</label>
+                        <label style="flex-direction: row; align-items: center;"><input type="hidden" name="is_pwd" value="0"><input type="checkbox" name="is_pwd" value="1" style="width: auto;"> PWD</label>
+                        <label style="flex-direction: row; align-items: center;"><input type="hidden" name="is_solo_parent" value="0"><input type="checkbox" name="is_solo_parent" value="1" style="width: auto;"> Solo Parent</label>
+                        <label style="flex-direction: row; align-items: center;"><input type="hidden" name="is_indigent" value="0"><input type="checkbox" name="is_indigent" value="1" style="width: auto;"> Indigent</label>
+                        <label style="flex-direction: row; align-items: center;"><input type="hidden" name="is_4ps_member" value="0"><input type="checkbox" name="is_4ps_member" value="1" style="width: auto;"> 4Ps Member</label>
                     </div>
                 </div>
-
-                <div style="flex:1 1 22%; min-width:220px; display:flex; flex-direction:column; gap:0.8rem;">
-                    <h4 class="modal-header-text" style="border-bottom:1px solid #ddd; padding-bottom:0.3rem; color:#444;">
-                        <span class="material-icons" style="font-size:18px; vertical-align:middle;">assignment_ind</span> Residency Info
-                    </h4>
-                    <label><span class="material-icons">assignment_ind</span> Status
-                        <select name="status" style="width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc;">
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
-                            <option value="Moved">Moved</option>
-                            <option value="Deceased">Deceased</option>
-                        </select>
-                    </label>
-                </div>
-
             </div>
 
             <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
@@ -121,6 +114,11 @@
         </form>
     </div>
 </div>
+<style>
+    /* Simple styling for the form elements inside the modal */
+    #residentModal label { display: flex; flex-direction: column; font-size: 0.9rem; gap: 0.2rem; }
+    #residentModal input, #residentModal select { width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc; }
+</style>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('residentModal');

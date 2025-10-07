@@ -34,7 +34,16 @@ class ResidentController {
             'user' => $_SESSION['user'],
             'theme' => $_SESSION['user']['theme'] ?? 'light',
             'residents' => $residents,
-            'household_heads' => $residentModel->getHouseholdHeads(), // New
+            'household_heads' => $residentModel->getHouseholdHeads(),
+            'civil_statuses' => $residentModel->getDistinctValues('civil_status'),
+            'blood_types' => $residentModel->getDistinctValues('blood_type'),
+            'nationalities' => $residentModel->getDistinctValues('nationality'),
+            'residency_statuses' => $residentModel->getDistinctValues('residency_status'),
+            'relationships' => $residentModel->getDistinctValues('relationship'),
+            // --- NEW: Pass education and occupation lists ---
+            'educations' => $residentModel->getDistinctValues('educational_attainment'),
+            'occupations' => $residentModel->getDistinctValues('occupation'),
+            // --- END NEW ---
             'isPendingView' => $isPendingView,
             'pending_count' => ($user_role === 'Barangay Admin') ? $residentModel->getPendingCount() : 0,
             'modalMessage' => $_SESSION['modal']['message'] ?? '',
