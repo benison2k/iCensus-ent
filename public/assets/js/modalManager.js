@@ -1,6 +1,7 @@
 // public/assets/js/modalManager.js
 
 import { fetchData } from './api.js';
+import { getChartInfo } from './chartConfig.js';
 
 function setupModal(modalId, openTriggerId) {
     const modal = document.getElementById(modalId);
@@ -26,7 +27,6 @@ export function initializeModals() {
     setupModal('filtered-residents-modal');
     setupModal('analytics-resident-detail-modal');
 
-    // Add event delegation for dynamically created resident view buttons
     document.body.addEventListener('click', function(e) {
         const viewButton = e.target.closest('.analytics-view-btn');
         if (viewButton) {
@@ -34,6 +34,86 @@ export function initializeModals() {
             openResidentDetailsModal(residentId);
         }
     });
+}
+
+/**
+ * Creates a descriptive title for the filtered residents modal.
+ * @param {string} metric - The ID of the chart (e.g., 'senior_citizens_by_purok').
+ * @param {string} category - The primary category clicked (e.g., 'Purok 2').
+ * @param {string|null} series - The series clicked in a grouped chart (e.g., 'Male').
+ * @param {number} count - The number of residents found.
+ * @returns {string} A descriptive title.
+ */
+function getDetailedTitle(metric, category, series, count) {
+    const chartTitle = getChartInfo(metric).title;
+    const cleanCategory = category.split(' = ')[0];
+
+    switch (metric) {
+        case 'senior_citizens_by_purok':
+            // --- THIS IS THE FIX ---
+            return `Number of Senior Citizens in Purok ${cleanCategory}: ${count}`;
+        case 'voter_population_by_purok':
+            return `Voters in Purok ${cleanCategory}: ${count}`;
+        case 'school_age_population_by_purok':
+            return `School-Age Population in Purok ${cleanCategory} (${series}): ${count}`;
+        case 'population_pyramid':
+            return `${series}s in Age Bracket ${cleanCategory}: ${count}`;
+        case 'civil_status_distribution_by_gender':
+            return `${series}s with civil status "${cleanCategory}": ${count}`;
+        case 'heads_of_household_by_gender':
+            return `Heads of Household who are ${cleanCategory}: ${count}`;
+        case 'purok':
+            return `Population in Purok ${cleanCategory}: ${count}`;
+        case 'residents_per_street':
+            return `Residents on ${cleanCategory} street: ${count}`;
+        default:
+            if (series) {
+                 return `Residents - ${chartTitle} (${series}: ${cleanCategory}): ${count}`;
+            }
+            return `Residents - ${chartTitle} (${cleanCategory}): ${count}`;
+    }
+}
+
+/**
+ * Fetches filtered resident data and displays it in a modal.
+ * @param {string} metric - The ID of the chart being clicked.
+ * @param {URLSearchParams} params - The query parameters for the API call.
+ * @param {string} category - The raw category label from the chart.
+ * @param {string|null} series - The series from the chart, if applicable.
+ */
+export async function showFilteredResidentsModal(metric, params, category, series = null) {
+    const modal = document.getElementById('filtered-residents-modal');
+    const titleEl = document.getElementById('filtered-title');
+    const tableBody = modal.querySelector('tbody');
+
+    tableBody.innerHTML = '<tr><td colspan="6">Loading...</td></tr>';
+    modal.style.display = 'flex';
+    titleEl.textContent = 'Loading...';
+
+    const result = await fetchData('analytics/filtered-residents', Object.fromEntries(params));
+
+    const count = result.residents ? result.residents.length : 0;
+    
+    titleEl.textContent = getDetailedTitle(metric, category, series, count);
+
+    if (result.status === 'success' && result.residents.length > 0) {
+        tableBody.innerHTML = '';
+        result.residents.forEach(r => {
+            const row = `<tr>
+                <td>${r.first_name} ${r.last_name}</td>
+                <td>${r.age}</td>
+                <td>${r.gender}</td>
+                <td>${r.house_no} ${r.street}, Purok ${r.purok}</td>
+                <td><span class="status-label status-${(r.status || '').toLowerCase()}">${r.status}</span></td>
+                <td>
+                    <button class="action-btn analytics-view-btn material-icons" data-id="${r.id}" title="View More Details">more_vert</button>
+                </td>
+            </tr>`;
+            tableBody.innerHTML += row;
+        });
+    } else {
+        tableBody.innerHTML = '<tr><td colspan="6">No residents found for this selection.</td></tr>';
+    }
 }
 
 export async function openResidentDetailsModal(residentId) {
