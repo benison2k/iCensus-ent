@@ -63,10 +63,29 @@ class Analytics {
         switch ($metric) {
             // SIMPLE COUNTS
             case 'gender': case 'civil_status': case 'blood_type': case 'nationality': case 'purok': case 'relationship':
-            case 'resident_status_overview':
+            case 'resident_status_overview': case 'educational_attainment': case 'occupation': case 'ownership_status':
                 $column = ($metric === 'resident_status_overview') ? 'status' : $metric;
                 foreach ($residents as $r) $data[trim($r[$column]) ?: 'Unknown'] = ($data[trim($r[$column]) ?: 'Unknown'] ?? 0) + 1;
+                if ($metric === 'occupation') {
+                    arsort($data);
+                    $data = array_slice($data, 0, 15); // Get top 15 occupations
+                }
                 break;
+            
+            // --- NEW: BOOLEAN/SOCIAL WELFARE COUNTS ---
+            case 'pwd_distribution':
+            case 'solo_parent_distribution':
+            case '4ps_distribution':
+                $column_map = [
+                    'pwd_distribution' => 'is_pwd',
+                    'solo_parent_distribution' => 'is_solo_parent',
+                    '4ps_distribution' => 'is_4ps_member'
+                ];
+                $col = $column_map[$metric];
+                $yes_count = count(array_filter($residents, fn($r) => $r[$col] == 1));
+                $data = ['Yes' => $yes_count, 'No' => count($residents) - $yes_count];
+                break;
+
 
             // AGE-BASED
             case 'age':
@@ -232,4 +251,3 @@ class Analytics {
 
     public function getDataForReport($postData) { /* ... same as before ... */ }
 }
-

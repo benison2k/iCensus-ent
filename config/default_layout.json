@@ -19,5 +19,11 @@
     {"id": "blood_type", "x": 9, "y": 24, "w": 3, "h": 4},
     {"id": "profile_completeness", "x": 0, "y": 28, "w": 4, "h": 4},
     {"id": "emergency_contact_coverage", "x": 4, "y": 28, "w": 4, "h": 4},
-    {"id": "resident_status_overview", "x": 8, "y": 28, "w": 4, "h": 4}
+    {"id": "resident_status_overview", "x": 8, "y": 28, "w": 4, "h": 4},
+    { "id": "educational_attainment", "x": 0, "y": 32, "w": 6, "h": 5 },
+    { "id": "occupation", "x": 6, "y": 32, "w": 6, "h": 5 },
+    { "id": "ownership_status", "x": 0, "y": 37, "w": 3, "h": 4 },
+    { "id": "pwd_distribution", "x": 3, "y": 37, "w": 3, "h": 4 },
+    { "id": "solo_parent_distribution", "x": 6, "y": 37, "w": 3, "h": 4 },
+    { "id": "4ps_distribution", "x": 9, "y": 37, "w": 3, "h": 4 }
 ]

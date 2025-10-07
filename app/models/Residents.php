@@ -177,4 +177,65 @@ class Resident {
         $stmt = $this->pdo->prepare("DELETE FROM residents WHERE id = ?");
         return $stmt->execute([$id]);
     }
+
+        /**
+     * NEW: Generic function to get filtered residents based on URL params
+     * @param array $filters The filter parameters from the request.
+     * @return array
+     */
+    public function getFiltered($filters) {
+        $query = "SELECT *, TIMESTAMPDIFF(YEAR, dob, CURDATE()) as age FROM residents WHERE approval_status = 'approved'";
+        $params = [];
+
+        if (!empty($filters['gender'])) {
+            $query .= " AND gender = ?";
+            $params[] = $filters['gender'];
+        }
+        if (!empty($filters['civil_status'])) {
+            $query .= " AND civil_status = ?";
+            $params[] = $filters['civil_status'];
+        }
+        if (!empty($filters['purok'])) {
+            $query .= " AND purok = ?";
+            $params[] = $filters['purok'];
+        }
+        if (!empty($filters['blood_type'])) {
+            $query .= " AND blood_type = ?";
+            $params[] = $filters['blood_type'];
+        }
+        if (!empty($filters['educational_attainment'])) {
+            $query .= " AND educational_attainment = ?";
+            $params[] = $filters['educational_attainment'];
+        }
+        if (!empty($filters['occupation'])) {
+            $query .= " AND occupation = ?";
+            $params[] = $filters['occupation'];
+        }
+        if (!empty($filters['is_pwd'])) {
+            $query .= " AND is_pwd = ?";
+            $params[] = $filters['is_pwd'];
+        }
+        if (!empty($filters['is_solo_parent'])) {
+            $query .= " AND is_solo_parent = ?";
+            $params[] = $filters['is_solo_parent'];
+        }
+        if (!empty($filters['is_4ps_member'])) {
+            $query .= " AND is_4ps_member = ?";
+            $params[] = $filters['is_4ps_member'];
+        }
+        if (!empty($filters['age_min'])) {
+            $query .= " AND TIMESTAMPDIFF(YEAR, dob, CURDATE()) >= ?";
+            $params[] = $filters['age_min'];
+        }
+        if (!empty($filters['age_max'])) {
+            $query .= " AND TIMESTAMPDIFF(YEAR, dob, CURDATE()) <= ?";
+            $params[] = $filters['age_max'];
+        }
+        
+        $query .= " ORDER BY last_name, first_name";
+        
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

@@ -162,6 +162,10 @@ switch ($route) {
             (new SysadminController())->markAllLogsAsSeen();
             break;
 
+        case 'analytics/filtered-residents':
+            (new AnalyticsController())->getFilteredResidents();
+            break;
+
     default:
         http_response_code(404);
         echo "<h1>404 Not Found</h1><p>The page '{$route}' could not be found.</p>";
