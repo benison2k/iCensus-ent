@@ -18,7 +18,7 @@
     <div class="welcome"><h2>Residents Management</h2></div>
 
     <main class="dashboard dashboard-management">
-        <div style="padding:0 2rem; max-width:1400px; margin:auto; width: 100%;">
+        <div style="padding:0 2rem; max-width:1600px; margin:auto; width: 100%;">
 
         <div class="page-actions-container">
                 <button id="addResidentBtn" class="action-button-link">
@@ -70,78 +70,216 @@
                         <label for="searchInput">Search by Name</label>
                         <input type="text" id="searchInput" placeholder="Enter name...">
                     </div>
+                    
+                    <div class="filter-group">
+                        <label>Attributes</label>
+                        <div class="toggle-switch-group">
+                            <label class="switch">
+                                <input type="checkbox" id="isVoterFilter">
+                                <span class="slider"></span>
+                            </label>
+                            <label for="isVoterFilter">Is Voter?</label>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>Quick Age Groups</label>
+                        <div class="button-group">
+                            <button class="clear-btn demographic-btn" data-min="60">Seniors</button>
+                            <button class="clear-btn demographic-btn" data-min="15" data-max="30">Youth</button>
+                             <button class="clear-btn demographic-btn" data-max="17">Minors</button>
+                        </div>
+                    </div>
                     <div class="filter-group">
                         <button id="toggleFiltersBtn" class="clear-btn" style="background-color: #17a2b8;">
                             Advanced Filters <span class="material-icons">expand_more</span>
                         </button>
                     </div>
-                </div>
-
-                <div id="advanced-filters">
-                    <div class="filter-group">
-                        <label for="houseNoFilter">House No.</label>
-                        <input type="text" id="houseNoFilter" placeholder="Enter house no...">
-                    </div>
-                    <div class="filter-group">
-                        <label for="streetFilter">Street</label>
-                        <input type="text" id="streetFilter" placeholder="Enter street name...">
-                    </div>
-                    <div class="filter-group">
-                        <label for="purokFilter">Purok</label>
-                        <select id="purokFilter">
-                            <option value="">All</option>
-                            <?php
-                            if (!$isPendingView) {
-                                $puroks = array_unique(array_column($residents, 'purok'));
-                                sort($puroks);
-                                foreach($puroks as $p) if(!empty($p)) echo "<option value=\"".htmlspecialchars($p)."\">".htmlspecialchars($p)."</option>";
-                            }
-                            ?>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="householdFilter">Head of Household</label>
-                        <select id="householdFilter">
-                            <option value="">All</option>
-                            <?php
-                            if (!$isPendingView) {
-                                foreach($household_heads as $head) {
-                                    echo "<option value=\"".htmlspecialchars($head)."\">".htmlspecialchars($head)."</option>";
-                                }
-                            }
-                            ?>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="statusFilter">Status</label>
-                        <select id="statusFilter">
-                            <option value="">All</option>
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
-                            <option value="Moved">Moved</option>
-                            <option value="Deceased">Deceased</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="genderFilter">Gender</label>
-                        <select id="genderFilter">
-                            <option value="">All</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                        </select>
-                    </div>
-                    <div class="filter-group age-filter">
-                        <label>Age Range</label>
-                        <div class="age-inputs">
-                            <input type="number" id="ageMin" placeholder="Min">
-                            <span>-</span>
-                            <input type="number" id="ageMax" placeholder="Max">
-                        </div>
-                    </div>
                     <div class="filter-group">
                         <button id="clearFiltersBtn" class="clear-btn">
                             Clear Filters
                         </button>
+                    </div>
+                </div>
+
+                <div id="advanced-filters">
+                    <div class="filter-fieldset">
+                        <legend>Demographics</legend>
+                         <div class="filter-group">
+                            <label for="genderFilter">Gender</label>
+                            <select id="genderFilter">
+                                <option value="">All</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                        <div class="filter-group age-filter">
+                            <label>Age Range</label>
+                            <div class="age-inputs">
+                                <input type="number" id="ageMin" placeholder="Min">
+                                <span>-</span>
+                                <input type="number" id="ageMax" placeholder="Max">
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <label for="civilStatusFilter">Civil Status</label>
+                            <select id="civilStatusFilter">
+                                <option value="">All</option>
+                                <?php foreach($civil_statuses as $cs): ?>
+                                    <option value="<?= htmlspecialchars($cs) ?>"><?= htmlspecialchars($cs) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                         <div class="filter-group">
+                            <label for="birthMonthFilter">Birthday Month</label>
+                            <select id="birthMonthFilter">
+                                <option value="">All</option>
+                                <?php for($i = 1; $i <= 12; $i++): ?>
+                                    <option value="<?= $i ?>"><?= date('F', mktime(0, 0, 0, $i, 10)) ?></option>
+                                <?php endfor; ?>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="filter-fieldset">
+                        <legend>Address</legend>
+                        <div class="filter-group">
+                            <label for="purokFilter">Purok</label>
+                            <select id="purokFilter">
+                                <option value="">All</option>
+                                <?php
+                                if (!$isPendingView) {
+                                    $puroks = array_unique(array_column($residents, 'purok'));
+                                    sort($puroks);
+                                    foreach($puroks as $p) if(!empty($p)) echo "<option value=\"".htmlspecialchars($p)."\">".htmlspecialchars($p)."</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="streetFilter">Street</label>
+                            <input type="text" id="streetFilter" placeholder="Enter street name...">
+                        </div>
+                        <div class="filter-group">
+                            <label for="houseNoFilter">House No.</label>
+                            <input type="text" id="houseNoFilter" placeholder="Enter house no...">
+                        </div>
+                    </div>
+
+                    <div class="filter-fieldset">
+                        <legend>Household</legend>
+                        <div class="filter-group">
+                            <label for="householdFilter">Head of Household</label>
+                            <select id="householdFilter">
+                                <option value="">All</option>
+                                <?php
+                                if (!$isPendingView) {
+                                    foreach($household_heads as $head) {
+                                        echo "<option value=\"".htmlspecialchars($head)."\">".htmlspecialchars($head)."</option>";
+                                    }
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="isHeadFilter">Is Head of Household?</label>
+                            <select id="isHeadFilter">
+                                <option value="">All</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="relationshipFilter">Relationship to Head</label>
+                            <select id="relationshipFilter">
+                                <option value="">All</option>
+                                <?php foreach($relationships as $rel): ?>
+                                    <option value="<?= htmlspecialchars($rel) ?>"><?= htmlspecialchars($rel) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="filter-fieldset">
+                        <legend>Welfare & Education</legend>
+                        <div class="filter-group">
+                            <label for="educationFilter">Educational Attainment</label>
+                            <select id="educationFilter">
+                                <option value="">All</option>
+                                <?php foreach($educations as $edu): ?>
+                                    <option value="<?= htmlspecialchars($edu) ?>"><?= htmlspecialchars($edu) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="occupationFilter">Occupation</label>
+                            <select id="occupationFilter">
+                                <option value="">All</option>
+                                <?php foreach($occupations as $occ): ?>
+                                    <option value="<?= htmlspecialchars($occ) ?>"><?= htmlspecialchars($occ) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="isPwdFilter">Is PWD?</label>
+                            <select id="isPwdFilter"><option value="">All</option><option value="1">Yes</option><option value="0">No</option></select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="isSoloParentFilter">Is Solo Parent?</label>
+                            <select id="isSoloParentFilter"><option value="">All</option><option value="1">Yes</option><option value="0">No</option></select>
+                        </div>
+                         <div class="filter-group">
+                            <label for="is4psMemberFilter">Is 4Ps Member?</label>
+                            <select id="is4psMemberFilter"><option value="">All</option><option value="1">Yes</option><option value="0">No</option></select>
+                        </div>
+                    </div>
+
+
+                    <div class="filter-fieldset">
+                        <legend>Administrative</legend>
+                        <div class="filter-group">
+                            <label for="statusFilter">Resident Status</label>
+                            <select id="statusFilter">
+                                <option value="">All</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                                <option value="Moved">Moved</option>
+                                <option value="Deceased">Deceased</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="residencyStatusFilter">Residency Type</label>
+                            <select id="residencyStatusFilter">
+                                <option value="">All</option>
+                                 <?php foreach($residency_statuses as $rs): ?>
+                                    <option value="<?= htmlspecialchars($rs) ?>"><?= htmlspecialchars($rs) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="bloodTypeFilter">Blood Type</label>
+                            <select id="bloodTypeFilter">
+                                <option value="">All</option>
+                                 <?php foreach($blood_types as $bt): ?>
+                                    <option value="<?= htmlspecialchars($bt) ?>"><?= htmlspecialchars($bt) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                         <div class="filter-group">
+                            <label for="emergencyContactFilter">Has Emergency Contact?</label>
+                            <select id="emergencyContactFilter">
+                                <option value="">All</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                         <div class="filter-group">
+                            <label>Date Added</label>
+                            <div class="age-inputs">
+                                <input type="date" id="dateAddedMin" placeholder="From">
+                                <input type="date" id="dateAddedMax" placeholder="To">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
