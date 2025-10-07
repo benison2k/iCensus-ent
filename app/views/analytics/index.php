@@ -137,6 +137,6 @@
 </div>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>
-<script type="module" src="<?= $base_url ?>/assets/js/analytics.js"></script>
+<script type="module" src="<?= $base_url ?>/assets/js/analytics1.js"></script>
 </body>
 </html>

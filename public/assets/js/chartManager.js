@@ -1,21 +1,9 @@
 // public/assets/js/chartManager.js
 
-import { chartConfig } from './chartConfig.js';
+import { getChartInfo } from './chartConfig.js';
 import { fetchData } from './api.js';
-import { showFilteredResidentsModal } from './modalManager.js';
 
-function getChartInfo(metric) {
-    return chartConfig[metric] || chartConfig.default;
-}
-
-/**
- * Translates a chart click into URL parameters for filtering residents.
- * @param {string} metric - The ID of the chart.
- * @param {string} category - The label of the clicked chart segment.
- * @param {string|null} series - The series name if it's a grouped chart.
- * @returns {URLSearchParams|null}
- */
-function getFilterParamForMetric(metric, category, series = null) {
+export function getFilterParamForMetric(metric, category, series = null) {
     let params = new URLSearchParams();
     const cleanCategory = category.split(' = ')[0];
 
@@ -119,8 +107,6 @@ export async function drawChart(metric) {
         return;
     }
 
-    chartDiv.chartType = chartInfo.type;
-
     if (chartInfo.type === 'KPI') {
         chartDiv.innerHTML = `<div class="kpi-value">${apiData.value}</div><div class="kpi-label">${apiData.label || ''}</div>`;
         return;
@@ -141,15 +127,13 @@ export async function drawChart(metric) {
         vAxis: { textStyle: { color: fontColor }, titleTextStyle: { color: fontColor } }
     };
 
-    // --- Full data preparation logic from legacy file ---
     if (chartInfo.type === 'PopulationPyramid') {
         const pyramidData = [['Age', 'Male', { role: 'style' }, 'Female', { role: 'style' }]];
         for (const age in apiData) {
-            pyramidData.push([age, -(apiData[age]['Male'] || 0), 'color: #3366cc', apiData[age]['Female'] || 0, 'color: #ffc0cb']);
+            pyramidData.push([age, Math.abs(apiData[age]['Male'] || 0), 'color: #3366cc', Math.abs(apiData[age]['Female'] || 0), 'color: #ffc0cb']);
         }
         data = google.visualization.arrayToDataTable(pyramidData);
-        options.isStacked = true;
-        options.hAxis.format = 'short';
+        options.isStacked = false;
         options.hAxis.title = 'Population';
     } else if (chartInfo.type === 'GroupedBar') {
         const categories = Object.keys(apiData);
@@ -163,53 +147,26 @@ export async function drawChart(metric) {
             dataArray.push(row);
         }
         data = google.visualization.arrayToDataTable(dataArray);
+        options.hAxis.title = '';
     } else {
         const dataArray = [[chartInfo.title, 'Count']];
         for (const key in apiData) {
             dataArray.push([key, apiData[key]]);
         }
         data = google.visualization.arrayToDataTable(dataArray);
-        if (chartInfo.type === 'PieChart') options.pieHole = 0.4;
+        if (metric === 'gender' || metric === 'civil_status' || metric === 'sex_ratio') options.pieHole = 0.4;
     }
-    // --- End of data preparation ---
 
     chartDiv.chartData = data;
     chartDiv.chartOptions = options;
 
     let chart;
-    if (chartInfo.type === 'PopulationPyramid' || chartInfo.type === 'GroupedBar') {
-        chart = new google.charts.Bar(chartDiv);
-    } else if (chartInfo.type === 'ColumnChart') {
-        chart = new google.visualization.ColumnChart(chartDiv);
-    } else if (chartInfo.type === 'BarChart') {
-        chart = new google.visualization.BarChart(chartDiv);
-    } else {
-        chart = new google.visualization.PieChart(chartDiv);
-    }
+    if (chartInfo.type === 'PopulationPyramid' || chartInfo.type === 'GroupedBar') chart = new google.charts.Bar(chartDiv);
+    else if (chartInfo.type === 'ColumnChart') chart = new google.visualization.ColumnChart(chartDiv);
+    else if (chartInfo.type === 'BarChart') chart = new google.visualization.BarChart(chartDiv);
+    else chart = new google.visualization.PieChart(chartDiv);
 
     chartDiv.chartInstance = chart;
-
-    // --- Add the event listener to connect clicks to the modal ---
-    google.visualization.events.addListener(chart, 'select', () => {
-        const selection = chart.getSelection();
-        if (selection.length > 0) {
-            const { row, column } = selection[0];
-            const dataTable = chartDiv.chartData;
-            const category = dataTable.getValue(row, 0);
-
-            let series = null;
-            if (chartInfo.type === 'PopulationPyramid') {
-                series = (column === 1) ? 'Male' : 'Female';
-            } else if (chartInfo.type === 'GroupedBar') {
-                if (column > 0) series = dataTable.getColumnLabel(column);
-            }
-
-            const filterParams = getFilterParamForMetric(metric, category, series);
-            if (filterParams) {
-                showFilteredResidentsModal(metric, filterParams, category, series);
-            }
-        }
-    });
 
     if (chartInfo.type === 'PopulationPyramid' || chartInfo.type === 'GroupedBar') {
         chart.draw(data, google.charts.Bar.convertOptions(options));

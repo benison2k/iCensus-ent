@@ -2,7 +2,9 @@
 
 import { fetchData } from './api.js';
 import { getChartInfo } from './chartConfig.js';
+import { getFilterParamForMetric } from './chartManager.js';
 
+// --- (setupModal and initializeModals functions remain the same) ---
 function setupModal(modalId, openTriggerId) {
     const modal = document.getElementById(modalId);
     if (!modal) return;
@@ -18,7 +20,6 @@ function setupModal(modalId, openTriggerId) {
     window.addEventListener('click', (event) => {
         if (event.target === modal) modal.style.display = 'none';
     });
-    return modal;
 }
 
 export function initializeModals() {
@@ -36,11 +37,12 @@ export function initializeModals() {
     });
 }
 
+
 /**
  * Creates a descriptive title for the filtered residents modal.
- * @param {string} metric - The ID of the chart (e.g., 'senior_citizens_by_purok').
- * @param {string} category - The primary category clicked (e.g., 'Purok 2').
- * @param {string|null} series - The series clicked in a grouped chart (e.g., 'Male').
+ * @param {string} metric - The ID of the chart.
+ * @param {string} category - The primary category clicked.
+ * @param {string|null} series - The series clicked in a grouped chart.
  * @param {number} count - The number of residents found.
  * @returns {string} A descriptive title.
  */
@@ -49,11 +51,11 @@ function getDetailedTitle(metric, category, series, count) {
     const cleanCategory = category.split(' = ')[0];
 
     switch (metric) {
+        // --- Existing Cases ---
         case 'senior_citizens_by_purok':
-            // --- THIS IS THE FIX ---
             return `Number of Senior Citizens in Purok ${cleanCategory}: ${count}`;
         case 'voter_population_by_purok':
-            return `Voters in Purok ${cleanCategory}: ${count}`;
+            return `Voter Population in Purok ${cleanCategory}: ${count}`;
         case 'school_age_population_by_purok':
             return `School-Age Population in Purok ${cleanCategory} (${series}): ${count}`;
         case 'population_pyramid':
@@ -65,22 +67,59 @@ function getDetailedTitle(metric, category, series, count) {
         case 'purok':
             return `Population in Purok ${cleanCategory}: ${count}`;
         case 'residents_per_street':
-            return `Residents on ${cleanCategory} street: ${count}`;
+            return `Residents on ${cleanCategory} Street: ${count}`;
+
+        // --- NEWLY ADDED CASES FOR ALL OTHER CHARTS ---
+        case 'gender':
+            return `Number of ${cleanCategory} Residents: ${count}`;
+        case 'civil_status':
+            return `Residents with Civil Status '${cleanCategory}': ${count}`;
+        case 'blood_type':
+            return `Residents with Blood Type '${cleanCategory}': ${count}`;
+        case 'nationality':
+            return `Residents with Nationality '${cleanCategory}': ${count}`;
+        case 'relationship':
+            return `Relationship to Head - ${cleanCategory}: ${count}`;
+        case 'resident_status_overview':
+            return `Residents with Status '${cleanCategory}': ${count}`;
+        case 'educational_attainment':
+            return `Highest Educational Attainment - ${cleanCategory}: ${count}`;
+        case 'occupation':
+            return `Residents with Occupation '${cleanCategory}': ${count}`;
+        case 'ownership_status':
+            return `Residents with Housing Status '${cleanCategory}': ${count}`;
+        case 'pwd_distribution':
+            return `Number of PWD Residents (${cleanCategory}): ${count}`;
+        case 'solo_parent_distribution':
+            return `Number of Solo Parents (${cleanCategory}): ${count}`;
+        case '4ps_distribution':
+            return `Number of 4Ps Beneficiaries (${cleanCategory}): ${count}`;
+        case 'age':
+            return `Residents in Age Group ${cleanCategory}: ${count}`;
+        case 'detailed_age_brackets':
+            return `Residents in Age Bracket ${cleanCategory}: ${count}`;
+        case 'generation_breakdown':
+            return `Residents in the ${cleanCategory} Generation: ${count}`;
+        case 'sex_ratio':
+             return `Number of ${cleanCategory} Residents: ${count}`;
+        case 'household_size_distribution':
+            return `Number of Households with ${cleanCategory}: ${count}`;
+        case 'profile_completeness':
+            return `Profiles with ${cleanCategory} Information: ${count}`;
+        case 'emergency_contact_coverage':
+            return `Residents who have an Emergency Contact listed (${cleanCategory}): ${count}`;
+        
+        // --- Default Fallback Case ---
         default:
             if (series) {
-                 return `Residents - ${chartTitle} (${series}: ${cleanCategory}): ${count}`;
+                 return `${chartTitle} (${series}: ${cleanCategory}): ${count}`;
             }
-            return `Residents - ${chartTitle} (${cleanCategory}): ${count}`;
+            return `${chartTitle} (${cleanCategory}): ${count}`;
     }
 }
 
-/**
- * Fetches filtered resident data and displays it in a modal.
- * @param {string} metric - The ID of the chart being clicked.
- * @param {URLSearchParams} params - The query parameters for the API call.
- * @param {string} category - The raw category label from the chart.
- * @param {string|null} series - The series from the chart, if applicable.
- */
+
+// --- (showFilteredResidentsModal, openResidentDetailsModal, and showDetailModal functions remain the same) ---
 export async function showFilteredResidentsModal(metric, params, category, series = null) {
     const modal = document.getElementById('filtered-residents-modal');
     const titleEl = document.getElementById('filtered-title');
@@ -91,9 +130,9 @@ export async function showFilteredResidentsModal(metric, params, category, serie
     titleEl.textContent = 'Loading...';
 
     const result = await fetchData('analytics/filtered-residents', Object.fromEntries(params));
-
     const count = result.residents ? result.residents.length : 0;
     
+    // This now uses the comprehensive function above
     titleEl.textContent = getDetailedTitle(metric, category, series, count);
 
     if (result.status === 'success' && result.residents.length > 0) {
@@ -160,4 +199,71 @@ export async function openResidentDetailsModal(residentId) {
             <div class="detail-item"><strong>Registered Voter:</strong> <span>${booleanCheck(r.is_registered_voter)}</span></div>
         </div>
     `;
+}
+
+export function showDetailModal(metric) {
+    const originalChartDiv = document.getElementById(`${metric}_chart_div`);
+    if (!originalChartDiv || !originalChartDiv.chartData) {
+        return;
+    }
+
+    const modal = document.getElementById('chart-detail-modal');
+    const chartContentDiv = document.getElementById('chart-detail-content');
+    const titleEl = document.getElementById('chart-detail-title');
+    const explanationEl = document.getElementById('chart-detail-explanation');
+    const chartInfo = getChartInfo(metric);
+
+    chartContentDiv.innerHTML = '';
+    titleEl.textContent = chartInfo.title;
+    explanationEl.textContent = chartInfo.explanation;
+
+    const modalOptions = JSON.parse(JSON.stringify(originalChartDiv.chartOptions));
+    modalOptions.height = '100%';
+    modalOptions.width = '100%';
+    modalOptions.chartArea = { 'width': '80%', 'height': '80%' };
+    modalOptions.legend.position = 'right';
+
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    const fontColor = isDarkMode ? '#CFD8DC' : '#333';
+    modalOptions.legend.textStyle = { color: fontColor };
+    if (modalOptions.hAxis) modalOptions.hAxis.textStyle = { color: fontColor };
+    if (modalOptions.vAxis) modalOptions.vAxis.textStyle = { color: fontColor };
+
+    let chart;
+    const chartType = chartInfo.type;
+    if (chartType === 'PopulationPyramid' || chartType === 'GroupedBar') chart = new google.charts.Bar(chartContentDiv);
+    else if (chartType === 'ColumnChart') chart = new google.visualization.ColumnChart(chartContentDiv);
+    else if (chartType === 'BarChart') chart = new google.visualization.BarChart(chartContentDiv);
+    else chart = new google.visualization.PieChart(chartContentDiv);
+    
+    google.visualization.events.addListener(chart, 'select', () => {
+        const selection = chart.getSelection();
+        if (selection.length > 0) {
+            const { row, column } = selection[0];
+            const dataTable = originalChartDiv.chartData;
+            const category = dataTable.getValue(row, 0);
+            let series = null;
+
+            if (chartType === 'PopulationPyramid') {
+                if (column === 1) series = 'Male';
+                if (column === 3) series = 'Female';
+            } else if (chartType === 'GroupedBar' && column > 0) {
+                series = dataTable.getColumnLabel(column);
+            }
+            
+            const filterParams = getFilterParamForMetric(metric, category, series);
+            if (filterParams) {
+                showFilteredResidentsModal(metric, filterParams, category, series);
+            }
+        }
+    });
+
+    modal.style.display = 'flex';
+    setTimeout(() => {
+        if (chartType === 'PopulationPyramid' || chartType === 'GroupedBar') {
+            chart.draw(originalChartDiv.chartData, google.charts.Bar.convertOptions(modalOptions));
+        } else {
+            chart.draw(originalChartDiv.chartData, modalOptions);
+        }
+    }, 50);
 }
