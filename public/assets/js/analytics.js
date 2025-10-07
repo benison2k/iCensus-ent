@@ -364,7 +364,11 @@ function showDetailModal(metric) {
             let series = null;
             if (chartType === 'PopulationPyramid') {
                 if (column === 1) series = 'Male';
-                if (column === 3) series = 'Female';
+                if (column === 3) series = 'Female'; // Column 3 because of a hidden style column
+            } else if (chartType === 'GroupedBar') {
+                if (column > 0) { // Column 0 is the category label itself
+                    series = dataTable.getColumnLabel(column);
+                }
             }
 
             const filterParams = getFilterParamForMetric(metric, category, series);
@@ -390,16 +394,24 @@ async function showFilteredResidentsModal(params, category, series = null) {
 
     tableBody.innerHTML = '<tr><td colspan="6">Loading...</td></tr>';
     modal.style.display = 'flex';
-
-    let titleText = `Residents: ${category}`;
-    if (series) {
-        titleText = `Residents: ${series}s aged ${category}`;
-    }
-    titleEl.textContent = titleText;
+    titleEl.textContent = 'Loading...'; // Set a placeholder title
 
     try {
         const response = await fetch(`${basePath}/analytics/filtered-residents?${params.toString()}`);
         const result = await response.json();
+        
+        const count = result.residents ? result.residents.length : 0;
+        const cleanCategory = category.split(' = ')[0]; // Clean up labels like "Single = 15" to just "Single"
+
+        let titleText;
+        if (series) {
+            // Handles grouped charts like the population pyramid or civil status by gender
+            titleText = `Number of Residents that are ${series} and ${cleanCategory}: ${count}`;
+        } else {
+            titleText = `Number of Residents that are ${cleanCategory}: ${count}`;
+        }
+        titleEl.textContent = titleText;
+
 
         modal.querySelector('thead tr').innerHTML = `
             <th>Full Name</th>
@@ -429,6 +441,7 @@ async function showFilteredResidentsModal(params, category, series = null) {
         }
     } catch (error) {
         console.error("Failed to fetch filtered residents:", error);
+        titleEl.textContent = 'Error Loading Data';
         tableBody.innerHTML = '<tr><td colspan="6">Error loading data.</td></tr>';
     }
 }
@@ -500,8 +513,11 @@ async function openResidentDetailsModal(residentId) {
     }
 }
 
+// public/assets/js/analytics.js
+
 function getFilterParamForMetric(metric, category, series = null) {
     let params = new URLSearchParams();
+    const cleanCategory = category.split(' = ')[0];
 
     switch (metric) {
         case 'gender':
@@ -512,41 +528,84 @@ function getFilterParamForMetric(metric, category, series = null) {
         case 'occupation':
         case 'educational_attainment':
         case 'ownership_status':
-            // The label for pie charts can be "Category = Value", so we split to get the actual category name
-            const actualCategory = category.split(' = ')[0];
-            params.set(metric.replace('_status', ''), actualCategory);
+        case 'relationship':
+        case 'resident_status_overview':
+        case 'residents_per_street':
+            const paramKey = (metric === 'resident_status_overview') ? 'status' : (metric === 'residents_per_street' ? 'street' : metric.replace('_status', ''));
+            params.set(paramKey, cleanCategory);
             break;
         case 'pwd_distribution':
-            params.set('is_pwd', category.startsWith('Yes') ? '1' : '0');
+            params.set('is_pwd', cleanCategory.toLowerCase() === 'yes' ? '1' : '0');
             break;
         case 'solo_parent_distribution':
-            params.set('is_solo_parent', category.startsWith('Yes') ? '1' : '0');
+            params.set('is_solo_parent', cleanCategory.toLowerCase() === 'yes' ? '1' : '0');
             break;
         case '4ps_distribution':
-            params.set('is_4ps_member', category.startsWith('Yes') ? '1' : '0');
+            params.set('is_4ps_member', cleanCategory.toLowerCase() === 'yes' ? '1' : '0');
             break;
         case 'age':
         case 'detailed_age_brackets':
-            const ages = category.match(/\d+/g);
+            const ages = cleanCategory.match(/\d+/g);
             if (ages) {
                 params.set('age_min', ages[0]);
-                if (ages.length > 1) {
-                    params.set('age_max', ages[1]);
-                }
+                if (ages.length > 1) params.set('age_max', ages[1]);
             }
             break;
         case 'population_pyramid':
-            const ageBrackets = category.match(/\d+/g);
+            const ageBrackets = cleanCategory.match(/\d+/g);
             if (ageBrackets) {
                 params.set('age_min', ageBrackets[0]);
-                if (ageBrackets.length > 1) {
-                    params.set('age_max', ageBrackets[1]);
+                if (ageBrackets.length > 1) params.set('age_max', ageBrackets[1]);
+            }
+            if (series) params.set('gender', series);
+            break;
+        case 'generation_breakdown':
+            params.set('generation', cleanCategory);
+            break;
+        case 'sex_ratio':
+            params.set('gender', cleanCategory);
+            break;
+        case 'heads_of_household_by_gender':
+            params.set('gender', cleanCategory);
+            params.set('is_head', 'Yes');
+            break;
+        case 'voter_population_by_purok':
+            params.set('purok', cleanCategory);
+            params.set('is_voter', '1');
+            break;
+        case 'senior_citizens_by_purok':
+            params.set('purok', cleanCategory);
+            params.set('age_min', '60');
+            break;
+        case 'emergency_contact_coverage':
+            params.set('has_emergency_contact', cleanCategory.startsWith('Has') ? 'Yes' : 'No');
+            break;
+        
+        // --- NEWLY ADDED CASES ---
+        case 'civil_status_distribution_by_gender':
+            params.set('civil_status', cleanCategory);
+            if(series) params.set('gender', series);
+            break;
+        case 'household_size_distribution':
+            const size = cleanCategory.match(/\d+/);
+            if (size) params.set('household_size', size[0]);
+            break;
+        case 'school_age_population_by_purok':
+             params.set('purok', cleanCategory);
+             if (series) {
+                const ageGroup = series.match(/\((\d+)-(\d+)\)/);
+                if (ageGroup) {
+                    params.set('age_min', ageGroup[1]);
+                    params.set('age_max', ageGroup[2]);
                 }
             }
-            if (series) {
-                params.set('gender', series);
-            }
             break;
+        case 'profile_completeness':
+            const fieldMap = { 'Contact Info': 'contact_number', 'Email': 'email', 'Emergency Contact': 'emergency_name', 'Blood Type': 'blood_type'};
+            const field = fieldMap[cleanCategory];
+            if(field) params.set('has_field', field);
+            break;
+            
         default:
             return null;
     }

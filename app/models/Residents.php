@@ -231,7 +231,52 @@ class Resident {
             $query .= " AND TIMESTAMPDIFF(YEAR, dob, CURDATE()) <= ?";
             $params[] = $filters['age_max'];
         }
+        if (!empty($filters['relationship'])) {
+            $query .= " AND relationship = ?";
+            $params[] = $filters['relationship'];
+        }
+
+        // --- ADDED FILTER LOGIC ---
+        if (!empty($filters['generation'])) {
+            $generation = $filters['generation'];
+            $yearCondition = '';
+            switch ($generation) {
+                case 'Gen Alpha': $yearCondition = "YEAR(dob) >= 2013"; break;
+                case 'Gen Z': $yearCondition = "YEAR(dob) BETWEEN 1997 AND 2012"; break;
+                case 'Millennials': $yearCondition = "YEAR(dob) BETWEEN 1981 AND 1996"; break;
+                case 'Gen X': $yearCondition = "YEAR(dob) BETWEEN 1965 AND 1980"; break;
+                case 'Baby Boomers': $yearCondition = "YEAR(dob) BETWEEN 1946 AND 1964"; break;
+                case 'Older': $yearCondition = "YEAR(dob) < 1946"; break;
+                case 'Unknown': $yearCondition = "(dob IS NULL OR dob = '0000-00-00')"; break;
+            }
+            if ($yearCondition) {
+                $query .= " AND ($yearCondition)";
+            }
+        }
         
+        if (!empty($filters['is_head']) && $filters['is_head'] === 'Yes') {
+            $query .= " AND relationship = 'Self'";
+        }
+        
+        if (!empty($filters['street'])) {
+            $query .= " AND street = ?";
+            $params[] = $filters['street'];
+        }
+
+        if (!empty($filters['has_field'])) {
+            $allowed_fields = ['contact_number', 'email', 'emergency_name', 'blood_type'];
+            $field = $filters['has_field'];
+            if (in_array($field, $allowed_fields)) {
+                $query .= " AND ({$field} IS NOT NULL AND {$field} != '')";
+            }
+        }
+
+        if (!empty($filters['household_size'])) {
+            $size = intval($filters['household_size']);
+            $operator = str_contains($filters['household_size'], '+') ? '>=' : '=';
+            $query .= " AND household_no IN (SELECT household_no FROM residents WHERE household_no IS NOT NULL AND household_no != '' GROUP BY household_no HAVING COUNT(*) {$operator} ?)";
+            $params[] = $size;
+        } 
         $query .= " ORDER BY last_name, first_name";
         
         $stmt = $this->pdo->prepare($query);

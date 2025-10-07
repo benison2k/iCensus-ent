@@ -128,7 +128,7 @@
 </div>
 
 <div id="analytics-resident-detail-modal" class="modal">
-    <div class="modal-content" style="max-width: 800px;"> <span class="close-btn">&times;</span>
+    <div class="modal-content large"> <span class="close-btn">&times;</span>
         <h3 id="detail-modal-title">Resident Details</h3>
         <div id="detail-modal-content" class="resident-details-grid">
             <p>Loading...</p>
@@ -137,6 +137,6 @@
 </div>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>
-<script src="<?= $base_url ?>/assets/js/analytics.js"></script>
+<script type="module" src="<?= $base_url ?>/assets/js/analytics.js"></script>
 </body>
 </html>
