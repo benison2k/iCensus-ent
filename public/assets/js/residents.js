@@ -243,37 +243,6 @@ document.addEventListener('DOMContentLoaded', () => {
         gotoPageInput.value = '';
     };
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const filterMap = {
-        'gender': genderFilter,
-        'civil_status': civilStatusFilter,
-        'purok': purokFilter,
-        'blood_type': bloodTypeFilter,
-        'nationality': nationalityFilter, // Assuming you add an ID 'nationalityFilter'
-        'occupation': occupationFilter,
-        'educational_attainment': educationFilter,
-        'ownership_status': residencyStatusFilter, // Assuming maps to residency
-        'is_pwd': isPwdFilter,
-        'is_solo_parent': isSoloParentFilter,
-        'is_4ps_member': is4psMemberFilter,
-        'age_min': ageMin,
-        'age_max': ageMax
-    };
-
-    let hasUrlFilters = false;
-    for (const [key, value] of urlParams.entries()) {
-        if (filterMap[key]) {
-            filterMap[key].value = value;
-            hasUrlFilters = true;
-        }
-    }
-
-    // If any URL filters were applied, open the advanced filters panel
-    if (hasUrlFilters) {
-        advancedFilters.style.display = 'grid';
-        toggleFiltersBtn.classList.add('expanded');
-    }
-
     // --- ALL EVENT LISTENERS ---
     addResidentBtn.addEventListener('click', openModalForAdd);
     closeModal.addEventListener('click', () => modal.style.display = 'none');
