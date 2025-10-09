@@ -144,13 +144,15 @@ class Resident {
      * @return bool
      */
     public function approve($id, $adminId) {
-        $stmt = $this->pdo->prepare("UPDATE residents SET approval_status = 'approved', approved_by = ? WHERE id = ?");
+        // --- THIS IS THE FIX: Added date_approved = NOW() ---
+        $stmt = $this->pdo->prepare("UPDATE residents SET approval_status = 'approved', approved_by = ?, date_approved = NOW() WHERE id = ?");
         return $stmt->execute([$adminId, $id]);
     }
 
     public function approveAll($adminId) {
+        // --- THIS IS THE FIX: Added date_approved = NOW() ---
         $stmt = $this->pdo->prepare(
-            "UPDATE residents SET approval_status = 'approved', approved_by = ? WHERE approval_status = 'pending'"
+            "UPDATE residents SET approval_status = 'approved', approved_by = ?, date_approved = NOW() WHERE approval_status = 'pending'"
         );
         $stmt->execute([$adminId]);
         return $stmt->rowCount();
@@ -178,7 +180,7 @@ class Resident {
         return $stmt->execute([$id]);
     }
 
-        /**
+    /**
      * NEW: Generic function to get filtered residents based on URL params
      * @param array $filters The filter parameters from the request.
      * @return array
@@ -186,6 +188,12 @@ class Resident {
     public function getFiltered($filters) {
         $query = "SELECT *, TIMESTAMPDIFF(YEAR, dob, CURDATE()) as age FROM residents WHERE approval_status = 'approved'";
         $params = [];
+
+        if (!empty($filters['start_date']) && !empty($filters['end_date'])) {
+            $query .= " AND DATE(date_approved) BETWEEN ? AND ?";
+            $params[] = $filters['start_date'];
+            $params[] = $filters['end_date'];
+        }
 
         if (!empty($filters['gender'])) {
             $query .= " AND gender = ?";

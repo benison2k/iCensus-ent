@@ -3,9 +3,26 @@
 import { getChartInfo } from './chartConfig.js';
 import { fetchData } from './api.js';
 
-export function getFilterParamForMetric(metric, category, series = null) {
+// NEW: Module-level variables to store the last applied date filter state
+let currentStartDate = null;
+let currentEndDate = null;
+
+/**
+ * Generates URLSearchParams for resident filtering.
+ * FIX: This function now accepts dates and uses the stored state as a fallback.
+ */
+export function getFilterParamForMetric(metric, category, series = null, startDate = null, endDate = null) {
     let params = new URLSearchParams();
     const cleanCategory = category.split(' = ')[0];
+
+    // Use the passed dates (from the modal click), but fall back to the stored state
+    // This guarantees the date filter is always applied if it was used for the chart.
+    const effectiveStartDate = startDate || currentStartDate;
+    const effectiveEndDate = endDate || currentEndDate;
+
+    // Add the effective global date filters to the parameters
+    if (effectiveStartDate) params.set('start_date', effectiveStartDate);
+    if (effectiveEndDate) params.set('end_date', effectiveEndDate);
 
     switch (metric) {
         case 'gender':
@@ -92,15 +109,30 @@ export function getFilterParamForMetric(metric, category, series = null) {
             if(field) params.set('has_field', field);
             break;
         default:
+            // Return params even if only dates are set
+            if (params.toString() !== '') return params; 
             return null;
     }
     return params;
 }
 
-export async function drawChart(metric) {
+/**
+ * Draws the chart and updates the date state.
+ * FIX: This function now accepts dates and stores them.
+ */
+export async function drawChart(metric, startDate = null, endDate = null) {
     const chartDiv = document.getElementById(`${metric}_chart_div`);
     const chartInfo = getChartInfo(metric);
-    const apiData = await fetchData('analytics/data', { metric });
+
+    // Store the dates used for drawing the chart in the module-level state
+    currentStartDate = startDate;
+    currentEndDate = endDate;
+
+    const apiParams = { metric };
+    if (startDate) apiParams.start_date = startDate;
+    if (endDate) apiParams.end_date = endDate;
+
+    const apiData = await fetchData('analytics/data', apiParams);
 
     if (!chartDiv || apiData.error) {
         if (chartDiv) chartDiv.innerHTML = `<div class="chart-error">Error: ${apiData.error || 'No data'}</div>`;

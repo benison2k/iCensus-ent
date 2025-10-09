@@ -67,13 +67,18 @@ export function initializeGrid() {
 }
 
 export function loadLayout() {
+    // Read the date values from the input fields
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+
     fetch(`${basePath}/analytics/layout`)
         .then(response => response.json())
         .then(layoutData => {
             if (!layoutData || layoutData.length === 0) return;
             grid.removeAll();
             layoutData.forEach(node => {
-                chartsToDraw[node.id] = () => drawChart(node.id);
+                // Pass the dates when scheduling the chart to be drawn
+                chartsToDraw[node.id] = () => drawChart(node.id, startDate, endDate);
                 const chartInfo = getChartInfo(node.id);
                 const isKpi = chartInfo.type === 'KPI';
                 const contentHtml = isKpi ? `<div class="kpi-content" id="${node.id}_chart_div"></div>` : `<div class="chart-div" id="${node.id}_chart_div"></div>`;

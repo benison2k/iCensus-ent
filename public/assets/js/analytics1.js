@@ -15,8 +15,16 @@ document.addEventListener('DOMContentLoaded', () => {
         initializeGrid();
         loadLayout(); // This will fetch layout and trigger chart drawing.
         
-        // 4. Attach event listeners to the main layout control buttons.
+        // 4. Attach event listeners to the main layout and filter control buttons.
         document.getElementById('save-layout-btn').addEventListener('click', saveLayout);
         document.getElementById('reset-layout-btn').addEventListener('click', resetLayout);
+        
+        // --- NEW: Event listeners for date filters ---
+        document.getElementById('filter-btn').addEventListener('click', loadLayout); // Re-use loadLayout to refresh charts
+        document.getElementById('clear-filter-btn').addEventListener('click', () => {
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            loadLayout(); // Reload with empty dates
+        });
     });
 });

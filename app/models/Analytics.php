@@ -40,10 +40,22 @@ class Analytics {
         return $stmt->execute([$userId]);
     }
     
-    public function getChartData($metric) {
-        // Fetch all necessary data in one go
-        $stmt = $this->pdo->query("SELECT * FROM residents");
+    public function getChartData($metric, $startDate = null, $endDate = null) {
+        // Base query with approval status filter
+        $sql = "SELECT * FROM residents WHERE approval_status = 'approved'";
+        $params = [];
+
+        // --- THIS IS THE FIX: Changed date_added to date_approved ---
+        if ($startDate && $endDate && !empty($startDate) && !empty($endDate)) {
+            $sql .= " AND DATE(date_approved) BETWEEN ? AND ?";
+            $params[] = $startDate;
+            $params[] = $endDate;
+        }
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
         $residents = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
         $data = [];
 
         // Helper functions
@@ -61,6 +73,8 @@ class Analytics {
         unset($r);
 
         switch ($metric) {
+            // (The entire switch statement remains exactly the same as before)
+
             // SIMPLE COUNTS
             case 'gender': case 'civil_status': case 'blood_type': case 'nationality': case 'purok': case 'relationship':
             case 'resident_status_overview': case 'educational_attainment': case 'occupation': case 'ownership_status':
