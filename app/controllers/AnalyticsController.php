@@ -2,7 +2,7 @@
 // app/controllers/AnalyticsController.php
 require_once __DIR__ . '/../../core/Auth.php';
 require_once __DIR__ . '/../models/Analytics.php';
-// --- NEW: Add the Residents model ---
+require_once __DIR__ . '/../models/Analytics1.php'; // NEW: Include the new model
 require_once __DIR__ . '/../models/Residents.php';
 
 
@@ -17,15 +17,75 @@ class AnalyticsController {
         $auth->refreshUserSession($_SESSION['user']['id']);
     }
 
-    // --- NEW: Method to get filtered residents ---
+    /**
+     * NEW: API endpoint to fetch data for a single dynamic chart.
+     */
+    public function dynamicData() {
+        $this->checkAuth();
+        header('Content-Type: application/json');
+
+        $chartId = $_GET['chart_id'] ?? 0;
+        $userId = $_SESSION['user']['id'];
+
+        $db = new Database(require __DIR__ . '/../../config/database.php');
+        $analyticsModel = new Analytics1($db); // Use the new Analytics1 model
+        
+        $data = $analyticsModel->getDynamicChartData($chartId, $userId);
+        
+        echo json_encode($data);
+        exit;
+    }
+
+    /**
+     * NEW: API endpoint to get the list of all available charts for the current user.
+     */
+    public function getCharts() {
+        $this->checkAuth();
+        header('Content-Type: application/json');
+        
+        $userId = $_SESSION['user']['id'];
+        $db = new Database(require __DIR__ . '/../../config/database.php');
+        $analyticsModel = new Analytics1($db); // Use the new Analytics1 model
+
+        $charts = $analyticsModel->getAvailableCharts($userId);
+
+        echo json_encode(['status' => 'success', 'charts' => $charts]);
+        exit;
+    }
+    
+    /**
+     * NEW: API endpoint to save a chart definition.
+     */
+    public function saveChart() {
+        $this->checkAuth();
+        header('Content-Type: application/json');
+        
+        try {
+            $db = new Database(require __DIR__ . '/../../config/database.php');
+            $analyticsModel = new Analytics1($db);
+            
+            // The saveChart method will handle both creating and updating
+            $chartId = $analyticsModel->saveChart($_POST, $_SESSION['user']['id']);
+            
+            log_action('INFO', 'CHART_SAVED', "User saved chart definition ID#{$chartId}.");
+            echo json_encode(['status' => 'success', 'message' => 'Chart saved successfully!', 'chart_id' => $chartId]);
+
+        } catch (Exception $e) {
+            log_action('ERROR', 'CHART_SAVE_FAIL', 'Error saving chart: ' . $e->getMessage());
+            http_response_code(400); // Bad Request
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
+
+    // --- Method to get filtered residents ---
     public function getFilteredResidents() {
-        $this->checkAuth(); // <-- THIS LINE WAS CORRECTED
+        $this->checkAuth();
         header('Content-Type: application/json');
 
         $db = new Database(require __DIR__ . '/../../config/database.php');
         $residentModel = new Resident($db);
 
-        // This will receive all filter params from our JS
         $filters = $_GET; 
 
         $residents = $residentModel->getFiltered($filters);
@@ -40,46 +100,29 @@ class AnalyticsController {
         $data = [
             'user' => $_SESSION['user'],
             'theme' => $_SESSION['user']['theme'] ?? 'light',
-            // --- UPDATED to include more comprehensive fields for report generation ---
             'available_columns' => [
-                'full_name' => 'Full Name',
-                'address' => 'Full Address',
-                'dob' => 'Date of Birth',
-                'age' => 'Age',
-                'gender' => 'Gender',
-                'civil_status' => 'Civil Status',
-                'contact_number' => 'Contact Number',
-                'email' => 'Email',
-                'blood_type' => 'Blood Type',
-                'nationality' => 'Nationality',
-                'status' => 'Resident Status',
-                'date_added' => 'Date Added'
+                'full_name' => 'Full Name', 'address' => 'Full Address', 'dob' => 'Date of Birth',
+                'age' => 'Age', 'gender' => 'Gender', 'civil_status' => 'Civil Status',
+                'contact_number' => 'Contact Number', 'email' => 'Email', 'blood_type' => 'Blood Type',
+                'nationality' => 'Nationality', 'status' => 'Resident Status', 'date_added' => 'Date Added'
             ],
             'available_charts' => [
-                'gender' => 'Gender Distribution',
-                'age' => 'Age Groups',
-                'purok' => 'Population by Purok',
-                'civil_status' => 'Civil Status',
-                'blood_type' => 'Blood Type',
-                'nationality' => 'Nationality',
+                'gender' => 'Gender Distribution', 'age' => 'Age Groups', 'purok' => 'Population by Purok',
+                'civil_status' => 'Civil Status', 'blood_type' => 'Blood Type', 'nationality' => 'Nationality',
             ]
         ];
         view('analytics/index', $data);
     }
 
+    // This is the old data endpoint, which can be removed later.
     public function data() {
         $this->checkAuth();
         header('Content-Type: application/json');
         $metric = $_GET['metric'] ?? '';
-        
-        // Get date parameters from the request
         $startDate = $_GET['start_date'] ?? null;
         $endDate = $_GET['end_date'] ?? null;
-        
         $db = new Database(require __DIR__ . '/../../config/database.php');
         $analyticsModel = new Analytics($db);
-        
-        // Pass the dates to the model function
         echo json_encode($analyticsModel->getChartData($metric, $startDate, $endDate));
         exit;
     }
@@ -125,9 +168,7 @@ class AnalyticsController {
         $db = new Database(require __DIR__ . '/../../config/database.php');
         $analyticsModel = new Analytics($db);
         $reportData = $analyticsModel->getDataForReport($_POST);
-        
         log_action('INFO', 'REPORT_GENERATED', 'User generated a custom report.');
-
         view('analytics/report', $reportData);
     }
 }

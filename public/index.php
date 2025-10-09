@@ -13,22 +13,22 @@ function view($path, $data = []) {
 
 // Autoloader for Controllers and Models
 spl_autoload_register(function ($class_name) {
-    $controller_file = __DIR__ . "/../app/controllers/" . $class_name . '.php';
-    if (file_exists($controller_file)) {
-        require_once $controller_file;
-        return;
-    }
-    $model_file = __DIR__ . "/../app/models/" . $class_name . '.php';
-    if (file_exists($model_file)) {
-        require_once $model_file;
+    $paths = [
+        __DIR__ . "/../app/controllers/" . $class_name . '.php',
+        __DIR__ . "/../app/models/" . $class_name . '.php'
+    ];
+    foreach ($paths as $file) {
+        if (file_exists($file)) {
+            require_once $file;
+            return;
+        }
     }
 });
 
 // --- Router ---
 $request_uri = strtok($_SERVER["REQUEST_URI"], '?');
-$base_path = '/iCensus-ent/public'; // Correct base path for your local setup
-$route = str_replace($base_path, '', $request_uri);
-$route = trim($route, '/');
+$base_path = '/iCensus-ent/public';
+$route = trim(str_replace($base_path, '', $request_uri), '/');
 $route = empty($route) ? 'home' : $route;
 
 // --- Routing Table ---
@@ -39,133 +39,64 @@ switch ($route) {
 
     // --- Auth Routes ---
     case 'login':
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            (new AuthController())->login();
-        } else {
-            (new AuthController())->showLoginForm();
-        }
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') { (new AuthController())->login(); } 
+        else { (new AuthController())->showLoginForm(); }
         break;
     case 'logout':
         (new AuthController())->logout();
         break;
 
     // --- Dashboard Routes ---
-    case 'dashboard':
-        (new DashboardController())->index();
-        break;
-    case 'encoder-dashboard':
-        (new DashboardController())->encoderDashboard();
-        break;
+    case 'dashboard': (new DashboardController())->index(); break;
+    case 'encoder-dashboard': (new DashboardController())->encoderDashboard(); break;
 
     // --- Residents Routes ---
-    case 'residents':
-        (new ResidentController())->index();
-        break;
-    case 'residents/process':
-        (new ResidentController())->process();
-        break;
-    case 'residents/find-by-address': // <-- NEW ROUTE
-        (new ResidentController())->findByAddress();
-        break;
-    case 'residents/search-heads':
-        (new ResidentController())->searchHeads();
-        break;
-    case 'residents/approve':
-        (new ResidentController())->approve();
-        break;
-    case 'residents/approve-all':
-        (new ResidentController())->approveAll();
-        break;
-
-    case 'residents/reject':
-        (new ResidentController())->reject();
-        break;
+    case 'residents': (new ResidentController())->index(); break;
+    case 'residents/process': (new ResidentController())->process(); break;
+    case 'residents/find-by-address': (new ResidentController())->findByAddress(); break;
+    case 'residents/search-heads': (new ResidentController())->searchHeads(); break;
+    case 'residents/approve': (new ResidentController())->approve(); break;
+    case 'residents/approve-all': (new ResidentController())->approveAll(); break;
+    case 'residents/reject': (new ResidentController())->reject(); break;
 
     // --- Analytics Routes ---
-    case 'analytics':
-        (new AnalyticsController())->index();
-        break;
-    case 'analytics/data':
-        (new AnalyticsController())->data();
-        break;
-    case 'analytics/layout':
-        (new AnalyticsController())->getLayout();
-        break;
-    case 'analytics/layout/save':
-        (new AnalyticsController())->saveLayout();
-        break;
+    case 'analytics': (new AnalyticsController())->index(); break;
+    
+    // --- NEW DYNAMIC ANALYTICS ROUTES ---
+    case 'analytics/charts': (new AnalyticsController())->getCharts(); break;
+    case 'analytics/dynamic-data': (new AnalyticsController())->dynamicData(); break;
+    case 'analytics/save-chart': (new AnalyticsController())->saveChart(); break;
+    
+    // --- OLD & OTHER ANALYTICS ROUTES ---
+    case 'analytics/data': (new AnalyticsController())->data(); break;
+    case 'analytics/layout': (new AnalyticsController())->getLayout(); break;
+    case 'analytics/layout/save': (new AnalyticsController())->saveLayout(); break;
+    case 'analytics/layout/reset': (new AnalyticsController())->resetLayout(); break;
+    case 'analytics/report': (new AnalyticsController())->generateReport(); break;
+    case 'analytics/filtered-residents': (new AnalyticsController())->getFilteredResidents(); break;
 
     // --- Settings Routes ---
-    case 'settings':
-        (new SettingsController())->index();
-        break;
-    case 'settings/process':
-        (new SettingsController())->process();
-        break;
-    case 'settings/theme':
-        (new SettingsController())->updateTheme();
-        break;
-    case 'settings/verify-password':
-        (new SettingsController())->verifyPassword();
-        break;
+    case 'settings': (new SettingsController())->index(); break;
+    case 'settings/process': (new SettingsController())->process(); break;
+    case 'settings/theme': (new SettingsController())->updateTheme(); break;
+    case 'settings/verify-password': (new SettingsController())->verifyPassword(); break;
 
     // --- System Admin Routes ---
-    case 'sysadmin/dashboard':
-        (new SysadminController())->dashboard();
-        break;
-    case 'sysadmin/users':
-        (new SysadminController())->manageUsers();
-        break;
-    case 'sysadmin/users/process':
-        (new SysadminController())->processUser();
-        break;
-    case 'sysadmin/users/get':
-        (new SysadminController())->getUser();
-        break;
-    case 'sysadmin/db-tools':
-        (new SysadminController())->dbTools();
-        break;
-    case 'sysadmin/db-tools/process':
-        (new SysadminController())->processDbTools();
-        break;
-    case 'sysadmin/logs':
-        (new SysadminController())->systemLogs();
-        break;
-    case 'settings/verify-password':
-        (new SettingsController())->verifyPassword();
-        break;
-    case 'analytics/layout/reset':
-        (new AnalyticsController())->resetLayout();
-        break;
-    case 'analytics/report':
-        (new AnalyticsController())->generateReport();
-        break;
+    case 'sysadmin/dashboard': (new SysadminController())->dashboard(); break;
+    case 'sysadmin/users': (new SysadminController())->manageUsers(); break;
+    case 'sysadmin/users/process': (new SysadminController())->processUser(); break;
+    case 'sysadmin/users/get': (new SysadminController())->getUser(); break;
+    case 'sysadmin/db-tools': (new SysadminController())->dbTools(); break;
+    case 'sysadmin/db-tools/process': (new SysadminController())->processDbTools(); break;
+    case 'sysadmin/logs': (new SysadminController())->systemLogs(); break;
+    case 'sysadmin/logs/mark-as-seen': (new SysadminController())->markLogAsSeen(); break;
+    case 'sysadmin/logs/mark-all-as-seen': (new SysadminController())->markAllLogsAsSeen(); break;
     
     // --- About Page Route ---
     case 'about':
-        // Simple pages can be loaded directly if no controller logic is needed
         view('about/index', ['theme' => $_SESSION['user']['theme'] ?? 'light']);
         break;
     
-        case 'sysadmin/db-tools/process':
-            (new SysadminController())->processDbTools();
-            break;
-        case 'sysadmin/logs':
-            (new SysadminController())->systemLogs();
-            break;
-        
-        // --- NEW ROUTES FOR LOGS ---
-        case 'sysadmin/logs/mark-as-seen':
-            (new SysadminController())->markLogAsSeen();
-            break;
-        case 'sysadmin/logs/mark-all-as-seen':
-            (new SysadminController())->markAllLogsAsSeen();
-            break;
-
-        case 'analytics/filtered-residents':
-            (new AnalyticsController())->getFilteredResidents();
-            break;
-
     default:
         http_response_code(404);
         echo "<h1>404 Not Found</h1><p>The page '{$route}' could not be found.</p>";
