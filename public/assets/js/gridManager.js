@@ -1,33 +1,19 @@
-// public/assets/js/gridManager.js
-
 import { drawChart } from './chartManager.js';
-import { getChartInfo } from './chartConfig.js';
-import { showDetailModal } from './modalManager.js';
+import { fetchData } from './api.js';
 
 const basePath = '/iCensus-ent/public';
 let grid;
-const chartsToDraw = {};
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
+const chartsToDraw = new Map();
 
 function redrawChartOnResize(el) {
     if (!el || !el.gridstackNode) return;
-    const id = el.gridstackNode.id;
-    const chartDiv = document.getElementById(`${id}_chart_div`);
+    const chartId = el.gridstackNode.id;
+    const chartDiv = document.getElementById(`chart_div_${chartId}`);
     if (chartDiv && chartDiv.chartInstance && chartDiv.chartData && chartDiv.chartOptions) {
-        const chartInfo = getChartInfo(id);
-        if (chartInfo.type === 'PopulationPyramid' || chartInfo.type === 'GroupedBar') {
-            chartDiv.chartInstance.draw(chartDiv.chartData, google.charts.Bar.convertOptions(chartDiv.chartOptions));
+        const chartType = chartDiv.chartType;
+        // Use the correct Google Charts method for Bar/Column charts on resize
+        if (chartType === 'BarChart' || chartType === 'ColumnChart') {
+            chartDiv.chartInstance.draw(chartDiv.chartData, chartDiv.chartOptions);
         } else {
             chartDiv.chartInstance.draw(chartDiv.chartData, chartDiv.chartOptions);
         }
@@ -39,63 +25,89 @@ export function initializeGrid() {
         cellHeight: 80,
         margin: 20,
         float: true,
-        resizable: {
-            handles: 'n, e, s, w, ne, nw, se, sw'
-        }
+        resizable: { handles: 'n, e, s, w, ne, nw, se, sw' }
     });
 
     grid.on('added', (event, items) => {
         items.forEach(item => {
-            const metric = item.id;
-            if (chartsToDraw[metric]) {
-                chartsToDraw[metric]();
-                delete chartsToDraw[metric];
-            }
-            if (getChartInfo(metric).type !== 'KPI' && item.el) {
-                item.el.addEventListener('click', () => showDetailModal(metric));
+            const chartId = item.id;
+            if (chartsToDraw.has(chartId)) {
+                const chartDef = chartsToDraw.get(chartId);
+                // The identifier for drawing can be the new int ID or old string metric_id
+                drawChart(chartDef.identifier, chartDef.title, chartDef.type);
+                chartsToDraw.delete(chartId);
             }
         });
     });
 
     grid.on('resizestop', (event, el) => redrawChartOnResize(el));
-
-    window.addEventListener('resize', debounce(() => {
-        if (grid && grid.engine && grid.engine.nodes) {
+    window.addEventListener('resize', () => { 
+        if (grid?.engine?.nodes) {
             grid.engine.nodes.forEach(node => redrawChartOnResize(node.el));
         }
-    }, 250));
+    });
 }
 
-export function loadLayout() {
-    // Read the date values from the input fields
-    const startDate = document.getElementById('startDate').value;
-    const endDate = document.getElementById('endDate').value;
+export function addWidgetToGrid(chartId, chartTitle, chartType) {
+    const chartIcon = 'donut_large'; 
+    const widgetHtml = `
+        <div class="grid-stack-item-content chart-container">
+            <div class="chart-title"><span class="material-icons chart-icon">${chartIcon}</span>${chartTitle}</div>
+            <div class="chart-div" id="chart_div_${chartId}"></div>
+        </div>`;
+    
+    grid.addWidget(widgetHtml, { w: 4, h: 4, autoPosition: true, id: chartId });
+    drawChart(chartId, chartTitle, chartType);
+}
 
-    fetch(`${basePath}/analytics/layout`)
-        .then(response => response.json())
-        .then(layoutData => {
-            if (!layoutData || layoutData.length === 0) return;
-            grid.removeAll();
-            layoutData.forEach(node => {
-                // Pass the dates when scheduling the chart to be drawn
-                chartsToDraw[node.id] = () => drawChart(node.id, startDate, endDate);
-                const chartInfo = getChartInfo(node.id);
-                const isKpi = chartInfo.type === 'KPI';
-                const contentHtml = isKpi ? `<div class="kpi-content" id="${node.id}_chart_div"></div>` : `<div class="chart-div" id="${node.id}_chart_div"></div>`;
+export async function loadLayout() {
+    const layoutData = await fetchData('analytics/layout');
+    const chartsResult = await fetchData('analytics/charts');
+    
+    if (!chartsResult.charts) return;
+
+    // Create a map that can look up a chart by EITHER its new integer ID or its old string ID
+    const chartMap = new Map();
+    chartsResult.charts.forEach(c => {
+        chartMap.set(c.id.toString(), c); // Map by new integer ID
+        if (c.metric_id) {
+            chartMap.set(c.metric_id, c); // Also map by old string ID
+        }
+    });
+
+    grid.removeAll(); 
+
+    if (layoutData && layoutData.length > 0) {
+        layoutData.forEach(node => {
+            const chartDef = chartMap.get(node.id); // Look up using the ID from the layout (string or int)
+            
+            if (chartDef) {
+                // The identifier used to fetch data (can be int or string)
+                const identifier = chartDef.metric_id || chartDef.id;
+                // The ID for the grid widget MUST be unique. We'll use the primary key.
+                const widgetId = chartDef.id;
+
+                chartsToDraw.set(widgetId, { identifier: identifier, title: chartDef.title, type: chartDef.chart_type });
+
                 const widgetHtml = `
-                    <div class="grid-stack-item-content chart-container" data-metric="${node.id}">
-                        <div class="chart-title"><span class="material-icons chart-icon">${chartInfo.icon}</span>${chartInfo.title}</div>
-                        ${contentHtml}
+                    <div class="grid-stack-item-content chart-container">
+                        <div class="chart-title"><span class="material-icons chart-icon">donut_large</span>${chartDef.title}</div>
+                        <div class="chart-div" id="chart_div_${widgetId}"></div>
                     </div>`;
+                
+                // Important: Use the new integer ID for the grid node to avoid conflicts
+                node.id = widgetId;
                 grid.addWidget(widgetHtml, node);
-            });
+            }
         });
+    }
 }
 
 export function saveLayout() {
     const serializedData = grid.save(true, true).children;
     const layout = serializedData.map(d => ({
-        id: d.id, x: d.x, y: d.y, w: d.w, h: d.h
+        id: d.id, // This will now correctly save the integer ID
+        x: d.x, y: d.y, w: d.w, h: d.h
     }));
     fetch(`${basePath}/analytics/layout/save`, {
         method: 'POST',

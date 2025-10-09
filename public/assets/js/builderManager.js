@@ -4,6 +4,7 @@ const libraryModal = document.getElementById('widget-library-modal');
 const builderModal = document.getElementById('chart-builder-modal');
 const chartListContainer = document.getElementById('chart-list-container');
 const form = document.getElementById('chart-builder-form');
+const basePath = '/iCensus-ent/public';
 
 function closeAllModals() {
     libraryModal.style.display = 'none';
@@ -13,9 +14,6 @@ function closeAllModals() {
 export function openChartBuilder(chartData = null) {
     form.reset();
     document.getElementById('chart_id_input').value = '';
-    
-    // Logic to pre-fill form for editing can be added here later
-    
     libraryModal.style.display = 'none';
     builderModal.style.display = 'flex';
 }
@@ -27,10 +25,11 @@ export async function fetchAndShowCharts() {
     if (result.status === 'success' && result.charts.length > 0) {
         result.charts.forEach(chart => {
             const chartItem = document.createElement('div');
-            chartItem.className = 'chart-list-item'; // You can style this class
+            chartItem.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:0.75rem; border-bottom:1px solid #eee;';
+            
             chartItem.innerHTML = `
-                <span>${chart.title}</span>
-                <button data-chart-id="${chart.id}" data-chart-title="${chart.title}">Add to Dashboard</button>
+                <span style="font-weight: 500;">${chart.title}</span>
+                <button data-chart-id="${chart.id}" data-chart-title="${chart.title}" data-chart-type="${chart.chart_type}" style="padding: 0.4rem 0.8rem; border-radius: 6px; border: none; background: #2e7d32; color: white; cursor: pointer;">Add to Dashboard</button>
             `;
             chartListContainer.appendChild(chartItem);
         });
@@ -44,32 +43,51 @@ export async function fetchAndShowCharts() {
 async function handleFormSubmit(e) {
     e.preventDefault();
     const formData = new FormData(form);
-    const data = Object.fromEntries(formData.entries());
 
-    // We'll need a new backend endpoint to save this data
-    // For now, let's just log it and close the modal
-    console.log('Chart definition to save:', data);
-    alert('Chart saving logic needs to be connected to a new backend endpoint.');
-    
-    closeAllModals();
-    // After saving, you would typically reload the chart list or the dashboard
+    try {
+        const response = await fetch(`${basePath}/analytics/save-chart`, {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.status === 'success') {
+            alert(result.message);
+            closeAllModals();
+            
+            const addEvent = new CustomEvent('addChartToGrid', { 
+                detail: { 
+                    chartId: result.chart_id, 
+                    chartTitle: formData.get('title'),
+                    chartType: formData.get('chart_type')
+                } 
+            });
+            document.dispatchEvent(addEvent);
+
+        } else {
+            alert('Error: ' + (result.message || 'Could not save chart.'));
+        }
+    } catch (error) {
+        console.error('Save chart failed:', error);
+        alert('An unexpected network error occurred.');
+    }
 }
 
 export function setupBuilderEventListeners() {
+    if (!libraryModal || !builderModal) return;
+    
     libraryModal.querySelector('.close-btn').addEventListener('click', closeAllModals);
     builderModal.querySelector('.close-btn').addEventListener('click', closeAllModals);
     
     form.addEventListener('submit', handleFormSubmit);
 
-    // Event delegation for the "Add to Dashboard" buttons
     chartListContainer.addEventListener('click', (e) => {
-        if (e.target.tagName === 'BUTTON') {
-            const chartId = e.target.dataset.chartId;
-            const chartTitle = e.target.dataset.chartTitle;
-
-            // Dispatch a custom event that the main script can listen for
+        if (e.target.tagName === 'BUTTON' && e.target.dataset.chartId) {
+            const { chartId, chartTitle, chartType } = e.target.dataset;
+            
             const addEvent = new CustomEvent('addChartToGrid', { 
-                detail: { chartId, chartTitle } 
+                detail: { chartId, chartTitle, chartType } 
             });
             document.dispatchEvent(addEvent);
             

@@ -6,23 +6,23 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('add-widget-btn').addEventListener('click', fetchAndShowCharts);
     document.getElementById('create-new-chart-btn').addEventListener('click', () => openChartBuilder());
     
-    // 2. Setup listeners for the chart builder form itself
+    // 2. Setup listeners for the chart builder form and modals
     setupBuilderEventListeners();
 
-    // 3. Load Google Charts and then initialize the grid
+    // 3. Load Google Charts and then initialize the dashboard grid
     google.charts.load('current', { 'packages': ['corechart', 'bar'] });
     google.charts.setOnLoadCallback(() => {
         initializeGrid();
-        loadLayout(); // This will fetch layout and trigger chart drawing.
+        loadLayout(); // This will fetch the user's layout and trigger chart drawing.
         
-        // 4. Attach event listeners to the layout control buttons.
+        // 4. Attach event listeners to the layout control buttons
         document.getElementById('save-layout-btn').addEventListener('click', saveLayout);
         document.getElementById('reset-layout-btn').addEventListener('click', resetLayout);
     });
 
-    // 5. Listen for custom event to add a new widget to the grid
+    // 5. Listen for the custom event to add a new widget to the grid from the library
     document.addEventListener('addChartToGrid', (e) => {
-        const { chartId, chartTitle } = e.detail;
-        addWidgetToGrid(chartId, chartTitle);
+        const { chartId, chartTitle, chartType } = e.detail;
+        addWidgetToGrid(chartId, chartTitle, chartType);
     });
 });
