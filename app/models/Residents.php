@@ -144,13 +144,15 @@ class Resident {
      * @return bool
      */
     public function approve($id, $adminId) {
-        $stmt = $this->pdo->prepare("UPDATE residents SET approval_status = 'approved', approved_by = ? WHERE id = ?");
+        // --- THIS IS THE FIX: Added date_approved = NOW() ---
+        $stmt = $this->pdo->prepare("UPDATE residents SET approval_status = 'approved', approved_by = ?, date_approved = NOW() WHERE id = ?");
         return $stmt->execute([$adminId, $id]);
     }
 
     public function approveAll($adminId) {
+        // --- THIS IS THE FIX: Added date_approved = NOW() ---
         $stmt = $this->pdo->prepare(
-            "UPDATE residents SET approval_status = 'approved', approved_by = ? WHERE approval_status = 'pending'"
+            "UPDATE residents SET approval_status = 'approved', approved_by = ?, date_approved = NOW() WHERE approval_status = 'pending'"
         );
         $stmt->execute([$adminId]);
         return $stmt->rowCount();

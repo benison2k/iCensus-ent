@@ -249,6 +249,52 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
     editBtn.addEventListener('click', () => setFormEditable(true));
 
+    // --- START: AJAX FORM SUBMISSION LOGIC ---
+    const ajaxModal = document.getElementById('ajaxResultModal');
+    const ajaxMessage = document.getElementById('ajaxResultMessage');
+    const ajaxModalContent = ajaxModal.querySelector('.modal-content');
+    const ajaxCloseBtn = ajaxModal.querySelector('.close');
+
+    if (ajaxCloseBtn) {
+        ajaxCloseBtn.onclick = () => ajaxModal.style.display = "none";
+    }
+    window.onclick = (event) => { if (event.target === ajaxModal) ajaxModal.style.display = "none"; };
+
+    function showAjaxResult(message, type = 'success') {
+        ajaxMessage.textContent = message;
+        ajaxModalContent.className = 'modal-content ' + type;
+        ajaxModal.style.display = 'block';
+        // Reload the page after showing the message
+        setTimeout(() => {
+            ajaxModal.style.display = "none";
+            window.location.reload();
+        }, 2000); // Reload after 2 seconds
+    }
+
+    async function handleFormSubmit(form) {
+        try {
+            const formData = new FormData(form);
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            if (response.ok && result.status === 'success') {
+                modal.style.display = 'none'; // Close the resident form modal
+                showAjaxResult(result.message || 'Resident saved successfully!', 'success');
+            } else {
+                alert(result.message || 'An error occurred.'); // Show an alert for immediate error feedback
+            }
+        } catch (error) {
+            alert('A network error occurred. Please try again.');
+        }
+    }
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        handleFormSubmit(this);
+    });
+
     deleteBtn.addEventListener('click', async () => {
         const id = hiddenId.value;
         if (!id) return;
@@ -261,29 +307,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         const result = await response.json();
         if (result.status === 'success') {
-            window.location.reload();
+            modal.style.display = 'none';
+            showAjaxResult(result.message || 'Resident deleted successfully.', 'success');
         } else {
             alert('Failed to delete resident.');
         }
     });
-
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const formData = new FormData(form);
-        const response = await fetch(form.action, {
-            method: 'POST',
-            body: formData
-        });
-
-        const result = await response.json();
-
-        if (result.status === 'success') {
-            window.location.reload();
-        } else {
-            alert('An error occurred while saving the resident.');
-        }
-    });
+    // --- END: AJAX FORM SUBMISSION LOGIC ---
 
     toggleFiltersBtn.addEventListener('click', () => {
         const isExpanded = advancedFilters.style.display === 'grid';
@@ -294,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- NEW: Click outside to close advanced filters ---
     window.addEventListener('click', (e) => {
         const filterWrapper = document.querySelector('.filter-wrapper');
-        if (!filterWrapper.contains(e.target) && advancedFilters.style.display === 'grid') {
+        if (filterWrapper && !filterWrapper.contains(e.target) && advancedFilters.style.display === 'grid') {
             advancedFilters.style.display = 'none';
             toggleFiltersBtn.classList.remove('expanded');
         }
@@ -302,11 +332,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- END NEW ---
 
     [searchInput, houseNoFilter, streetFilter, ageMin, ageMax, dateAddedMin, dateAddedMax].forEach(el => {
-        el.addEventListener('input', applyFilters);
+        if(el) el.addEventListener('input', applyFilters);
     });
 
     [statusFilter, genderFilter, purokFilter, householdFilter, civilStatusFilter, bloodTypeFilter, residencyStatusFilter, relationshipFilter, isHeadFilter, birthMonthFilter, emergencyContactFilter, isVoterFilter, educationFilter, occupationFilter, isPwdFilter, isSoloParentFilter, is4psMemberFilter].forEach(el => {
-        el.addEventListener('change', applyFilters);
+        if(el) el.addEventListener('change', applyFilters);
     });
     
     demographicButtons.forEach(btn => {
@@ -317,8 +347,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    houseNoFilter.addEventListener('input', function() { this.value = this.value.replace(/\D/g, ''); });
-    streetFilter.addEventListener('input', function() { this.value = this.value.replace(/[^a-zA-Z\s]/g, ''); });
+    if(houseNoFilter) houseNoFilter.addEventListener('input', function() { this.value = this.value.replace(/\D/g, ''); });
+    if(streetFilter) streetFilter.addEventListener('input', function() { this.value = this.value.replace(/[^a-zA-Z\s]/g, ''); });
 
     pageSizeSelect.addEventListener('change', (e) => {
         pageSize = parseInt(e.target.value, 10);
@@ -347,7 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- INITIALIZATION ---
-    if (!isPendingView) {
+    if (typeof allResidentsData !== 'undefined' && !isPendingView) {
         applyFilters();
     }
 });

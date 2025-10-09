@@ -125,8 +125,7 @@ class ResidentController {
                         log_action('INFO', 'RESIDENT_UPDATE', $log_details);
                     }
                     
-                    $_SESSION['modal'] = ['message' => 'Resident saved successfully', 'type' => 'success'];
-                    echo json_encode(['status' => 'success']);
+                    echo json_encode(['status' => 'success', 'message' => 'Resident saved successfully!']);
                     break;
                 
                 case 'delete':
@@ -136,7 +135,7 @@ class ResidentController {
                         $full_name = htmlspecialchars($resident_to_delete['first_name'] . ' ' . $resident_to_delete['last_name']);
                         log_action('INFO', 'RESIDENT_DELETE', "Resident record for {$full_name} (ID#{$_POST['id']}) was deleted.");
                     }
-                    echo json_encode(['status' => 'success']);
+                    echo json_encode(['status' => 'success', 'message' => 'Resident deleted successfully.']);
                     break;
             }
         } catch (Exception $e) {

@@ -4,7 +4,7 @@ import { fetchData } from './api.js';
 import { getChartInfo } from './chartConfig.js';
 import { getFilterParamForMetric } from './chartManager.js';
 
-// --- (setupModal and initializeModals functions remain the same) ---
+// --- (All other functions like setupModal, initializeModals, getDetailedTitle, etc. remain the same) ---
 function setupModal(modalId, openTriggerId) {
     const modal = document.getElementById(modalId);
     if (!modal) return;
@@ -37,21 +37,11 @@ export function initializeModals() {
     });
 }
 
-
-/**
- * Creates a descriptive title for the filtered residents modal.
- * @param {string} metric - The ID of the chart.
- * @param {string} category - The primary category clicked.
- * @param {string|null} series - The series clicked in a grouped chart.
- * @param {number} count - The number of residents found.
- * @returns {string} A descriptive title.
- */
 function getDetailedTitle(metric, category, series, count) {
     const chartTitle = getChartInfo(metric).title;
     const cleanCategory = category.split(' = ')[0];
 
     switch (metric) {
-        // --- Existing Cases ---
         case 'senior_citizens_by_purok':
             return `Number of Senior Citizens in Purok ${cleanCategory}: ${count}`;
         case 'voter_population_by_purok':
@@ -68,8 +58,6 @@ function getDetailedTitle(metric, category, series, count) {
             return `Population in Purok ${cleanCategory}: ${count}`;
         case 'residents_per_street':
             return `Residents on ${cleanCategory} Street: ${count}`;
-
-        // --- NEWLY ADDED CASES FOR ALL OTHER CHARTS ---
         case 'gender':
             return `Number of ${cleanCategory} Residents: ${count}`;
         case 'civil_status':
@@ -108,8 +96,6 @@ function getDetailedTitle(metric, category, series, count) {
             return `Profiles with ${cleanCategory} Information: ${count}`;
         case 'emergency_contact_coverage':
             return `Residents who have an Emergency Contact listed (${cleanCategory}): ${count}`;
-        
-        // --- Default Fallback Case ---
         default:
             if (series) {
                  return `${chartTitle} (${series}: ${cleanCategory}): ${count}`;
@@ -118,8 +104,6 @@ function getDetailedTitle(metric, category, series, count) {
     }
 }
 
-
-// --- (showFilteredResidentsModal, openResidentDetailsModal, and showDetailModal functions remain the same) ---
 export async function showFilteredResidentsModal(metric, params, category, series = null) {
     const modal = document.getElementById('filtered-residents-modal');
     const titleEl = document.getElementById('filtered-title');
@@ -132,7 +116,6 @@ export async function showFilteredResidentsModal(metric, params, category, serie
     const result = await fetchData('analytics/filtered-residents', Object.fromEntries(params));
     const count = result.residents ? result.residents.length : 0;
     
-    // This now uses the comprehensive function above
     titleEl.textContent = getDetailedTitle(metric, category, series, count);
 
     if (result.status === 'success' && result.residents.length > 0) {
@@ -201,6 +184,9 @@ export async function openResidentDetailsModal(residentId) {
     `;
 }
 
+/**
+ * FIX: This function now reads dates from the main page to pass to the filter builder.
+ */
 export function showDetailModal(metric) {
     const originalChartDiv = document.getElementById(`${metric}_chart_div`);
     if (!originalChartDiv || !originalChartDiv.chartData) {
@@ -251,7 +237,17 @@ export function showDetailModal(metric) {
                 series = dataTable.getColumnLabel(column);
             }
             
-            const filterParams = getFilterParamForMetric(metric, category, series);
+            // Read the dates from the main page's input fields
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+            
+            // Use the value if it exists, otherwise pass null to trigger the fallback in chartManager
+            const startDate = startDateInput && startDateInput.value ? startDateInput.value : null;
+            const endDate = endDateInput && endDateInput.value ? endDateInput.value : null;
+            
+            // Pass the dates to the filter parameter builder.
+            const filterParams = getFilterParamForMetric(metric, category, series, startDate, endDate);
+            
             if (filterParams) {
                 showFilteredResidentsModal(metric, filterParams, category, series);
             }

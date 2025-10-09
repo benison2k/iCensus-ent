@@ -71,9 +71,16 @@ class AnalyticsController {
         $this->checkAuth();
         header('Content-Type: application/json');
         $metric = $_GET['metric'] ?? '';
+        
+        // Get date parameters from the request
+        $startDate = $_GET['start_date'] ?? null;
+        $endDate = $_GET['end_date'] ?? null;
+        
         $db = new Database(require __DIR__ . '/../../config/database.php');
         $analyticsModel = new Analytics($db);
-        echo json_encode($analyticsModel->getChartData($metric));
+        
+        // Pass the dates to the model function
+        echo json_encode($analyticsModel->getChartData($metric, $startDate, $endDate));
         exit;
     }
 

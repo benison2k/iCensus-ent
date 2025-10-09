@@ -18,6 +18,13 @@
     <div class="welcome"><h2>Residents Management</h2></div>
 
     <main class="dashboard dashboard-management">
+        <div id="ajaxResultModal" class="modal" data-show="false">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <p id="ajaxResultMessage"></p>
+            </div>
+        </div>
+
         <div style="padding:0 2rem; max-width:1600px; margin:auto; width: 100%;">
 
         <div class="page-actions-container">
