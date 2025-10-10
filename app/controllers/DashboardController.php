@@ -44,9 +44,19 @@ class DashboardController {
      */
     public function encoderDashboard() {
         $this->requireAuthAndRefresh('Encoder');
+        
+        // Add logic to get stats
+        require_once __DIR__ . '/../models/Residents.php';
+        $db = new Database(require __DIR__ . '/../../config/database.php');
+        $residentModel = new Resident($db);
+        
+        $encoderId = $_SESSION['user']['id'];
+        $encoderStats = $residentModel->getStatsForEncoder($encoderId);
+    
         $data = [
             'user' => $_SESSION['user'],
-            'theme' => $_SESSION['user']['theme'] ?? 'light'
+            'theme' => $_SESSION['user']['theme'] ?? 'light',
+            'stats' => $encoderStats // Pass stats to the view
         ];
         view('dashboard/encoder', $data);
     }

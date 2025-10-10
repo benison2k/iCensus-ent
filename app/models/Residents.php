@@ -291,4 +291,30 @@ class Resident {
         $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    /**
+     * NEW: Gets submission statistics for a specific encoder.
+     * @param int $encoderId The ID of the encoder.
+     * @return array
+     */
+    public function getStatsForEncoder($encoderId) {
+        $stats = [];
+
+        // Entries Submitted Today
+        $stmt_today = $this->pdo->prepare("SELECT COUNT(*) FROM residents WHERE encoded_by = ? AND DATE(created_at) = CURDATE()");
+        $stmt_today->execute([$encoderId]);
+        $stats['today'] = $stmt_today->fetchColumn();
+
+        // Entries Pending Approval
+        $stmt_pending = $this->pdo->prepare("SELECT COUNT(*) FROM residents WHERE encoded_by = ? AND approval_status = 'pending'");
+        $stmt_pending->execute([$encoderId]);
+        $stats['pending'] = $stmt_pending->fetchColumn();
+
+        // Total Entries Approved
+        $stmt_approved = $this->pdo->prepare("SELECT COUNT(*) FROM residents WHERE encoded_by = ? AND approval_status = 'approved'");
+        $stmt_approved->execute([$encoderId]);
+        $stats['approved'] = $stmt_approved->fetchColumn();
+
+        return $stats;
+    }
 }
