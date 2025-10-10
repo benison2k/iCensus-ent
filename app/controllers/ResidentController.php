@@ -129,6 +129,10 @@ class ResidentController {
                     break;
                 
                 case 'delete':
+                    if ($_SESSION['user']['role_name'] === 'Encoder') {
+                        echo json_encode(['status' => 'error', 'message' => 'You do not have permission to delete residents.']);
+                        exit;
+                    }
                     $resident_to_delete = $residentModel->find($_POST['id']);
                     if($resident_to_delete) {
                         $residentModel->delete($_POST['id']);
