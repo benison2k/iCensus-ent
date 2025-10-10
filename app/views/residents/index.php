@@ -363,6 +363,7 @@
     <script>
         const allResidentsData = <?= json_encode($residents); ?>;
         const isPendingView = <?= $isPendingView ? 'true' : 'false' ?>;
+        const userRole = '<?= htmlspecialchars($user['role_name']) ?>';
     </script>
     <script src="<?= $base_url ?>/assets/js/residents.js"></script>
     <script>

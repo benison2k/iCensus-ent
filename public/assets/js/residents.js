@@ -62,7 +62,12 @@ document.addEventListener('DOMContentLoaded', () => {
         form.querySelectorAll('input, select').forEach(input => input.disabled = !editable);
         saveBtn.style.display = editable ? 'inline-flex' : 'none';
         editBtn.style.display = editable ? 'none' : 'inline-flex';
-        deleteBtn.style.display = editable ? 'none' : 'inline-flex';
+
+        if (editable || userRole === 'Encoder') {
+            deleteBtn.style.display = 'none';
+        } else {
+            deleteBtn.style.display = 'inline-flex';
+        }
     };
 
     const openModalForEdit = async (id) => {
@@ -98,7 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
         hiddenId.value = '';
         setFormEditable(true);
         editBtn.style.display = 'none';
-        deleteBtn.style.display = 'none';
         modalTitle.textContent = 'Add New Resident';
         modal.style.display = 'block';
     };
@@ -295,24 +299,26 @@ document.addEventListener('DOMContentLoaded', () => {
         handleFormSubmit(this);
     });
 
-    deleteBtn.addEventListener('click', async () => {
-        const id = hiddenId.value;
-        if (!id) return;
-        if (!confirm('Are you sure you want to delete this resident? This action cannot be undone.')) return;
-
-        const response = await fetch(`${basePath}/residents/process`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: new URLSearchParams({ action: 'delete', id: id })
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', async () => {
+            const id = hiddenId.value;
+            if (!id) return;
+            if (!confirm('Are you sure you want to delete this resident? This action cannot be undone.')) return;
+    
+            const response = await fetch(`${basePath}/residents/process`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: new URLSearchParams({ action: 'delete', id: id })
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                modal.style.display = 'none';
+                showAjaxResult(result.message || 'Resident deleted successfully.', 'success');
+            } else {
+                alert(result.message || 'Failed to delete resident.');
+            }
         });
-        const result = await response.json();
-        if (result.status === 'success') {
-            modal.style.display = 'none';
-            showAjaxResult(result.message || 'Resident deleted successfully.', 'success');
-        } else {
-            alert('Failed to delete resident.');
-        }
-    });
+    }
     // --- END: AJAX FORM SUBMISSION LOGIC ---
 
     toggleFiltersBtn.addEventListener('click', () => {
