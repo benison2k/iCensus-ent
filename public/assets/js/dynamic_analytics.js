@@ -1,3 +1,5 @@
+// public/assets/js/dynamic_analytics.js
+
 document.addEventListener('DOMContentLoaded', () => {
     // Load Google Charts and then initialize the dashboard
     google.charts.load('current', { 'packages': ['corechart', 'bar'] });

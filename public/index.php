@@ -86,6 +86,11 @@ switch ($route) {
             (new ChartController())->save();
         }
         break;
+    case 'charts/preview':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            (new ChartController())->preview();
+        }
+        break;
     case 'charts/data':
         (new ChartController())->getData();
         break;

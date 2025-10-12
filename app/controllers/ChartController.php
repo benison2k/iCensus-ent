@@ -57,6 +57,31 @@ class ChartController {
     }
 
     /**
+     * Generates a chart preview without saving to the database.
+     */
+    public function preview() {
+        $this->checkAuth();
+        header('Content-Type: application/json');
+
+        $chartDef = [
+            'chart_type' => $_POST['chart_type'] ?? 'PieChart',
+            'aggregate_function' => $_POST['aggregate_function'] ?? 'COUNT',
+            'aggregate_column' => ($_POST['aggregate_function'] === 'AVG') ? 'dob' : '*',
+            'group_by_column' => !empty($_POST['group_by_column']) ? $_POST['group_by_column'] : null,
+            'filter_conditions' => !empty($_POST['filters']) ? json_encode(array_values($_POST['filters'])) : null
+        ];
+
+        try {
+            $chartModel = new Chart($GLOBALS['db']);
+            $chartData = $chartModel->getDataForChart($chartDef);
+            echo json_encode(['status' => 'success', 'data' => $chartData]);
+        } catch (Exception $e) {
+            echo json_encode(['status' => 'error', 'message' => 'Could not generate preview: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+
+    /**
      * Handles API requests to get data for a specific chart.
      */
     public function getData() {

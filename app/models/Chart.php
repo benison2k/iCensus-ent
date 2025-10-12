@@ -101,7 +101,7 @@ class Chart
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return $this->formatDataForFrontend($results, $chartDef);
+        return $this->formatDataForFrontend($results, $def);
     }
 
     private function buildSelectAndGroupClause($def)
@@ -128,6 +128,7 @@ class Chart
             case 'is_solo_parent':
             case 'is_4ps_member':
             case 'is_registered_voter':
+            case 'is_indigent':
                 $categorySelect = "CASE WHEN {$groupByCol} = 1 THEN 'Yes' ELSE 'No' END as category";
                 break;
             default:
@@ -145,8 +146,12 @@ class Chart
         $filters = json_decode($def['filter_conditions'], true);
         $where = "";
         $params = [];
-        $allowedColumns = ['purok', 'gender', 'civil_status', 'is_pwd', 'is_4ps_member'];
-        $allowedOperators = ['=', '!='];
+        $allowedColumns = [
+            'purok', 'gender', 'civil_status', 'educational_attainment', 'occupation',
+            'ownership_status', 'blood_type', 'nationality', 'relationship', 'residency_status', 'status',
+            'is_pwd', 'is_4ps_member', 'is_registered_voter', 'is_solo_parent', 'is_indigent'
+        ];
+        $allowedOperators = ['=', '!=', '>', '<', '>=', '<='];
         foreach ($filters as $filter) {
             if (in_array($filter['column'], $allowedColumns) && in_array($filter['operator'], $allowedOperators)) {
                 $where .= " AND {$filter['column']} {$filter['operator']} ?";
@@ -176,4 +181,3 @@ class Chart
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
-
