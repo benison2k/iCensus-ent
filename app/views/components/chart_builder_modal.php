@@ -3,82 +3,43 @@
 ?>
 
 <style>
-    /* Basic styling for the chart builder modal */
-    .chart-builder-modal {
-        display: none; /* Hidden by default */
-        position: fixed;
-        z-index: 2000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0,0,0,0.6);
-        padding-top: 50px;
-    }
-
-    .chart-builder-content {
-        background-color: #fefefe;
-        margin: auto;
-        padding: 25px;
-        border-radius: 12px;
-        width: 90%;
-        max-width: 700px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    }
-
-    .chart-builder-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        margin-bottom: 20px;
-    }
-
-    .chart-builder-group {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .chart-builder-group label {
-        font-weight: 600;
-        font-size: 0.9rem;
-        margin-bottom: 5px;
-        color: #333;
-    }
-
-    .chart-builder-group input,
-    .chart-builder-group select {
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        font-size: 1rem;
-    }
-
-    .filter-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr auto;
-        gap: 10px;
-        align-items: center;
-        margin-bottom: 10px;
-    }
-    
-    .btn-remove-filter {
-        cursor: pointer;
-        color: #d9534f;
-        background: transparent;
-        border: none;
-        font-size: 1.5rem;
-    }
-
+    .chart-builder-modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); padding-top: 50px; }
+    .chart-builder-content { background-color: #fefefe; margin: auto; padding: 25px; border-radius: 12px; width: 90%; max-width: 800px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+    .chart-builder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .chart-builder-group { display: flex; flex-direction: column; }
+    .chart-builder-group label { font-weight: 600; font-size: 0.9rem; margin-bottom: 5px; color: #333; }
+    .chart-builder-group input, .chart-builder-group select { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
+    .filter-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; align-items: center; margin-bottom: 10px; }
+    .btn-remove-filter { cursor: pointer; color: #d9534f; background: transparent; border: none; font-size: 1.5rem; }
+    .template-section { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+    .template-section h4 { margin-top: 0; }
+    .btn-template { background-color: #e7f1ff; border: 1px solid #b3d1ff; color: #0056b3; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; margin-right: 8px; margin-bottom: 8px; }
+    .btn-template:hover { background-color: #d0e3ff; }
 </style>
 
 <div id="chartBuilderModal" class="chart-builder-modal">
     <div class="chart-builder-content">
         <span class="close-btn" style="float: right; font-size: 28px; cursor: pointer;">&times;</span>
-        <h2 style="margin-top:0; margin-bottom: 25px;">Create Custom Chart</h2>
+        <h2 style="margin-top:0; margin-bottom: 25px;">Create Analytics Chart</h2>
+
+        <!-- NEW: PRE-MADE TEMPLATES SECTION -->
+        <div class="template-section">
+            <h4>Or start with a template:</h4>
+            <div>
+                <button type="button" class="btn-template" data-template="gender_pie">Gender</button>
+                <button type="button" class="btn-template" data-template="purok_bar">Purok</button>
+                <button type="button" class="btn-template" data-template="age_brackets">Age Brackets</button>
+                <button type="button" class="btn-template" data-template="pwd_pie">PWD</button>
+                <button type="button" class="btn-template" data-template="civil_status_pie">Civil Status</button>
+                <button type="button" class="btn-template" data-template="four_ps_pie">4Ps Members</button>
+                <button type="button" class="btn-template" data-template="education_bar">Education</button>
+                <button type="button" class="btn-template" data-template="avg_age_kpi">Avg. Age (KPI)</button>
+            </div>
+        </div>
 
         <form id="chartBuilderForm">
-            <h4>Step 1: What to show?</h4>
+            <h4 style="margin-top:0;">Build a custom chart:</h4>
+            <!-- Step 1: Basic Information -->
             <div class="chart-builder-grid">
                 <div class="chart-builder-group">
                     <label for="chartTitle">Chart Title</label>
@@ -95,7 +56,7 @@
                 </div>
             </div>
 
-            <h4>Step 2: How to measure it?</h4>
+            <!-- Step 2: Measurement and Grouping -->
             <div class="chart-builder-grid">
                 <div class="chart-builder-group">
                     <label for="aggregateFunction">Measure</label>
@@ -119,10 +80,10 @@
                 </div>
             </div>
 
-            <h4>Step 3: (Optional) Filter the data</h4>
-            <div id="filterContainer">
-                </div>
-            <button type="button" id="addFilterBtn" style="padding: 8px 12px; margin-top: 10px;">+ Add Filter</button>
+            <!-- Step 3: Filtering -->
+            <h4>(Optional) Filter the data</h4>
+            <div id="filterContainer"></div>
+            <button type="button" id="addFilterBtn" style="padding: 8px 12px; margin-top: 10px;">+ Add Custom Filter</button>
 
             <hr style="margin: 25px 0;">
 

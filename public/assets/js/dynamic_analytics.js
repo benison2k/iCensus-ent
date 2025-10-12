@@ -1,7 +1,6 @@
 // public/assets/js/dynamic_analytics.js
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Load Google Charts and then initialize the dashboard
     google.charts.load('current', { 'packages': ['corechart', 'bar'] });
     google.charts.setOnLoadCallback(initializeDynamicDashboard);
 });
@@ -9,9 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
 const basePath = '/iCensus-ent/public';
 let grid;
 
-/**
- * Initializes the GridStack dashboard and loads user-defined charts.
- */
 function initializeDynamicDashboard() {
     grid = GridStack.init({
         cellHeight: 80,
@@ -19,15 +15,11 @@ function initializeDynamicDashboard() {
         float: true,
     });
 
-    // Load saved charts from the database
     loadUserCharts();
 
-    // Standard dashboard buttons
     document.getElementById('save-layout-btn').addEventListener('click', saveLayout);
     document.getElementById('reset-layout-btn').addEventListener('click', () => {
-        if(confirm('Are you sure you want to reset the layout? This will clear the current dashboard and reload with default positions.')) {
-            // A more robust reset would clear the layout from the database.
-            // For now, reloading is a simple way to reset the view.
+        if(confirm('Are you sure you want to reset the layout? This will reload the page.')) {
             location.reload();
         }
     });
@@ -42,44 +34,55 @@ async function loadUserCharts() {
         const result = await response.json();
 
         if (result.status === 'success' && result.charts) {
-            // First, add all chart widgets to the page with a "Loading..." message.
-            result.charts.forEach(chartDef => {
-                const widgetHtml = `
-                    <div class="grid-stack-item-content chart-container" data-chart-id="${chartDef.id}">
-                        <div class="chart-title">${chartDef.title}</div>
-                        <div class="chart-div" id="chart-div-${chartDef.id}">Loading...</div>
-                    </div>`;
-                grid.addWidget(widgetHtml, { w: 4, h: 4, id: chartDef.id });
-            });
-
-            // Then, fetch the data for all charts concurrently.
-            const dataPromises = result.charts.map(chartDef =>
-                fetch(`${basePath}/charts/data?chart_id=${chartDef.id}`)
-                    .then(res => res.json())
-                    .then(dataResult => {
-                        if (dataResult.status === 'success') {
-                            drawChart(chartDef.id, dataResult.type, dataResult.data);
-                        } else {
-                            document.getElementById(`chart-div-${chartDef.id}`).innerHTML = `<div class="chart-error">Error loading data.</div>`;
-                        }
-                    })
-            );
-            
-            // Wait for all data fetches to complete.
-            await Promise.all(dataPromises);
+            // Use Promise.all to load all charts concurrently for a faster initial load
+            await Promise.all(result.charts.map(chartDef => addAndDrawChart(chartDef)));
         }
     } catch (error) {
         console.error("Failed to load user charts:", error);
-        // You could display a global error message on the dashboard here.
     }
 }
+
+/**
+ * Reusable Function: Adds a single chart widget to the grid and draws it.
+ * @param {object} chartDef An object with {id, title, chart_type}
+ */
+async function addAndDrawChart(chartDef) {
+    const chartId = chartDef.id;
+
+    // Prevent adding a duplicate widget if it somehow already exists
+    if (grid.engine.nodes.some(node => node.id == chartId)) {
+        return;
+    }
+
+    const widgetHtml = `
+        <div class="grid-stack-item-content chart-container" data-chart-id="${chartId}">
+            <div class="chart-title">${chartDef.title}</div>
+            <div class="chart-div" id="chart-div-${chartId}">Loading...</div>
+        </div>`;
+
+    grid.addWidget(widgetHtml, { w: 4, h: 4, id: chartId });
+
+    try {
+        const dataResponse = await fetch(`${basePath}/charts/data?chart_id=${chartId}`);
+        const dataResult = await dataResponse.json();
+
+        if (dataResult.status === 'success') {
+            drawChart(chartId, dataResult.type, dataResult.data);
+        } else {
+            document.getElementById(`chart-div-${chartId}`).innerHTML = `<div class="chart-error">Error: ${dataResult.error}</div>`;
+        }
+    } catch (error) {
+        document.getElementById(`chart-div-${chartId}`).innerHTML = `<div class="chart-error">Network error while fetching data.</div>`;
+    }
+}
+
+// --- EXPOSE THE FUNCTION TO THE GLOBAL WINDOW OBJECT ---
+// This allows chart_builder.js to call it directly after saving a new chart.
+window.addChartToDashboard = addAndDrawChart;
 
 
 /**
  * Draws a single chart using Google Charts.
- * @param {number} chartId The ID of the chart.
- * @param {string} chartType The type of chart (e.g., 'PieChart', 'BarChart').
- * @param {object} chartData The data for the chart.
  */
 function drawChart(chartId, chartType, chartData) {
     const chartDiv = document.getElementById(`chart-div-${chartId}`);
@@ -89,16 +92,13 @@ function drawChart(chartId, chartType, chartData) {
     const fontColor = isDarkMode ? '#CFD8DC' : '#333';
 
     const options = {
-        width: '100%',
-        height: '100%',
-        backgroundColor: 'transparent',
+        width: '100%', height: '100%', backgroundColor: 'transparent',
         chartArea: { 'width': '80%', 'height': '70%' },
         legend: { position: 'bottom', textStyle: { color: fontColor } },
         hAxis: { textStyle: { color: fontColor }, titleTextStyle: { color: fontColor } },
         vAxis: { textStyle: { color: fontColor }, titleTextStyle: { color: fontColor } }
     };
     
-    // Handle KPI display separately
     if (chartType === 'KPI') {
         chartDiv.innerHTML = `<div class="kpi-content"><div class="kpi-value">${chartData.value || 0}</div></div>`;
         return;
@@ -107,27 +107,18 @@ function drawChart(chartId, chartType, chartData) {
     const dataTable = new google.visualization.DataTable();
     dataTable.addColumn('string', 'Category');
     dataTable.addColumn('number', 'Value');
-
     const rows = Object.entries(chartData).map(([key, value]) => [key, value]);
     dataTable.addRows(rows);
 
     let chart;
     switch (chartType) {
-        case 'BarChart':
-            chart = new google.visualization.BarChart(chartDiv);
-            break;
-        case 'ColumnChart':
-            chart = new google.visualization.ColumnChart(chartDiv);
-            break;
-        case 'PieChart':
-        default:
+        case 'BarChart': chart = new google.visualization.BarChart(chartDiv); break;
+        case 'ColumnChart': chart = new google.visualization.ColumnChart(chartDiv); break;
+        case 'PieChart': default:
             chart = new google.visualization.PieChart(chartDiv);
-            if (chartType === 'DonutChart') {
-                options.pieHole = 0.4;
-            }
+            if (chartType === 'DonutChart') { options.pieHole = 0.4; }
             break;
     }
-
     chart.draw(dataTable, options);
 }
 
@@ -136,9 +127,7 @@ function drawChart(chartId, chartType, chartData) {
  */
 function saveLayout() {
     const serializedData = grid.save(true, true).children;
-    const layout = serializedData.map(d => ({
-        id: d.id, x: d.x, y: d.y, w: d.w, h: d.h
-    }));
+    const layout = serializedData.map(d => ({ id: d.id, x: d.x, y: d.y, w: d.w, h: d.h }));
 
     fetch(`${basePath}/analytics/layout/save`, {
         method: 'POST',
@@ -153,3 +142,4 @@ function saveLayout() {
         }
     });
 }
+
