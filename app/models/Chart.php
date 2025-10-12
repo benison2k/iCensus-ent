@@ -30,6 +30,58 @@ class Chart
         }
     }
 
+    // --- NEW: UPDATE FUNCTION ---
+    /**
+     * Updates an existing chart definition in the database.
+     * @param int $chartId The ID of the chart to update.
+     * @param array $data The new data for the chart.
+     * @return bool True on success, false on failure.
+     */
+    public function update($chartId, $data) {
+        $allowedColumns = [
+            'title', 'chart_type', 'aggregate_function',
+            'aggregate_column', 'group_by_column', 'filter_conditions'
+        ];
+        $filteredData = array_intersect_key($data, array_flip($allowedColumns));
+
+        $setClauses = [];
+        foreach ($filteredData as $key => $value) {
+            $setClauses[] = "{$key} = ?";
+        }
+        $setClause = implode(', ', $setClauses);
+
+        try {
+            $sql = "UPDATE charts SET {$setClause} WHERE id = ? AND user_id = ?";
+            $params = array_values($filteredData);
+            $params[] = $chartId;
+            $params[] = $_SESSION['user']['id']; // Ensure users can only update their own charts
+
+            $stmt = $this->pdo->prepare($sql);
+            return $stmt->execute($params);
+        } catch (PDOException $e) {
+            error_log('Chart Update Error: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // --- NEW: DELETE FUNCTION ---
+    /**
+     * Deletes a chart definition from the database.
+     * @param int $chartId The ID of the chart to delete.
+     * @return bool True on success, false on failure.
+     */
+    public function delete($chartId) {
+        try {
+            $sql = "DELETE FROM charts WHERE id = ? AND user_id = ?";
+            $stmt = $this->pdo->prepare($sql);
+            // Ensure users can only delete their own charts
+            return $stmt->execute([$chartId, $_SESSION['user']['id']]);
+        } catch (PDOException $e) {
+            error_log('Chart Delete Error: ' . $e->getMessage());
+            return false;
+        }
+    }
+
     public function find($chartId)
     {
         $stmt = $this->pdo->prepare("SELECT * FROM charts WHERE id = ?");
@@ -124,3 +176,4 @@ class Chart
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
+

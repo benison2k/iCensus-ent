@@ -74,7 +74,7 @@
 
 <script src="<?= $base_url ?>/assets/js/dynamic_analytics.js"></script>
 <script src="<?= $base_url ?>/assets/js/chart_builder.js"></script>
-<script src="<?= $base_url ?>/assets/js/manage_charts.js"></script>
+<script src="<?= $base_url ?>/assets/js/manage_chart.js"></script> 
 
 </body>
 </html>
