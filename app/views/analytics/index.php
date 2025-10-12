@@ -14,37 +14,11 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/8.2.1/gridstack.min.css" rel="stylesheet"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/8.2.1/gridstack-all.js"></script>
     <style>
-        /* Styles for the new date filter section */
-        .date-filter-container {
-            display: flex;
-            align-items: flex-end;
-            gap: 1rem;
-            margin-left: auto; /* Pushes the filter to the right */
-        }
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-        }
-        .filter-group label {
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: #495057;
-            margin-bottom: 0.3rem;
-        }
-        .filter-group input[type="date"] {
-            border: 1px solid #ccc;
-            padding: 0.5rem;
-            border-radius: 8px;
-            font-size: 0.9rem;
-        }
-        .filter-group button {
-            border: none;
-            padding: 0.6rem 1rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background-color 0.2s;
-        }
+        .date-filter-container { display: flex; align-items: flex-end; gap: 1rem; margin-left: auto; }
+        .filter-group { display: flex; flex-direction: column; }
+        .filter-group label { font-size: 0.85rem; font-weight: 500; color: #495057; margin-bottom: 0.3rem; }
+        .filter-group input[type="date"] { border: 1px solid #ccc; padding: 0.5rem; border-radius: 8px; font-size: 0.9rem; }
+        .filter-group button { border: none; padding: 0.6rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 500; }
         #filter-btn { background-color: #0d6efd; color: white; }
         #clear-filter-btn { background-color: #6c757d; color: white; }
         body.dark-mode .filter-group label { color: #adb5bd; }
@@ -62,7 +36,7 @@
         <div class="controls-wrapper">
             <div class="buttons-container">
                 <button id="addChartBtn" style="background-color: #e0f2f1; color: #00796b;"><span class="material-icons">add_chart</span> Add New Chart</button>
-                
+                <button id="manageChartsBtn" style="background-color: #e3f2fd; color: #0d6efd;"><span class="material-icons">visibility</span> Manage Charts</button>
                 <button id="generate-report-btn"><span class="material-icons">assessment</span> Generate Report</button>
                 <button id="reset-layout-btn"><span class="material-icons">refresh</span> Reset Layout</button>
                 <button id="save-layout-btn"><span class="material-icons">save</span> Save Layout</button>
@@ -88,21 +62,19 @@
     </div>
 </main>
 
-<div id="report-modal" class="modal">
-    </div>
-<div id="chart-detail-modal" class="modal">
-    </div>
-<div id="filtered-residents-modal" class="modal">
-     </div>
-<div id="analytics-resident-detail-modal" class="modal">
-    </div>
+<div id="report-modal" class="modal"></div>
+<div id="chart-detail-modal" class="modal"></div>
+<div id="filtered-residents-modal" class="modal"></div>
+<div id="analytics-resident-detail-modal" class="modal"></div>
 
 <?php include __DIR__ . '/../components/chart_builder_modal.php'; ?>
-
+<?php include __DIR__ . '/../components/manage_charts_modal.php'; ?>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>
+
 <script src="<?= $base_url ?>/assets/js/dynamic_analytics.js"></script>
 <script src="<?= $base_url ?>/assets/js/chart_builder.js"></script>
+<script src="<?= $base_url ?>/assets/js/manage_charts.js"></script>
 
 </body>
 </html>

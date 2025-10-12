@@ -22,7 +22,7 @@
         <span class="close-btn" style="float: right; font-size: 28px; cursor: pointer;">&times;</span>
         <h2 style="margin-top:0; margin-bottom: 25px;">Create Analytics Chart</h2>
 
-        <!-- NEW: PRE-MADE TEMPLATES SECTION -->
+        <!-- PRE-MADE TEMPLATES SECTION -->
         <div class="template-section">
             <h4>Or start with a template:</h4>
             <div>
@@ -34,6 +34,9 @@
                 <button type="button" class="btn-template" data-template="four_ps_pie">4Ps Members</button>
                 <button type="button" class="btn-template" data-template="education_bar">Education</button>
                 <button type="button" class="btn-template" data-template="avg_age_kpi">Avg. Age (KPI)</button>
+                <button type="button" class="btn-template" data-template="voter_pie">Voters</button>
+                <button type="button" class="btn-template" data-template="solo_parent_pie">Solo Parents</button>
+                <button type="button" class="btn-template" data-template="occupation_bar">Top Occupations</button>
             </div>
         </div>
 
@@ -75,6 +78,9 @@
                         <option value="educational_attainment">Educational Attainment</option>
                         <option value="is_pwd">Is PWD?</option>
                         <option value="is_4ps_member">Is 4Ps Member?</option>
+                        <option value="is_registered_voter">Is Registered Voter?</option>
+                        <option value="is_solo_parent">Is Solo Parent?</option>
+                        <option value="occupation">Occupation</option>
                         <option value="dob">Age Brackets</option>
                     </select>
                 </div>
