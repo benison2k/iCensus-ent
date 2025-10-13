@@ -79,11 +79,13 @@ class Chart
     {
         list($selectClause, $groupByClause) = $this->buildSelectAndGroupClause($chartDef);
         list($whereClause, $params) = $this->buildWhereClause($chartDef);
+        
         $sql = "SELECT {$selectClause}
                 FROM residents
                 WHERE approval_status = 'approved'
                 {$whereClause}
                 {$groupByClause}";
+        
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -126,10 +128,6 @@ class Chart
 
     private function buildWhereClause($def)
     {
-        if (empty($def['filter_conditions'])) {
-            return ["", []];
-        }
-        $filters = json_decode($def['filter_conditions'], true);
         $where = "";
         $params = [];
         $allowedColumns = [
@@ -138,12 +136,25 @@ class Chart
             'is_pwd', 'is_4ps_member', 'is_registered_voter', 'is_solo_parent', 'is_indigent'
         ];
         $allowedOperators = ['=', '!=', '>', '<', '>=', '<='];
-        foreach ($filters as $filter) {
-            if (isset($filter['column'], $filter['operator']) && in_array($filter['column'], $allowedColumns) && in_array($filter['operator'], $allowedOperators)) {
-                $where .= " AND {$filter['column']} {$filter['operator']} ?";
-                $params[] = $filter['value'];
+
+        // Handle JSON filter conditions from the chart builder
+        if (!empty($def['filter_conditions'])) {
+            $filters = json_decode($def['filter_conditions'], true);
+            foreach ($filters as $filter) {
+                if (isset($filter['column'], $filter['operator']) && in_array($filter['column'], $allowedColumns) && in_array($filter['operator'], $allowedOperators)) {
+                    $where .= " AND {$filter['column']} {$filter['operator']} ?";
+                    $params[] = $filter['value'];
+                }
             }
         }
+
+        // --- NEW: Handle date range filters passed directly for the modal ---
+        if (!empty($def['start_date']) && !empty($def['end_date'])) {
+            $where .= " AND DATE(date_approved) BETWEEN ? AND ?";
+            $params[] = $def['start_date'];
+            $params[] = $def['end_date'];
+        }
+
         return [$where, $params];
     }
 
@@ -161,7 +172,6 @@ class Chart
 
     public function findAllByUserId($userId)
     {
-        // --- THIS IS THE FIX: Added group_by_column to the SELECT statement ---
         $sql = "SELECT id, title, chart_type, group_by_column FROM charts WHERE user_id = ?";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$userId]);

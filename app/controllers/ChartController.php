@@ -13,13 +13,9 @@ class ChartController {
             echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
             exit;
         }
-        // This line is important for the log_action function to work
         $GLOBALS['db'] = new Database(require __DIR__ . '/../../config/database.php');
     }
 
-    /**
-     * Saves a new chart definition from the builder to the database.
-     */
     public function save() {
         $this->checkAuth();
         header('Content-Type: application/json');
@@ -36,12 +32,8 @@ class ChartController {
             'aggregate_function' => $_POST['aggregate_function'],
             'aggregate_column' => ($_POST['aggregate_function'] === 'AVG') ? 'dob' : '*',
             'group_by_column' => !empty($_POST['group_by_column']) ? $_POST['group_by_column'] : null,
-            'filter_conditions' => null
+            'filter_conditions' => !empty($_POST['filters']) ? json_encode(array_values($_POST['filters'])) : null
         ];
-
-        if (!empty($_POST['filters'])) {
-            $data['filter_conditions'] = json_encode(array_values($_POST['filters']));
-        }
 
         $chartModel = new Chart($GLOBALS['db']);
         $chartId = $chartModel->save($data);
@@ -56,9 +48,56 @@ class ChartController {
         exit;
     }
 
-    /**
-     * Generates a chart preview without saving to the database.
-     */
+    public function update() {
+        $this->checkAuth();
+        header('Content-Type: application/json');
+
+        $chartId = $_POST['chart_id'] ?? null;
+        if (!$chartId) {
+            echo json_encode(['status' => 'error', 'message' => 'Chart ID is missing.']);
+            exit;
+        }
+
+        $data = [
+            'title' => trim($_POST['title']),
+            'chart_type' => $_POST['chart_type'],
+            'aggregate_function' => $_POST['aggregate_function'],
+            'aggregate_column' => ($_POST['aggregate_function'] === 'AVG') ? 'dob' : '*',
+            'group_by_column' => !empty($_POST['group_by_column']) ? $_POST['group_by_column'] : null,
+            'filter_conditions' => !empty($_POST['filters']) ? json_encode(array_values($_POST['filters'])) : null
+        ];
+
+        $chartModel = new Chart($GLOBALS['db']);
+        if ($chartModel->update($chartId, $data)) {
+            log_action('INFO', 'CHART_UPDATED', "User updated chart definition ID#{$chartId}.");
+            echo json_encode(['status' => 'success', 'message' => 'Chart updated successfully!', 'chart_id' => $chartId]);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Failed to update chart.']);
+        }
+        exit;
+    }
+
+    public function get() {
+        $this->checkAuth();
+        header('Content-Type: application/json');
+
+        $chartId = $_GET['id'] ?? null;
+        if (!$chartId) {
+            echo json_encode(['status' => 'error', 'message' => 'No chart ID provided.']);
+            exit;
+        }
+
+        $chartModel = new Chart($GLOBALS['db']);
+        $chart = $chartModel->find($chartId);
+
+        if ($chart) {
+            echo json_encode(['status' => 'success', 'chart' => $chart]);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Chart not found.']);
+        }
+        exit;
+    }
+
     public function preview() {
         $this->checkAuth();
         header('Content-Type: application/json');
@@ -81,9 +120,6 @@ class ChartController {
         exit;
     }
 
-    /**
-     * Handles API requests to get data for a specific chart.
-     */
     public function getData() {
         $this->checkAuth();
         header('Content-Type: application/json');
@@ -101,6 +137,12 @@ class ChartController {
             if (!$chartDef) {
                 echo json_encode(['error' => 'Chart not found.']);
                 exit;
+            }
+            
+            // --- MODIFIED: Add date range from GET params to the definition ---
+            if (isset($_GET['start_date']) && !empty($_GET['start_date']) && isset($_GET['end_date']) && !empty($_GET['end_date'])) {
+                $chartDef['start_date'] = $_GET['start_date'];
+                $chartDef['end_date'] = $_GET['end_date'];
             }
 
             $chartData = $chartModel->getDataForChart($chartDef);
@@ -120,9 +162,6 @@ class ChartController {
         exit;
     }
 
-    /**
-     * Fetches all chart definitions for the logged-in user.
-     */
     public function getUserCharts() {
         $this->checkAuth();
         header('Content-Type: application/json');

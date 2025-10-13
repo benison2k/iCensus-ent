@@ -86,6 +86,25 @@ switch ($route) {
             (new ChartController())->save();
         }
         break;
+
+    // --- NEW: Route to update an existing chart ---
+    case 'charts/update':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            (new ChartController())->update();
+        }
+        break;
+    // --- NEW: Route to get a single chart's definition for editing ---
+    case 'charts/get':
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            (new ChartController())->get();
+        }
+        break;
+    case 'charts/preview':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            (new ChartController())->preview();
+        }
+        break;
+
     case 'charts/preview':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             (new ChartController())->preview();

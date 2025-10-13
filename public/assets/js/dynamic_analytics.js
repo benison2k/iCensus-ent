@@ -12,8 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initializeDynamicDashboard();
     });
 
-    // --- MODAL CLOSING LOGIC ---
-    // This handles all modals on the page
+    // Modal Closing Logic for all modals
     document.querySelectorAll('.modal').forEach(modal => {
         const closeBtn = modal.querySelector('.close-btn');
         if (closeBtn) {
@@ -31,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const basePath = '/iCensus-ent/public';
 let grid;
-// --- Global state for sorting resident list ---
+// Global state for sorting resident list
 let currentResidentList = [];
 let currentSort = { column: 'first_name', order: 'asc' };
 
@@ -54,7 +53,11 @@ function initializeDynamicDashboard() {
     });
 }
 
-async function loadUserCharts() {
+async function loadUserCharts(startDate = null, endDate = null) {
+    if (grid) {
+        grid.removeAll(); // Clear existing charts before reloading
+    }
+    
     try {
         const response = await fetch(`${basePath}/charts/user-charts`);
         const result = await response.json();
@@ -81,7 +84,11 @@ async function loadUserCharts() {
                 
                 grid.addWidget(widgetHtml, gridOptions);
                 
-                const dataResponse = await fetch(`${basePath}/charts/data?chart_id=${chartId}`);
+                let dataUrl = `${basePath}/charts/data?chart_id=${chartId}`;
+                if (startDate && endDate) {
+                    dataUrl += `&start_date=${startDate}&end_date=${endDate}`;
+                }
+                const dataResponse = await fetch(dataUrl);
                 const dataResult = await dataResponse.json();
 
                 if (dataResult.status === 'success') {
@@ -140,9 +147,7 @@ function drawChart(chartId, chartType, chartData) {
 
 function saveLayout() {
     const serializedData = grid.save(true, true).children;
-    const layout = serializedData.map(d => ({
-        id: d.id, x: d.x, y: d.y, w: d.w, h: d.h
-    }));
+    const layout = serializedData.map(d => ({ id: d.id, x: d.x, y: d.y, w: d.w, h: d.h }));
     localStorage.setItem('chartLayout', JSON.stringify(layout));
     alert('Layout Saved!');
 }
@@ -180,7 +185,7 @@ function renderResidentList() {
             </tr>`;
         });
     } else {
-        tableHtml += '<tr><td colspan="5">No residents found.</td></tr>';
+        tableHtml += '<tr><td colspan="5" style="text-align:center;">No residents found.</td></tr>';
     }
     tableHtml += '</tbody></table>';
     residentListContainer.innerHTML = tableHtml;
@@ -192,7 +197,8 @@ function renderResidentList() {
     });
 }
 
-async function showFilteredResidents(filterColumn, category) {
+// --- MODIFIED: This function now accepts and uses the date filters ---
+async function showFilteredResidents(filterColumn, category, startDate, endDate) {
     const residentListContainer = document.getElementById('residentListContainer');
     residentListContainer.innerHTML = '<div class="list-placeholder">Loading residents...</div>';
     currentSort = { column: 'first_name', order: 'asc' };
@@ -202,6 +208,9 @@ async function showFilteredResidents(filterColumn, category) {
     }
 
     const filterParams = new URLSearchParams({ [filterColumn]: category });
+    // --- THIS IS THE FIX ---
+    if (startDate) filterParams.append('start_date', startDate);
+    if (endDate) filterParams.append('end_date', endDate);
     
     try {
         const response = await fetch(`${basePath}/analytics/filtered-residents?${filterParams}`);
@@ -215,39 +224,79 @@ async function showFilteredResidents(filterColumn, category) {
     }
 }
 
+
 function showChartDetailModal(chartId) {
     const chartContainer = document.querySelector(`.chart-container[data-chart-id='${chartId}']`);
-    const sourceChartDiv = document.getElementById(`chart-div-${chartId}`);
     const modal = document.getElementById('chartDetailModal');
     const modalTitle = document.getElementById('chartDetailTitle');
     const residentListContainer = document.getElementById('residentListContainer');
-
-    if (!sourceChartDiv || !sourceChartDiv.chartData || !modal) return;
+    const startDateInput = modal.querySelector('#modalStartDate');
+    const endDateInput = modal.querySelector('#modalEndDate');
+    const filterBtn = modal.querySelector('#modalFilterBtn');
+    const clearBtn = modal.querySelector('#modalClearBtn');
 
     const chartTitle = chartContainer.querySelector('.chart-title').textContent;
     const groupByColumn = chartContainer.dataset.groupBy;
     modalTitle.textContent = chartTitle;
     residentListContainer.innerHTML = '<div class="list-placeholder">Click on a chart segment to see the list of residents.</div>';
 
-    modal.style.display = 'flex';
+    const savedDates = JSON.parse(localStorage.getItem(`chartDateRange_${chartId}`)) || {};
+    startDateInput.value = savedDates.start || '';
+    endDateInput.value = savedDates.end || '';
 
-    setTimeout(() => {
-        const chartObj = drawChart('DetailContent', sourceChartDiv.chartType, sourceChartDiv.chartData);
-        
-        if(chartObj && chartObj.chart && groupByColumn) {
-            google.visualization.events.addListener(chartObj.chart, 'select', () => {
-                const selection = chartObj.chart.getSelection();
-                if (selection.length > 0) {
-                    const { row } = selection[0];
-                    if (row !== null) {
-                        const category = chartObj.dataTable.getValue(row, 0);
-                        showFilteredResidents(groupByColumn, category);
-                        chartObj.chart.setSelection([]);
-                    }
-                }
-            });
+    const redrawModalChart = async (start, end) => {
+        let dataUrl = `${basePath}/charts/data?chart_id=${chartId}`;
+        if (start && end) {
+            dataUrl += `&start_date=${start}&end_date=${end}`;
         }
-    }, 50);
+        
+        try {
+            const response = await fetch(dataUrl);
+            const result = await response.json();
+            if (result.status === 'success') {
+                const chartObj = drawChart('DetailContent', result.type, result.data);
+                
+                if(chartObj && chartObj.chart && groupByColumn) {
+                    google.visualization.events.addListener(chartObj.chart, 'select', () => {
+                        const selection = chartObj.chart.getSelection();
+                        if (selection.length > 0) {
+                            const { row } = selection[0];
+                            if (row !== null) {
+                                const category = chartObj.dataTable.getValue(row, 0);
+                                // --- THIS IS THE FIX ---
+                                // Pass the current date filter values to the resident list function
+                                showFilteredResidents(groupByColumn, category, startDateInput.value, endDateInput.value);
+                                chartObj.chart.setSelection([]);
+                            }
+                        }
+                    });
+                }
+            }
+        } catch (error) {
+            console.error("Failed to redraw modal chart:", error);
+        }
+    };
+
+    filterBtn.onclick = () => {
+        const startDate = startDateInput.value;
+        const endDate = endDateInput.value;
+        if (startDate && endDate) {
+            localStorage.setItem(`chartDateRange_${chartId}`, JSON.stringify({ start: startDate, end: endDate }));
+            redrawModalChart(startDate, endDate);
+        } else {
+            alert('Please select both a start and end date.');
+        }
+    };
+
+    clearBtn.onclick = () => {
+        startDateInput.value = '';
+        endDateInput.value = '';
+        localStorage.removeItem(`chartDateRange_${chartId}`);
+        redrawModalChart(null, null);
+    };
+
+    modal.style.display = 'flex';
+    redrawModalChart(startDateInput.value, endDateInput.value);
 }
 
 async function openResidentDetailsModal(residentId) {
@@ -324,7 +373,6 @@ document.addEventListener('click', function(event) {
         renderResidentList();
     }
     
-    // --- NEW: Event listener for the "More Info" button ---
     const infoBtn = event.target.closest('.resident-info-btn');
     if (infoBtn) {
         openResidentDetailsModal(infoBtn.dataset.id);

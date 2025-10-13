@@ -312,3 +312,147 @@
   body.dark-mode #residentListContainer .sortable:hover { background-color: #37474f; }
   body.dark-mode .resident-details-grid h4 { border-bottom-color: #4a5a6a; color: #64b5f6; }
   body.dark-mode .detail-item strong { color: #90a4ae; }
+
+  #residentListContainer .sortable {
+    cursor: pointer;
+    user-select: none;
+}
+
+#residentListContainer .sortable:hover {
+    background-color: #f0f0f0;
+}
+
+.resident-info-btn {
+    background-color: #e3f2fd;
+    color: #0d6efd;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+/* --- END NEW --- */
+
+.modal .close-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #aaa;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.modal .close-btn:hover { color: #000; }
+
+#chartDetailTitle {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+    text-align: left;
+}
+
+/* --- NEW: Styles for the resident detail modal --- */
+.resident-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+    text-align: left;
+}
+.detail-group h4 {
+    margin: 0 0 0.5rem 0;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid #e0e0e0;
+    color: #1e88e5;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.detail-item { font-size: 0.95rem; }
+.detail-item strong {
+    display: block;
+    color: #555;
+    font-size: 0.8rem;
+    margin-bottom: 2px;
+}
+/* --- END NEW --- */
+
+
+/* --- Dark Mode Overrides for Modal --- */
+body.dark-mode .modal-content.large { background-color: #2C3E50; color: #fff; }
+body.dark-mode .modal .close-btn { color: #ccc; }
+body.dark-mode .modal .close-btn:hover { color: #fff; }
+body.dark-mode #residentListContainer { border-left-color: #4a5a6a; }
+body.dark-mode #residentListContainer th, body.dark-mode #residentListContainer td { border-bottom-color: #4a5a6a; }
+body.dark-mode #residentListContainer .sortable:hover { background-color: #37474f; }
+
+/* --- NEW: Dark mode detail modal styles --- */
+body.dark-mode .resident-details-grid h4 { border-bottom-color: #4a5a6a; color: #64b5f6; }
+body.dark-mode .detail-item strong { color: #90a4ae; }
+
+.modal-header-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap; /* Allows wrapping on smaller screens */
+    gap: 1rem;
+}
+
+#chartDetailTitle {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 1.8rem;
+    text-align: left;
+}
+
+.modal-date-filter {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.modal-date-filter input[type="date"] {
+    border: 1px solid #ccc;
+    padding: 0.4rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.modal-date-filter button {
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 5px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+}
+.modal-date-filter button .material-icons {
+    font-size: 20px;
+}
+/* --- END MODIFIED --- */
+
+
+/* --- Dark Mode Overrides for Modal --- */
+body.dark-mode .modal-content.large { background-color: #2C3E50; color: #fff; }
+body.dark-mode .modal .close-btn { color: #ccc; }
+body.dark-mode .modal .close-btn:hover { color: #fff; }
+body.dark-mode #residentListContainer { border-left-color: #4a5a6a; }
+body.dark-mode #residentListContainer th, body.dark-mode #residentListContainer td { border-bottom-color: #4a5a6a; }
+body.dark-mode #residentListContainer .sortable:hover { background-color: #37474f; }
+body.dark-mode .resident-details-grid h4 { border-bottom-color: #4a5a6a; color: #64b5f6; }
+body.dark-mode .detail-item strong { color: #90a4ae; }
+
+/* --- NEW: Dark mode for modal date filters --- */
+body.dark-mode .modal-date-filter input[type="date"] {
+    background-color: #2C3E50;
+    border-color: #4a5a6a;
+    color: #fff;
+}
+body.dark-mode .modal-date-filter button {
+    background-color: #37474f;
+    border-color: #555;
+    color: #fff;
+}
