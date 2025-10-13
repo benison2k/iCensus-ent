@@ -4,7 +4,17 @@
 
 <style>
     .chart-builder-modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); padding-top: 50px; }
-    .chart-builder-content { background-color: #fefefe; margin: auto; padding: 25px; border-radius: 12px; width: 90%; max-width: 800px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+    .chart-builder-content { background-color: #fefefe; margin: auto; padding: 25px; border-radius: 12px; width: 90%; max-width: 1100px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+    
+    /* --- MODIFIED FOR RIGHT-SIDE LAYOUT --- */
+    .chart-builder-main-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: 25px; } /* Makes right column wider */
+    .chart-builder-form-container { border-right: 1px solid #eee; padding-right: 25px; }
+    #chartPreview { width: 100%; height: 350px; margin-top: 1rem; position: relative; }
+    .chart-placeholder, .chart-error { display: flex; align-items: center; justify-content: center; height: 100%; background: #f8f9fa; color: #6c757d; border-radius: 8px; text-align: center; padding: 1rem; }
+    .kpi-preview-content { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; }
+    .kpi-preview-value { font-size: 3.5rem; font-weight: 700; color: #3949ab; }
+    /* --- END MODIFICATIONS --- */
+
     .chart-builder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
     .chart-builder-group { display: flex; flex-direction: column; }
     .chart-builder-group label { font-weight: 600; font-size: 0.9rem; margin-bottom: 5px; color: #333; }
@@ -23,6 +33,7 @@
         <h2 style="margin-top:0; margin-bottom: 25px;">Create Analytics Chart</h2>
         
         <div class="chart-builder-main-grid">
+            
             <div class="chart-builder-form-container">
                 <div class="template-section">
                     <h4>Start with a template:</h4>
@@ -104,12 +115,14 @@
                     </div>
                 </form>
             </div>
+
             <div class="chart-builder-preview-container">
                 <h4>Chart Preview</h4>
                 <div id="chartPreview">
                     <div class="chart-placeholder">Adjust the settings on the left to see a preview.</div>
                 </div>
             </div>
+
         </div>
     </div>
 </div>

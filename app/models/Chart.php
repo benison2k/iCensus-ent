@@ -30,13 +30,6 @@ class Chart
         }
     }
 
-    // --- NEW: UPDATE FUNCTION ---
-    /**
-     * Updates an existing chart definition in the database.
-     * @param int $chartId The ID of the chart to update.
-     * @param array $data The new data for the chart.
-     * @return bool True on success, false on failure.
-     */
     public function update($chartId, $data) {
         $allowedColumns = [
             'title', 'chart_type', 'aggregate_function',
@@ -54,7 +47,7 @@ class Chart
             $sql = "UPDATE charts SET {$setClause} WHERE id = ? AND user_id = ?";
             $params = array_values($filteredData);
             $params[] = $chartId;
-            $params[] = $_SESSION['user']['id']; // Ensure users can only update their own charts
+            $params[] = $_SESSION['user']['id']; 
 
             $stmt = $this->pdo->prepare($sql);
             return $stmt->execute($params);
@@ -64,17 +57,10 @@ class Chart
         }
     }
 
-    // --- NEW: DELETE FUNCTION ---
-    /**
-     * Deletes a chart definition from the database.
-     * @param int $chartId The ID of the chart to delete.
-     * @return bool True on success, false on failure.
-     */
     public function delete($chartId) {
         try {
             $sql = "DELETE FROM charts WHERE id = ? AND user_id = ?";
             $stmt = $this->pdo->prepare($sql);
-            // Ensure users can only delete their own charts
             return $stmt->execute([$chartId, $_SESSION['user']['id']]);
         } catch (PDOException $e) {
             error_log('Chart Delete Error: ' . $e->getMessage());
@@ -101,7 +87,7 @@ class Chart
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return $this->formatDataForFrontend($results, $def);
+        return $this->formatDataForFrontend($results, $chartDef);
     }
 
     private function buildSelectAndGroupClause($def)
@@ -153,7 +139,7 @@ class Chart
         ];
         $allowedOperators = ['=', '!=', '>', '<', '>=', '<='];
         foreach ($filters as $filter) {
-            if (in_array($filter['column'], $allowedColumns) && in_array($filter['operator'], $allowedOperators)) {
+            if (isset($filter['column'], $filter['operator']) && in_array($filter['column'], $allowedColumns) && in_array($filter['operator'], $allowedOperators)) {
                 $where .= " AND {$filter['column']} {$filter['operator']} ?";
                 $params[] = $filter['value'];
             }
@@ -175,7 +161,8 @@ class Chart
 
     public function findAllByUserId($userId)
     {
-        $sql = "SELECT id, title, chart_type FROM charts WHERE user_id = ?";
+        // --- THIS IS THE FIX: Added group_by_column to the SELECT statement ---
+        $sql = "SELECT id, title, chart_type, group_by_column FROM charts WHERE user_id = ?";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$userId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

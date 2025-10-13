@@ -7,7 +7,7 @@
     <?php $base_url = '/iCensus-ent/public'; ?>
     <link rel="stylesheet" href="<?= $base_url ?>/assets/css/style.css">
     <link rel="stylesheet" href="<?= $base_url ?>/assets/css/dashboard.css">
-    <link rel="stylesheet" href="<?= $base_url ?>/assets/css/analytics.css">
+    <link rel="stylesheet" href="<?= $base_url ?>/assets/css/analytics1.css">
     <link rel="stylesheet" href="<?= $base_url ?>/assets/css/report-modal.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
@@ -62,10 +62,23 @@
     </div>
 </main>
 
-<div id="report-modal" class="modal"></div>
-<div id="chart-detail-modal" class="modal"></div>
-<div id="filtered-residents-modal" class="modal"></div>
-<div id="analytics-resident-detail-modal" class="modal"></div>
+<div id="chartDetailModal" class="modal">
+    <div class="modal-content large">
+        <span class="close-btn material-icons">close</span>
+        <h3 id="chartDetailTitle">Chart Details</h3>
+        <div class="modal-grid">
+            <div id="chartDetailContent" class="chart-div" style="height: 100%;"></div>
+            <div id="residentListContainer">
+                <div class="list-placeholder">Click on a chart segment to see the list of residents.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="analytics-resident-detail-modal" class="modal">
+    <div class="modal-content">
+        </div>
+</div>
 
 <?php include __DIR__ . '/../components/chart_builder_modal.php'; ?>
 <?php include __DIR__ . '/../components/manage_charts_modal.php'; ?>

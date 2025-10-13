@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const addFilterBtn = document.getElementById('addFilterBtn');
     const filterContainer = document.getElementById('filterContainer');
     const form = document.getElementById('chartBuilderForm');
-    const chartPreviewDiv = document.getElementById('chartPreview'); // New element for the preview
+    const chartPreviewDiv = document.getElementById('chartPreview');
     const basePath = '/iCensus-ent/public';
 
     // --- Modal Controls ---
@@ -17,8 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
         openBtn.addEventListener('click', () => {
             form.reset();
             filterContainer.innerHTML = '';
-            // Reset the preview area when opening the modal
-            if(chartPreviewDiv) {
+            if (chartPreviewDiv) {
                 chartPreviewDiv.innerHTML = '<div class="chart-placeholder">Adjust the settings on the left to see a preview.</div>';
             }
             modal.style.display = 'block';
@@ -37,80 +36,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- EXPANDED PRE-MADE CHART TEMPLATE LOGIC ---
+    // --- TEMPLATE LOGIC ---
     const templates = {
-        gender_pie: {
-            title: 'Population by Gender',
-            chart_type: 'PieChart',
-            aggregate_function: 'COUNT',
-            group_by_column: 'gender'
-        },
-        purok_bar: {
-            title: 'Population by Purok',
-            chart_type: 'BarChart',
-            aggregate_function: 'COUNT',
-            group_by_column: 'purok'
-        },
-        age_brackets: {
-            title: 'Population by Age Bracket',
-            chart_type: 'ColumnChart',
-            aggregate_function: 'COUNT',
-            group_by_column: 'dob'
-        },
-        pwd_pie: {
-            title: 'PWD Residents',
-            chart_type: 'PieChart',
-            aggregate_function: 'COUNT',
-            group_by_column: 'is_pwd'
-        },
-        civil_status_pie: {
-            title: 'Civil Status Distribution',
-            chart_type: 'PieChart',
-            aggregate_function: 'COUNT',
-            group_by_column: 'civil_status'
-        },
-        four_ps_pie: {
-            title: '4Ps Beneficiaries',
-            chart_type: 'PieChart',
-            aggregate_function: 'COUNT',
-            group_by_column: 'is_4ps_member'
-        },
-        education_bar: {
-            title: 'Educational Attainment',
-            chart_type: 'BarChart',
-            aggregate_function: 'COUNT',
-            group_by_column: 'educational_attainment'
-        },
-        avg_age_kpi: {
-            title: 'Average Age of Residents',
-            chart_type: 'KPI',
-            aggregate_function: 'AVG',
-            group_by_column: '' // No grouping for KPI
-        }
+        gender_pie: { title: 'Population by Gender', chart_type: 'PieChart', aggregate_function: 'COUNT', group_by_column: 'gender' },
+        purok_bar: { title: 'Population by Purok', chart_type: 'BarChart', aggregate_function: 'COUNT', group_by_column: 'purok' },
+        age_brackets: { title: 'Population by Age Bracket', chart_type: 'ColumnChart', aggregate_function: 'COUNT', group_by_column: 'dob' },
+        pwd_pie: { title: 'PWD Residents', chart_type: 'PieChart', aggregate_function: 'COUNT', group_by_column: 'is_pwd' },
+        civil_status_pie: { title: 'Civil Status Distribution', chart_type: 'PieChart', aggregate_function: 'COUNT', group_by_column: 'civil_status' },
+        four_ps_pie: { title: '4Ps Beneficiaries', chart_type: 'PieChart', aggregate_function: 'COUNT', group_by_column: 'is_4ps_member' },
+        education_bar: { title: 'Educational Attainment', chart_type: 'BarChart', aggregate_function: 'COUNT', group_by_column: 'educational_attainment' },
+        avg_age_kpi: { title: 'Average Age of Residents', chart_type: 'KPI', aggregate_function: 'AVG', group_by_column: '' },
     };
 
     const applyTemplate = (templateName) => {
         const template = templates[templateName];
         if (!template) return;
-
         form.querySelector('#chartTitle').value = template.title;
         form.querySelector('#chartType').value = template.chart_type;
         form.querySelector('#aggregateFunction').value = template.aggregate_function;
         form.querySelector('#groupByColumn').value = template.group_by_column;
-        
-        filterContainer.innerHTML = ''; // Clear custom filters
-        updateChartPreview(); // Trigger preview update after applying template
+        filterContainer.innerHTML = '';
+        debouncedUpdate();
     };
 
     modal.querySelectorAll('.btn-template').forEach(button => {
-        button.addEventListener('click', (e) => {
-            applyTemplate(e.currentTarget.dataset.template);
-        });
+        button.addEventListener('click', (e) => applyTemplate(e.currentTarget.dataset.template));
     });
-    // --- END of TEMPLATE LOGIC ---
 
-
-    // --- Dynamic Filter Logic ---
+    // --- FILTER LOGIC ---
     let filterCount = 0;
     const createFilterRow = () => {
         filterCount++;
@@ -143,18 +96,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 <option value=">=">is greater than or equal to</option>
                 <option value="<=">is less than or equal to</option>
             </select>
-            <input type="text" name="filters[${filterCount}][value]" placeholder="Value (e.g., 1 for Yes)" required>
+            <input type="text" name="filters[${filterCount}][value]" placeholder="Value (e.g., 1)" required>
             <button type="button" class="btn-remove-filter">&times;</button>
         `;
         filterContainer.appendChild(row);
-
-        // Add event listeners to new elements to trigger preview
-        row.querySelector('select').addEventListener('change', debouncedUpdate);
-        row.querySelector('input').addEventListener('keyup', debouncedUpdate);
-        
         row.querySelector('.btn-remove-filter').addEventListener('click', () => {
             row.remove();
-            debouncedUpdate(); // Update preview after removing a filter
+            debouncedUpdate();
+        });
+        // Re-attach listeners to all relevant elements in the form
+        row.querySelectorAll('select, input').forEach(el => {
+            el.addEventListener('change', debouncedUpdate);
+            el.addEventListener('keyup', debouncedUpdate);
         });
     };
 
@@ -162,24 +115,24 @@ document.addEventListener('DOMContentLoaded', () => {
         addFilterBtn.addEventListener('click', createFilterRow);
     }
 
-    // --- START: LIVE PREVIEW LOGIC ---
+    // --- LIVE PREVIEW LOGIC ---
     function debounce(func, delay) {
         let timeout;
         return function(...args) {
-            const context = this;
             clearTimeout(timeout);
-            timeout = setTimeout(() => func.apply(context, args), delay);
+            timeout = setTimeout(() => func.apply(this, args), delay);
         };
     }
 
     async function updateChartPreview() {
         if (!chartPreviewDiv) return;
+        chartPreviewDiv.innerHTML = '<div class="chart-placeholder">Generating preview...</div>';
 
+        // Wait until the Google Charts library is ready
+        await window.googleChartsPromise;
+        
         const formData = new FormData(form);
         const chartType = formData.get('chart_type');
-
-        // Show a loading state
-        chartPreviewDiv.innerHTML = '<div class="chart-placeholder">Generating preview...</div>';
 
         try {
             const response = await fetch(`${basePath}/charts/preview`, {
@@ -195,21 +148,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error("Preview failed:", error);
-            chartPreviewDiv.innerHTML = `<div class="chart-error">An error occurred while generating the preview.</div>`;
+            chartPreviewDiv.innerHTML = `<div class="chart-error">An error occurred.</div>`;
         }
     }
 
     function drawPreviewChart(chartType, chartData) {
-        if (!google || !google.visualization) {
-            console.error("Google Charts not loaded yet.");
-            chartPreviewDiv.innerHTML = `<div class="chart-error">Google Charts library not ready.</div>`;
-            return;
-        }
-
         const options = {
-            width: '100%',
-            height: '100%',
-            backgroundColor: 'transparent',
+            width: '100%', height: '100%', backgroundColor: 'transparent',
             chartArea: { 'width': '85%', 'height': '70%' },
             legend: { position: 'bottom' }
         };
@@ -233,33 +178,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let chart;
         switch (chartType) {
-            case 'BarChart':
-                chart = new google.visualization.BarChart(chartPreviewDiv);
-                break;
-            case 'ColumnChart':
-                chart = new google.visualization.ColumnChart(chartPreviewDiv);
-                break;
-            case 'DonutChart':
-                options.pieHole = 0.4;
-                chart = new google.visualization.PieChart(chartPreviewDiv);
-                break;
-            case 'PieChart':
-            default:
-                chart = new google.visualization.PieChart(chartPreviewDiv);
-                break;
+            case 'BarChart': chart = new google.visualization.BarChart(chartPreviewDiv); break;
+            case 'ColumnChart': chart = new google.visualization.ColumnChart(chartPreviewDiv); break;
+            case 'DonutChart': options.pieHole = 0.4; chart = new google.visualization.PieChart(chartPreviewDiv); break;
+            default: chart = new google.visualization.PieChart(chartPreviewDiv); break;
         }
         chart.draw(dataTable, options);
     }
     
-    // Create a debounced version of the update function
     const debouncedUpdate = debounce(updateChartPreview, 500);
-
-    // Attach listener to the form for any changes
     form.addEventListener('change', debouncedUpdate);
     form.addEventListener('keyup', debouncedUpdate);
-    // --- END: LIVE PREVIEW LOGIC ---
 
-    // --- AJAX FORM SUBMISSION ---
+    // --- FORM SUBMISSION ---
     if (form) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -269,35 +200,23 @@ document.addEventListener('DOMContentLoaded', () => {
             saveButton.textContent = 'Saving...';
 
             try {
-                const response = await fetch(`${basePath}/charts/save`, {
-                    method: 'POST',
-                    body: formData
-                });
-
+                const response = await fetch(`${basePath}/charts/save`, { method: 'POST', body: formData });
                 const result = await response.json();
 
                 if (result.status === 'success') {
                     modal.style.display = 'none';
-
-                    const newChartDef = {
-                        id: result.chart_id,
-                        title: formData.get('title'),
-                        chart_type: formData.get('chart_type')
-                    };
-
+                    const newChartDef = { id: result.chart_id, title: formData.get('title'), chart_type: formData.get('chart_type') };
                     if (window.addChartToDashboard) {
                         window.addChartToDashboard(newChartDef);
                     } else {
-                        alert('Chart saved successfully! Refreshing page to show new chart.');
                         location.reload();
                     }
-
                 } else {
-                    alert('Error: ' + (result.message || 'Could not save the chart.'));
+                    alert('Error: ' + (result.message || 'Could not save chart.'));
                 }
             } catch (error) {
                 console.error('Submission failed:', error);
-                alert('An unexpected error occurred. Please try again.');
+                alert('An unexpected error occurred.');
             } finally {
                 saveButton.disabled = false;
                 saveButton.textContent = 'Save Chart';
