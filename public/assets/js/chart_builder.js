@@ -223,4 +223,43 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+        // --- AJAX FORM SUBMISSION ---
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const saveButton = document.getElementById('saveChartBtn');
+                saveButton.disabled = true;
+                saveButton.textContent = 'Saving...';
+                
+                // --- MODIFIED: Check if we are updating or creating ---
+                const chartId = formData.get('chart_id');
+                const isUpdate = !!chartId;
+                const url = isUpdate ? `${basePath}/charts/update` : `${basePath}/charts/save`;
+    
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        body: formData
+                    });
+    
+                    const result = await response.json();
+    
+                    if (result.status === 'success') {
+                        modal.style.display = 'none';
+                        alert('Chart saved successfully! The page will now reload to show your changes.');
+                        location.reload(); // Reload the page to reflect the changes
+                    } else {
+                        alert('Error: ' + (result.message || 'Could not save the chart.'));
+                    }
+                } catch (error) {
+                    console.error('Submission failed:', error);
+                    alert('An unexpected error occurred. Please try again.');
+                } finally {
+                    saveButton.disabled = false;
+                    saveButton.textContent = 'Save Chart';
+                }
+            });
+        }
 });
