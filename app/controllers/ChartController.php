@@ -13,6 +13,7 @@ class ChartController {
             echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
             exit;
         }
+        // This line is important for the log_action function to work
         $GLOBALS['db'] = new Database(require __DIR__ . '/../../config/database.php');
     }
 
@@ -77,6 +78,26 @@ class ChartController {
         exit;
     }
 
+    public function delete() {
+        $this->checkAuth();
+        header('Content-Type: application/json');
+
+        $chartId = $_POST['chart_id'] ?? null;
+        if (!$chartId) {
+            echo json_encode(['status' => 'error', 'message' => 'Chart ID is missing.']);
+            exit;
+        }
+
+        $chartModel = new Chart($GLOBALS['db']);
+        if ($chartModel->delete($chartId)) {
+            log_action('INFO', 'CHART_DELETED', "User deleted chart definition ID#{$chartId}.");
+            echo json_encode(['status' => 'success', 'message' => 'Chart deleted successfully!']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Failed to delete chart.']);
+        }
+        exit;
+    }
+    
     public function get() {
         $this->checkAuth();
         header('Content-Type: application/json');
@@ -139,8 +160,7 @@ class ChartController {
                 exit;
             }
             
-            // --- MODIFIED: Add date range from GET params to the definition ---
-            if (isset($_GET['start_date']) && !empty($_GET['start_date']) && isset($_GET['end_date']) && !empty($_GET['end_date'])) {
+            if (!empty($_GET['start_date']) && !empty($_GET['end_date'])) {
                 $chartDef['start_date'] = $_GET['start_date'];
                 $chartDef['end_date'] = $_GET['end_date'];
             }
@@ -165,7 +185,7 @@ class ChartController {
     public function getUserCharts() {
         $this->checkAuth();
         header('Content-Type: application/json');
-
+        
         $chartModel = new Chart($GLOBALS['db']);
         $charts = $chartModel->findAllByUserId($_SESSION['user']['id']);
 

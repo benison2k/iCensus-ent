@@ -30,7 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const basePath = '/iCensus-ent/public';
 let grid;
-// Global state for sorting resident list
 let currentResidentList = [];
 let currentSort = { column: 'first_name', order: 'asc' };
 
@@ -45,17 +44,23 @@ function initializeDynamicDashboard() {
 
     document.getElementById('save-layout-btn').addEventListener('click', saveLayout);
     document.getElementById('reset-layout-btn').addEventListener('click', () => {
-        if(confirm('Are you sure you want to reset the layout? This will clear the current dashboard and reload with default positions.')) {
+        if(confirm('Are you sure you want to reset the layout? This will clear all chart settings, including saved date ranges.')) {
             localStorage.removeItem('chartLayout');
             localStorage.removeItem('visibleChartIds');
+            // Clear all chart-specific date ranges
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('chartDateRange_')) {
+                    localStorage.removeItem(key);
+                }
+            });
             location.reload();
         }
     });
 }
 
-async function loadUserCharts(startDate = null, endDate = null) {
+async function loadUserCharts() {
     if (grid) {
-        grid.removeAll(); // Clear existing charts before reloading
+        grid.removeAll(false); // Clear existing charts without destroying the grid
     }
     
     try {
@@ -84,10 +89,13 @@ async function loadUserCharts(startDate = null, endDate = null) {
                 
                 grid.addWidget(widgetHtml, gridOptions);
                 
+                // --- MODIFIED: Check for and apply saved date range for this chart ---
+                const savedDates = JSON.parse(localStorage.getItem(`chartDateRange_${chartId}`)) || {};
                 let dataUrl = `${basePath}/charts/data?chart_id=${chartId}`;
-                if (startDate && endDate) {
-                    dataUrl += `&start_date=${startDate}&end_date=${endDate}`;
+                if (savedDates.start && savedDates.end) {
+                    dataUrl += `&start_date=${savedDates.start}&end_date=${savedDates.end}`;
                 }
+
                 const dataResponse = await fetch(dataUrl);
                 const dataResult = await dataResponse.json();
 
@@ -197,7 +205,6 @@ function renderResidentList() {
     });
 }
 
-// --- MODIFIED: This function now accepts and uses the date filters ---
 async function showFilteredResidents(filterColumn, category, startDate, endDate) {
     const residentListContainer = document.getElementById('residentListContainer');
     residentListContainer.innerHTML = '<div class="list-placeholder">Loading residents...</div>';
@@ -208,7 +215,6 @@ async function showFilteredResidents(filterColumn, category, startDate, endDate)
     }
 
     const filterParams = new URLSearchParams({ [filterColumn]: category });
-    // --- THIS IS THE FIX ---
     if (startDate) filterParams.append('start_date', startDate);
     if (endDate) filterParams.append('end_date', endDate);
     
@@ -221,6 +227,34 @@ async function showFilteredResidents(filterColumn, category, startDate, endDate)
         console.error("Error fetching filtered residents:", error);
         currentResidentList = [];
         renderResidentList();
+    }
+}
+
+async function redrawDashboardChart(chartId, startDate, endDate) {
+    const chartDiv = document.getElementById(`chart-div-${chartId}`);
+    if (!chartDiv) return;
+
+    chartDiv.innerHTML = 'Loading...'; 
+
+    let dataUrl = `${basePath}/charts/data?chart_id=${chartId}`;
+    if (startDate && endDate) {
+        dataUrl += `&start_date=${startDate}&end_date=${endDate}`;
+    }
+
+    try {
+        const dataResponse = await fetch(dataUrl);
+        const dataResult = await dataResponse.json();
+
+        if (dataResult.status === 'success') {
+            chartDiv.chartData = dataResult.data;
+            chartDiv.chartType = dataResult.type;
+            drawChart(chartId, dataResult.type, dataResult.data);
+        } else {
+            chartDiv.innerHTML = `<div class="chart-error">Error loading data.</div>`;
+        }
+    } catch (error) {
+        console.error(`Failed to redraw chart ${chartId}:`, error);
+        chartDiv.innerHTML = `<div class="chart-error">An error occurred.</div>`;
     }
 }
 
@@ -263,8 +297,6 @@ function showChartDetailModal(chartId) {
                             const { row } = selection[0];
                             if (row !== null) {
                                 const category = chartObj.dataTable.getValue(row, 0);
-                                // --- THIS IS THE FIX ---
-                                // Pass the current date filter values to the resident list function
                                 showFilteredResidents(groupByColumn, category, startDateInput.value, endDateInput.value);
                                 chartObj.chart.setSelection([]);
                             }
@@ -283,6 +315,7 @@ function showChartDetailModal(chartId) {
         if (startDate && endDate) {
             localStorage.setItem(`chartDateRange_${chartId}`, JSON.stringify({ start: startDate, end: endDate }));
             redrawModalChart(startDate, endDate);
+            redrawDashboardChart(chartId, startDate, endDate); 
         } else {
             alert('Please select both a start and end date.');
         }
@@ -293,6 +326,7 @@ function showChartDetailModal(chartId) {
         endDateInput.value = '';
         localStorage.removeItem(`chartDateRange_${chartId}`);
         redrawModalChart(null, null);
+        redrawDashboardChart(chartId, null, null); 
     };
 
     modal.style.display = 'flex';
