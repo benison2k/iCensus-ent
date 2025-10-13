@@ -2,7 +2,6 @@
 // app/controllers/AnalyticsController.php
 require_once __DIR__ . '/../../core/Auth.php';
 require_once __DIR__ . '/../models/Analytics.php';
-// --- NEW: Add the Residents model ---
 require_once __DIR__ . '/../models/Residents.php';
 
 
@@ -19,7 +18,7 @@ class AnalyticsController {
 
     // --- NEW: Method to get filtered residents ---
     public function getFilteredResidents() {
-        $this->checkAuth(); // <-- THIS LINE WAS CORRECTED
+        $this->checkAuth();
         header('Content-Type: application/json');
 
         $db = new Database(require __DIR__ . '/../../config/database.php');
@@ -40,7 +39,6 @@ class AnalyticsController {
         $data = [
             'user' => $_SESSION['user'],
             'theme' => $_SESSION['user']['theme'] ?? 'light',
-            // --- UPDATED to include more comprehensive fields for report generation ---
             'available_columns' => [
                 'full_name' => 'Full Name',
                 'address' => 'Full Address',
@@ -72,14 +70,12 @@ class AnalyticsController {
         header('Content-Type: application/json');
         $metric = $_GET['metric'] ?? '';
         
-        // Get date parameters from the request
         $startDate = $_GET['start_date'] ?? null;
         $endDate = $_GET['end_date'] ?? null;
         
         $db = new Database(require __DIR__ . '/../../config/database.php');
         $analyticsModel = new Analytics($db);
         
-        // Pass the dates to the model function
         echo json_encode($analyticsModel->getChartData($metric, $startDate, $endDate));
         exit;
     }

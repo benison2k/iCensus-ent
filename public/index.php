@@ -26,7 +26,7 @@ spl_autoload_register(function ($class_name) {
 
 // --- Router ---
 $request_uri = strtok($_SERVER["REQUEST_URI"], '?');
-$base_path = '/iCensus-ent/public'; // Correct base path for your local setup
+$base_path = '/iCensus-ent/public';
 $route = str_replace($base_path, '', $request_uri);
 $route = trim($route, '/');
 $route = empty($route) ? 'home' : $route;
@@ -64,7 +64,7 @@ switch ($route) {
     case 'residents/process':
         (new ResidentController())->process();
         break;
-    case 'residents/find-by-address': // <-- NEW ROUTE
+    case 'residents/find-by-address':
         (new ResidentController())->findByAddress();
         break;
     case 'residents/search-heads':
@@ -76,23 +76,51 @@ switch ($route) {
     case 'residents/approve-all':
         (new ResidentController())->approveAll();
         break;
-
     case 'residents/reject':
         (new ResidentController())->reject();
+        break;
+
+    // --- DYNAMIC CHART ROUTES ---
+    case 'charts/save':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            (new ChartController())->save();
+        }
+        break;
+    case 'charts/preview':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            (new ChartController())->preview();
+        }
+        break;
+    case 'charts/data':
+        (new ChartController())->getData();
+        break;
+    case 'charts/user-charts':
+        (new ChartController())->getUserCharts();
         break;
 
     // --- Analytics Routes ---
     case 'analytics':
         (new AnalyticsController())->index();
         break;
-    case 'analytics/data':
-        (new AnalyticsController())->data();
-        break;
     case 'analytics/layout':
         (new AnalyticsController())->getLayout();
         break;
     case 'analytics/layout/save':
         (new AnalyticsController())->saveLayout();
+        break;
+    case 'analytics/layout/reset':
+        (new AnalyticsController())->resetLayout();
+        break;
+    case 'analytics/report':
+        (new AnalyticsController())->generateReport();
+        break;
+    case 'analytics/filtered-residents':
+        (new AnalyticsController())->getFilteredResidents();
+        break;
+    
+    // --- LEGACY ANALYTICS ROUTE (can be removed later) ---
+    case 'analytics/data':
+        (new AnalyticsController())->data();
         break;
 
     // --- Settings Routes ---
@@ -131,41 +159,18 @@ switch ($route) {
     case 'sysadmin/logs':
         (new SysadminController())->systemLogs();
         break;
-    case 'settings/verify-password':
-        (new SettingsController())->verifyPassword();
+    case 'sysadmin/logs/mark-as-seen':
+        (new SysadminController())->markLogAsSeen();
         break;
-    case 'analytics/layout/reset':
-        (new AnalyticsController())->resetLayout();
-        break;
-    case 'analytics/report':
-        (new AnalyticsController())->generateReport();
+    case 'sysadmin/logs/mark-all-as-seen':
+        (new SysadminController())->markAllLogsAsSeen();
         break;
     
     // --- About Page Route ---
     case 'about':
-        // Simple pages can be loaded directly if no controller logic is needed
         view('about/index', ['theme' => $_SESSION['user']['theme'] ?? 'light']);
         break;
     
-        case 'sysadmin/db-tools/process':
-            (new SysadminController())->processDbTools();
-            break;
-        case 'sysadmin/logs':
-            (new SysadminController())->systemLogs();
-            break;
-        
-        // --- NEW ROUTES FOR LOGS ---
-        case 'sysadmin/logs/mark-as-seen':
-            (new SysadminController())->markLogAsSeen();
-            break;
-        case 'sysadmin/logs/mark-all-as-seen':
-            (new SysadminController())->markAllLogsAsSeen();
-            break;
-
-        case 'analytics/filtered-residents':
-            (new AnalyticsController())->getFilteredResidents();
-            break;
-
     default:
         http_response_code(404);
         echo "<h1>404 Not Found</h1><p>The page '{$route}' could not be found.</p>";
