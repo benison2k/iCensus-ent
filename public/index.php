@@ -117,6 +117,28 @@ switch ($route) {
         (new ChartController())->getUserCharts();
         break;
 
+    case 'charts/delete':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        (new ChartController())->delete();
+        }
+        break;
+    case 'charts/get':
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        (new ChartController())->get();
+        }
+        break;
+    case 'charts/preview':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        (new ChartController())->preview();
+        }
+        break;
+    case 'charts/data':
+        (new ChartController())->getData();
+        break;
+    case 'charts/user-charts':
+        (new ChartController())->getUserCharts();
+        break;    
+
     // --- Analytics Routes ---
     case 'analytics':
         (new AnalyticsController())->index();

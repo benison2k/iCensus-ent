@@ -64,20 +64,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- NEW: Event delegation for edit and delete buttons ---
+    // --- MODIFIED: Event delegation for edit and delete buttons ---
     chartList.addEventListener('click', async (e) => {
         const editBtn = e.target.closest('.edit-chart-btn');
         if (editBtn) {
             const chartId = editBtn.dataset.id;
             openChartBuilderForEdit(chartId);
+            return; // Stop further execution
         }
-        // Add delete logic here in the future
+
+        const deleteBtn = e.target.closest('.delete-chart-btn');
+        if (deleteBtn) {
+            const chartId = deleteBtn.dataset.id;
+            if (confirm('Are you sure you want to permanently delete this chart?')) {
+                try {
+                    const formData = new FormData();
+                    formData.append('chart_id', chartId);
+
+                    const response = await fetch(`${basePath}/charts/delete`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const result = await response.json();
+
+                    if (result.status === 'success') {
+                        alert('Chart deleted successfully. The page will now reload.');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (result.message || 'Could not delete the chart.'));
+                    }
+                } catch (error) {
+                    console.error("Deletion failed:", error);
+                    alert('An unexpected error occurred.');
+                }
+            }
+        }
     });
 });
 
-/**
- * NEW: Function to open the chart builder in edit mode.
- */
 async function openChartBuilderForEdit(chartId) {
     const basePath = '/iCensus-ent/public';
     try {
@@ -90,12 +114,10 @@ async function openChartBuilderForEdit(chartId) {
         }
         const chartData = result.chart;
 
-        // Get modal elements
         const chartBuilderModal = document.getElementById('chartBuilderModal');
         const form = document.getElementById('chartBuilderForm');
         const filterContainer = document.getElementById('filterContainer');
 
-        // Reset form and set values
         form.reset();
         filterContainer.innerHTML = '';
         form.querySelector('#chartTitle').value = chartData.title;
@@ -103,7 +125,6 @@ async function openChartBuilderForEdit(chartId) {
         form.querySelector('#aggregateFunction').value = chartData.aggregate_function;
         form.querySelector('#groupByColumn').value = chartData.group_by_column;
         
-        // Add a hidden input for the chart ID
         let chartIdInput = form.querySelector('#chart_id');
         if (!chartIdInput) {
             chartIdInput = document.createElement('input');
@@ -114,7 +135,6 @@ async function openChartBuilderForEdit(chartId) {
         }
         chartIdInput.value = chartId;
         
-        // Hide the "Manage Charts" modal and show the builder
         document.getElementById('manageChartsModal').style.display = 'none';
         chartBuilderModal.style.display = 'block';
 
