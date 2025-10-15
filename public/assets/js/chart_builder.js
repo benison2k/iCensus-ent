@@ -16,6 +16,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (openBtn) {
         openBtn.addEventListener('click', () => {
             form.reset();
+            // Clear any existing chart_id hidden input
+            const existingIdInput = form.querySelector('#chart_id');
+            if(existingIdInput) existingIdInput.remove();
+            
             filterContainer.innerHTML = '';
             if (chartPreviewDiv) {
                 chartPreviewDiv.innerHTML = '<div class="chart-placeholder">Adjust the settings on the left to see a preview.</div>';
@@ -25,18 +29,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
-            modal.style.display = 'none';
-        });
+        closeBtn.addEventListener('click', () => (modal.style.display = 'none'));
     }
-
     window.addEventListener('click', (event) => {
-        if (event.target === modal) {
-            modal.style.display = 'none';
-        }
+        if (event.target === modal) modal.style.display = 'none';
     });
 
-    // --- TEMPLATE LOGIC ---
+    // --- Template Logic ---
     const templates = {
         gender_pie: { title: 'Population by Gender', chart_type: 'PieChart', aggregate_function: 'COUNT', group_by_column: 'gender' },
         purok_bar: { title: 'Population by Purok', chart_type: 'BarChart', aggregate_function: 'COUNT', group_by_column: 'purok' },
@@ -63,72 +62,134 @@ document.addEventListener('DOMContentLoaded', () => {
         button.addEventListener('click', (e) => applyTemplate(e.currentTarget.dataset.template));
     });
 
-    // --- FILTER LOGIC ---
+    // --- DYNAMIC FILTER LOGIC (MODIFIED) ---
     let filterCount = 0;
+
+    // Predefined options for specific filter columns
+    const filterOptions = {
+        gender: ['Male', 'Female'],
+        civil_status: ['Single', 'Married', 'Widowed', 'Separated'],
+        status: ['Active', 'Inactive', 'Moved', 'Deceased'],
+        ownership_status: ['Owned', 'Rented', 'Living with Relatives'],
+        educational_attainment: [
+            'No Formal Education', 'Pre-school', 'Elementary Level', 'Elementary Graduate', 
+            'High School Level', 'High School Graduate', 'Vocational Graduate', 
+            'College Level', 'College Graduate', 'Doctorate Degree'
+        ],
+        blood_type: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
+        is_pwd: ['Yes', 'No'],
+        is_4ps_member: ['Yes', 'No'],
+        is_registered_voter: ['Yes', 'No'],
+        is_solo_parent: ['Yes', 'No'],
+        is_indigent: ['Yes', 'No']
+    };
+
+    const updateValueInput = (columnSelect, valueContainer) => {
+        const selectedColumn = columnSelect.value;
+        const options = filterOptions[selectedColumn];
+        const filterName = valueContainer.dataset.name;
+
+        valueContainer.innerHTML = ''; // Clear previous input
+
+        if (options) {
+            // Create a select dropdown
+            const select = document.createElement('select');
+            select.name = filterName;
+            options.forEach(opt => {
+                const optionEl = document.createElement('option');
+                optionEl.value = (selectedColumn.startsWith('is_') ? (opt === 'Yes' ? '1' : '0') : opt);
+                optionEl.textContent = opt;
+                select.appendChild(optionEl);
+            });
+            valueContainer.appendChild(select);
+        } else {
+            // Create a text input
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.name = filterName;
+            input.placeholder = (selectedColumn === 'purok') ? 'e.g., 3' : 'Enter value';
+            valueContainer.appendChild(input);
+        }
+    };
+
     const createFilterRow = () => {
         filterCount++;
         const row = document.createElement('div');
         row.classList.add('filter-row');
-        row.innerHTML = `
-            <select name="filters[${filterCount}][column]" required>
-                <option value="purok">Purok</option>
-                <option value="gender">Gender</option>
-                <option value="civil_status">Civil Status</option>
-                <option value="educational_attainment">Educational Attainment</option>
-                <option value="occupation">Occupation</option>
-                <option value="ownership_status">Ownership Status</option>
-                <option value="blood_type">Blood Type</option>
-                <option value="nationality">Nationality</option>
-                <option value="relationship">Relationship to Head</option>
-                <option value="residency_status">Residency Status</option>
-                <option value="status">Resident Status</option>
-                <option value="is_pwd">Is PWD?</option>
-                <option value="is_4ps_member">Is 4Ps Member?</option>
-                <option value="is_registered_voter">Is Registered Voter?</option>
-                <option value="is_solo_parent">Is Solo Parent?</option>
-                <option value="is_indigent">Is Indigent?</option>
-            </select>
-            <select name="filters[${filterCount}][operator]" required>
-                <option value="=">is equal to</option>
-                <option value="!=">is not equal to</option>
-                <option value=">">is greater than</option>
-                <option value="<">is less than</option>
-                <option value=">=">is greater than or equal to</option>
-                <option value="<=">is less than or equal to</option>
-            </select>
-            <input type="text" name="filters[${filterCount}][value]" placeholder="Value (e.g., 1)" required>
-            <button type="button" class="btn-remove-filter">&times;</button>
+
+        const columnSelect = document.createElement('select');
+        columnSelect.name = `filters[${filterCount}][column]`;
+        columnSelect.required = true;
+        columnSelect.innerHTML = `
+            <option value="purok">Purok</option>
+            <option value="gender">Gender</option>
+            <option value="civil_status">Civil Status</option>
+            <option value="status">Resident Status</option>
+            <option value="ownership_status">Ownership Status</option>
+            <option value="educational_attainment">Educational Attainment</option>
+            <option value="blood_type">Blood Type</option>
+            <option value="is_pwd">Is PWD?</option>
+            <option value="is_4ps_member">Is 4Ps Member?</option>
+            <option value="is_registered_voter">Is Registered Voter?</option>
+            <option value="is_solo_parent">Is Solo Parent?</option>
+            <option value="is_indigent">Is Indigent?</option>
+            <option value="occupation">Occupation</option>
+            <option value="nationality">Nationality</option>
         `;
+        
+        const operatorSelect = document.createElement('select');
+        operatorSelect.name = `filters[${filterCount}][operator]`;
+        operatorSelect.required = true;
+        operatorSelect.innerHTML = `
+            <option value="=">is equal to</option>
+            <option value="!=">is not equal to</option>
+            <option value=">">is greater than</option>
+            <option value="<">is less than</option>
+            <option value=">=">is greater than or equal to</option>
+            <option value="<=">is less than or equal to</option>
+        `;
+
+        const valueContainer = document.createElement('div');
+        valueContainer.classList.add('value-container');
+        valueContainer.dataset.name = `filters[${filterCount}][value]`;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.classList.add('btn-remove-filter');
+        removeBtn.innerHTML = '&times;';
+        
+        row.append(columnSelect, operatorSelect, valueContainer, removeBtn);
         filterContainer.appendChild(row);
-        row.querySelector('.btn-remove-filter').addEventListener('click', () => {
+
+        updateValueInput(columnSelect, valueContainer);
+
+        columnSelect.addEventListener('change', () => updateValueInput(columnSelect, valueContainer));
+
+        removeBtn.addEventListener('click', () => {
             row.remove();
             debouncedUpdate();
         });
-        // Re-attach listeners to all relevant elements in the form
-        row.querySelectorAll('select, input').forEach(el => {
-            el.addEventListener('change', debouncedUpdate);
-            el.addEventListener('keyup', debouncedUpdate);
-        });
+
+        row.addEventListener('change', debouncedUpdate);
+        row.addEventListener('keyup', debouncedUpdate);
     };
 
     if (addFilterBtn) {
         addFilterBtn.addEventListener('click', createFilterRow);
     }
-
-    // --- LIVE PREVIEW LOGIC ---
-    function debounce(func, delay) {
+    
+    const debounce = (func, delay) => {
         let timeout;
-        return function(...args) {
+        return (...args) => {
             clearTimeout(timeout);
             timeout = setTimeout(() => func.apply(this, args), delay);
         };
-    }
+    };
 
-    async function updateChartPreview() {
+    const updateChartPreview = async () => {
         if (!chartPreviewDiv) return;
         chartPreviewDiv.innerHTML = '<div class="chart-placeholder">Generating preview...</div>';
 
-        // Wait until the Google Charts library is ready
         await window.googleChartsPromise;
         
         const formData = new FormData(form);
@@ -150,9 +211,9 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Preview failed:", error);
             chartPreviewDiv.innerHTML = `<div class="chart-error">An error occurred.</div>`;
         }
-    }
-
-    function drawPreviewChart(chartType, chartData) {
+    };
+    
+    const drawPreviewChart = (chartType, chartData) => {
         const options = {
             width: '100%', height: '100%', backgroundColor: 'transparent',
             chartArea: { 'width': '85%', 'height': '70%' },
@@ -184,13 +245,13 @@ document.addEventListener('DOMContentLoaded', () => {
             default: chart = new google.visualization.PieChart(chartPreviewDiv); break;
         }
         chart.draw(dataTable, options);
-    }
+    };
     
     const debouncedUpdate = debounce(updateChartPreview, 500);
     form.addEventListener('change', debouncedUpdate);
     form.addEventListener('keyup', debouncedUpdate);
 
-    // --- FORM SUBMISSION ---
+    // --- AJAX FORM SUBMISSION ---
     if (form) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -198,68 +259,29 @@ document.addEventListener('DOMContentLoaded', () => {
             const saveButton = document.getElementById('saveChartBtn');
             saveButton.disabled = true;
             saveButton.textContent = 'Saving...';
+            
+            const chartId = formData.get('chart_id');
+            const isUpdate = !!chartId;
+            const url = isUpdate ? `${basePath}/charts/update` : `${basePath}/charts/save`;
 
             try {
-                const response = await fetch(`${basePath}/charts/save`, { method: 'POST', body: formData });
+                const response = await fetch(url, { method: 'POST', body: formData });
                 const result = await response.json();
 
                 if (result.status === 'success') {
                     modal.style.display = 'none';
-                    const newChartDef = { id: result.chart_id, title: formData.get('title'), chart_type: formData.get('chart_type') };
-                    if (window.addChartToDashboard) {
-                        window.addChartToDashboard(newChartDef);
-                    } else {
-                        location.reload();
-                    }
+                    alert('Chart saved successfully! The page will now reload to show your changes.');
+                    location.reload();
                 } else {
-                    alert('Error: ' + (result.message || 'Could not save chart.'));
+                    alert('Error: ' + (result.message || 'Could not save the chart.'));
                 }
             } catch (error) {
                 console.error('Submission failed:', error);
-                alert('An unexpected error occurred.');
+                alert('An unexpected error occurred. Please try again.');
             } finally {
                 saveButton.disabled = false;
                 saveButton.textContent = 'Save Chart';
             }
         });
     }
-
-        // --- AJAX FORM SUBMISSION ---
-        if (form) {
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const formData = new FormData(form);
-                const saveButton = document.getElementById('saveChartBtn');
-                saveButton.disabled = true;
-                saveButton.textContent = 'Saving...';
-                
-                // --- MODIFIED: Check if we are updating or creating ---
-                const chartId = formData.get('chart_id');
-                const isUpdate = !!chartId;
-                const url = isUpdate ? `${basePath}/charts/update` : `${basePath}/charts/save`;
-    
-                try {
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        body: formData
-                    });
-    
-                    const result = await response.json();
-    
-                    if (result.status === 'success') {
-                        modal.style.display = 'none';
-                        alert('Chart saved successfully! The page will now reload to show your changes.');
-                        location.reload(); // Reload the page to reflect the changes
-                    } else {
-                        alert('Error: ' + (result.message || 'Could not save the chart.'));
-                    }
-                } catch (error) {
-                    console.error('Submission failed:', error);
-                    alert('An unexpected error occurred. Please try again.');
-                } finally {
-                    saveButton.disabled = false;
-                    saveButton.textContent = 'Save Chart';
-                }
-            });
-        }
 });
