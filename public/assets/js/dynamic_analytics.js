@@ -212,6 +212,8 @@ async function showFilteredResidents(filterColumn, category, startDate, endDate)
 
     if (['is_pwd', 'is_solo_parent', 'is_4ps_member', 'is_registered_voter', 'is_indigent'].includes(filterColumn)) {
         category = (category.toLowerCase() === 'yes') ? '1' : '0';
+    } else if (filterColumn === 'employment_status') {
+        category = category.toLowerCase();
     }
 
     const filterParams = new URLSearchParams({ [filterColumn]: category });
@@ -258,39 +260,56 @@ async function redrawDashboardChart(chartId, startDate, endDate) {
     }
 }
 
-
 function showChartDetailModal(chartId) {
     const chartContainer = document.querySelector(`.chart-container[data-chart-id='${chartId}']`);
     const modal = document.getElementById('chartDetailModal');
+    modal.dataset.chartId = chartId; // Store the chartId on the modal
+    const chartDetailContent = document.getElementById('chartDetailContent');
+    const modalGrid = modal.querySelector('.modal-grid');
     const modalTitle = document.getElementById('chartDetailTitle');
     const residentListContainer = document.getElementById('residentListContainer');
     const startDateInput = modal.querySelector('#modalStartDate');
     const endDateInput = modal.querySelector('#modalEndDate');
     const filterBtn = modal.querySelector('#modalFilterBtn');
     const clearBtn = modal.querySelector('#modalClearBtn');
+    const editBtn = modal.querySelector('#editChartFromModalBtn');
 
     const chartTitle = chartContainer.querySelector('.chart-title').textContent;
     const groupByColumn = chartContainer.dataset.groupBy;
     modalTitle.textContent = chartTitle;
-    residentListContainer.innerHTML = '<div class="list-placeholder">Click on a chart segment to see the list of residents.</div>';
+    
+    const originalChartDiv = document.getElementById(`chart-div-${chartId}`);
+    const chartType = originalChartDiv.chartType;
 
     const savedDates = JSON.parse(localStorage.getItem(`chartDateRange_${chartId}`)) || {};
     startDateInput.value = savedDates.start || '';
     endDateInput.value = savedDates.end || '';
 
+    const fetchAndDisplayKpiResidents = async (start, end) => {
+        residentListContainer.innerHTML = '<div class="list-placeholder">Loading residents...</div>';
+        let url = `${basePath}/analytics/filtered-residents?chart_id=${chartId}`;
+        if (start && end) { url += `&start_date=${start}&end_date=${end}`; }
+        try {
+            const response = await fetch(url);
+            const result = await response.json();
+            currentResidentList = (result.status === 'success' && result.residents) ? result.residents : [];
+            renderResidentList();
+        } catch (error) {
+            console.error("Error fetching KPI residents:", error);
+            currentResidentList = [];
+            renderResidentList();
+        }
+    };
+
     const redrawModalChart = async (start, end) => {
         let dataUrl = `${basePath}/charts/data?chart_id=${chartId}`;
-        if (start && end) {
-            dataUrl += `&start_date=${start}&end_date=${end}`;
-        }
-        
+        if (start && end) { dataUrl += `&start_date=${start}&end_date=${end}`; }
         try {
             const response = await fetch(dataUrl);
             const result = await response.json();
             if (result.status === 'success') {
                 const chartObj = drawChart('DetailContent', result.type, result.data);
-                
-                if(chartObj && chartObj.chart && groupByColumn) {
+                if (chartObj && chartObj.chart && groupByColumn) {
                     google.visualization.events.addListener(chartObj.chart, 'select', () => {
                         const selection = chartObj.chart.getSelection();
                         if (selection.length > 0) {
@@ -304,33 +323,45 @@ function showChartDetailModal(chartId) {
                     });
                 }
             }
-        } catch (error) {
-            console.error("Failed to redraw modal chart:", error);
-        }
+        } catch (error) { console.error("Failed to redraw modal chart:", error); }
     };
 
-    filterBtn.onclick = () => {
+    const handleFilter = () => {
         const startDate = startDateInput.value;
         const endDate = endDateInput.value;
         if (startDate && endDate) {
             localStorage.setItem(`chartDateRange_${chartId}`, JSON.stringify({ start: startDate, end: endDate }));
-            redrawModalChart(startDate, endDate);
+            chartType === 'KPI' ? fetchAndDisplayKpiResidents(startDate, endDate) : redrawModalChart(startDate, endDate);
             redrawDashboardChart(chartId, startDate, endDate); 
         } else {
             alert('Please select both a start and end date.');
         }
     };
-
-    clearBtn.onclick = () => {
+    
+    const handleClear = () => {
         startDateInput.value = '';
         endDateInput.value = '';
         localStorage.removeItem(`chartDateRange_${chartId}`);
-        redrawModalChart(null, null);
+        chartType === 'KPI' ? fetchAndDisplayKpiResidents(null, null) : redrawModalChart(null, null);
         redrawDashboardChart(chartId, null, null); 
     };
 
+    if (chartType === 'KPI') {
+        chartDetailContent.style.display = 'none';
+        modalGrid.style.gridTemplateColumns = '1fr';
+        residentListContainer.innerHTML = '';
+        fetchAndDisplayKpiResidents(startDateInput.value, endDateInput.value);
+    } else {
+        chartDetailContent.style.display = 'block';
+        modalGrid.style.gridTemplateColumns = '';
+        residentListContainer.innerHTML = '<div class="list-placeholder">Click on a chart segment to see the list of residents.</div>';
+        redrawModalChart(startDateInput.value, endDateInput.value);
+    }
+
+    filterBtn.onclick = handleFilter;
+    clearBtn.onclick = handleClear;
+    editBtn.onclick = () => openChartBuilderForEdit(chartId);
     modal.style.display = 'flex';
-    redrawModalChart(startDateInput.value, endDateInput.value);
 }
 
 async function openResidentDetailsModal(residentId) {
@@ -389,10 +420,7 @@ document.addEventListener('click', function(event) {
     const chartContainer = event.target.closest('.chart-container');
     if (chartContainer) {
         const chartId = chartContainer.dataset.chartId;
-        const chartDiv = document.getElementById(`chart-div-${chartId}`);
-        if (chartDiv && chartDiv.chartType !== 'KPI') {
-            showChartDetailModal(chartId);
-        }
+        showChartDetailModal(chartId);
     }
     
     const sortableHeader = event.target.closest('#residentListContainer .sortable');
@@ -412,6 +440,48 @@ document.addEventListener('click', function(event) {
         openResidentDetailsModal(infoBtn.dataset.id);
     }
 });
+
+async function openChartBuilderForEdit(chartId) {
+    try {
+        const response = await fetch(`${basePath}/charts/get?id=${chartId}`);
+        const result = await response.json();
+
+        if (result.status !== 'success') {
+            alert('Error: Could not fetch chart data.');
+            return;
+        }
+        const chartData = result.chart;
+
+        const chartBuilderModal = document.getElementById('chartBuilderModal');
+        const form = document.getElementById('chartBuilderForm');
+        const filterContainer = document.getElementById('filterContainer');
+
+        form.reset();
+        filterContainer.innerHTML = '';
+        form.querySelector('#chartTitle').value = chartData.title;
+        form.querySelector('#chartType').value = chartData.chart_type;
+        form.querySelector('#aggregateFunction').value = chartData.aggregate_function;
+        form.querySelector('#groupByColumn').value = chartData.group_by_column;
+        
+        let chartIdInput = form.querySelector('#chart_id');
+        if (!chartIdInput) {
+            chartIdInput = document.createElement('input');
+            chartIdInput.type = 'hidden';
+            chartIdInput.id = 'chart_id';
+            chartIdInput.name = 'chart_id';
+            form.appendChild(chartIdInput);
+        }
+        chartIdInput.value = chartId;
+        
+        document.getElementById('manageChartsModal').style.display = 'none';
+        document.getElementById('chartDetailModal').style.display = 'none';
+        chartBuilderModal.style.display = 'block';
+
+    } catch (error) {
+        console.error('Failed to open chart for editing:', error);
+        alert('An unexpected error occurred.');
+    }
+}
 
 window.addChartToDashboard = async function(chartDef) {
     const chartId = chartDef.id.toString();
@@ -441,5 +511,53 @@ window.addChartToDashboard = async function(chartDef) {
         }
     } catch (error) {
         console.error('Failed to add chart to dashboard:', error);
+    }
+};
+
+window.updateDashboardGrid = function(allCharts, visibleChartIds) {
+    const currentWidgets = grid.engine.nodes;
+    const currentChartIds = currentWidgets.map(n => n.id);
+
+    // Find charts to remove
+    const chartsToRemove = currentWidgets.filter(widget => !visibleChartIds.includes(widget.id));
+    chartsToRemove.forEach(widget => grid.removeWidget(widget.el));
+
+    // Find chart IDs to add
+    const chartsToAddIds = visibleChartIds.filter(id => !currentChartIds.includes(id));
+    chartsToAddIds.forEach(chartId => {
+        const chartDef = allCharts.find(c => c.id.toString() === chartId);
+        if (chartDef && window.addChartToDashboard) {
+            window.addChartToDashboard(chartDef);
+        }
+    });
+};
+
+window.removeChartFromDashboard = function(chartId) {
+    const widget = grid.engine.nodes.find(n => n.id === chartId);
+    if (widget) {
+        grid.removeWidget(widget.el);
+    }
+};
+
+window.redrawChartInPlace = function(chartId, updatedChartDef) {
+    const widget = grid.engine.nodes.find(n => n.id === chartId.toString());
+    if (widget) {
+        // Update title
+        const titleEl = widget.el.querySelector('.chart-title');
+        if (titleEl) {
+            titleEl.textContent = updatedChartDef.title;
+        }
+        // Update dataset for group-by
+        widget.el.dataset.groupBy = updatedChartDef.group_by_column || '';
+        
+        // Redraw chart with potentially new data
+        redrawDashboardChart(chartId);
+        
+        // --- THIS IS THE FIX ---
+        // If the detail modal is open for this chart, redraw it too
+        const detailModal = document.getElementById('chartDetailModal');
+        if (detailModal.style.display === 'flex' && detailModal.dataset.chartId === chartId.toString()) {
+            showChartDetailModal(chartId); 
+        }
     }
 };

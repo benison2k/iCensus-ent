@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const isChecked = visibleChartIds === null || visibleChartIds.includes(chart.id.toString());
                 const listItem = document.createElement('li');
                 listItem.classList.add('chart-list-item');
+                listItem.dataset.chartId = chart.id;
                 listItem.innerHTML = `
                     <input type="checkbox" id="chart-toggle-${chart.id}" value="${chart.id}" ${isChecked ? 'checked' : ''}>
                     <label for="chart-toggle-${chart.id}">${chart.title}</label>
@@ -59,8 +60,10 @@ document.addEventListener('DOMContentLoaded', () => {
         saveSelectionBtn.addEventListener('click', () => {
             const selectedIds = Array.from(manageModal.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
             localStorage.setItem('visibleChartIds', JSON.stringify(selectedIds));
-            alert('Dashboard updated! The page will now reload.');
-            location.reload();
+            manageModal.style.display = 'none';
+            if (window.updateDashboardGrid) {
+                window.updateDashboardGrid(allCharts, selectedIds);
+            }
         });
     }
 
@@ -88,8 +91,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     const result = await response.json();
 
                     if (result.status === 'success') {
-                        alert('Chart deleted successfully. The page will now reload.');
-                        location.reload();
+                        // Remove from UI without reloading
+                        const listItem = chartList.querySelector(`li[data-chart-id='${chartId}']`);
+                        if(listItem) listItem.remove();
+
+                        if (window.removeChartFromDashboard) {
+                            window.removeChartFromDashboard(chartId);
+                        }
                     } else {
                         alert('Error: ' + (result.message || 'Could not delete the chart.'));
                     }

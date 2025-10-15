@@ -112,6 +112,13 @@ class Chart
                     ELSE '60+ (Seniors)'
                 END as category";
                 break;
+            case 'employment_status':
+                $categorySelect = "CASE 
+                    WHEN occupation IS NULL OR occupation = '' OR LOWER(occupation) = 'unemployed' OR LOWER(occupation) = 'n/a' 
+                    THEN 'Unemployed' 
+                    ELSE 'Employed' 
+                END as category";
+                break;
             case 'is_pwd':
             case 'is_solo_parent':
             case 'is_4ps_member':
@@ -133,7 +140,7 @@ class Chart
         $allowedColumns = [
             'purok', 'gender', 'civil_status', 'educational_attainment', 'occupation',
             'ownership_status', 'blood_type', 'nationality', 'relationship', 'residency_status', 'status',
-            'is_pwd', 'is_4ps_member', 'is_registered_voter', 'is_solo_parent', 'is_indigent'
+            'employment_status', 'is_pwd', 'is_4ps_member', 'is_registered_voter', 'is_solo_parent', 'is_indigent'
         ];
         $allowedOperators = ['=', '!=', '>', '<', '>=', '<='];
 
@@ -142,8 +149,16 @@ class Chart
             $filters = json_decode($def['filter_conditions'], true);
             foreach ($filters as $filter) {
                 if (isset($filter['column'], $filter['operator']) && in_array($filter['column'], $allowedColumns) && in_array($filter['operator'], $allowedOperators)) {
-                    $where .= " AND {$filter['column']} {$filter['operator']} ?";
-                    $params[] = $filter['value'];
+                    if ($filter['column'] === 'employment_status') {
+                        if ($filter['value'] === 'employed') {
+                            $where .= " AND (occupation IS NOT NULL AND occupation != '' AND LOWER(occupation) != 'unemployed' AND LOWER(occupation) != 'n/a')";
+                        } else {
+                            $where .= " AND (occupation IS NULL OR occupation = '' OR LOWER(occupation) = 'unemployed' OR LOWER(occupation) = 'n/a')";
+                        }
+                    } else {
+                        $where .= " AND {$filter['column']} {$filter['operator']} ?";
+                        $params[] = $filter['value'];
+                    }
                 }
             }
         }

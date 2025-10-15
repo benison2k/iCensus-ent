@@ -47,6 +47,7 @@
                 <input type="date" id="modalEndDate">
                 <button id="modalFilterBtn" title="Apply Date Filter"><span class="material-icons">filter_alt</span></button>
                 <button id="modalClearBtn" title="Clear Date Filter"><span class="material-icons">clear</span></button>
+                <button id="editChartFromModalBtn" title="Edit Chart" style="background-color: #e8eaf6; color: #3949ab; margin-left: 1rem;"><span class="material-icons">edit</span></button>
             </div>
         </div>
         <div class="modal-grid">

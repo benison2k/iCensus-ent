@@ -77,13 +77,24 @@ class Analytics {
 
             // SIMPLE COUNTS
             case 'gender': case 'civil_status': case 'blood_type': case 'nationality': case 'purok': case 'relationship':
-            case 'resident_status_overview': case 'educational_attainment': case 'occupation': case 'ownership_status':
+            case 'resident_status_overview': case 'educational_attainment': case 'ownership_status':
                 $column = ($metric === 'resident_status_overview') ? 'status' : $metric;
                 foreach ($residents as $r) $data[trim($r[$column]) ?: 'Unknown'] = ($data[trim($r[$column]) ?: 'Unknown'] ?? 0) + 1;
-                if ($metric === 'occupation') {
-                    arsort($data);
-                    $data = array_slice($data, 0, 15); // Get top 15 occupations
+                break;
+            
+            case 'occupation':
+                foreach ($residents as $r) {
+                    $occupation = trim($r['occupation']);
+                    // Group empty, null, 'N/A', and explicit 'Unemployed' values together
+                    if (empty($occupation) || strtolower($occupation) === 'n/a' || strtolower($occupation) === 'unemployed') {
+                        $key = 'Unemployed';
+                    } else {
+                        $key = $occupation;
+                    }
+                    $data[$key] = ($data[$key] ?? 0) + 1;
                 }
+                arsort($data);
+                $data = array_slice($data, 0, 15); // Get top 15
                 break;
             
             // --- NEW: BOOLEAN/SOCIAL WELFARE COUNTS ---

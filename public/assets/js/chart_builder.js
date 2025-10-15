@@ -45,6 +45,9 @@ document.addEventListener('DOMContentLoaded', () => {
         four_ps_pie: { title: '4Ps Beneficiaries', chart_type: 'PieChart', aggregate_function: 'COUNT', group_by_column: 'is_4ps_member' },
         education_bar: { title: 'Educational Attainment', chart_type: 'BarChart', aggregate_function: 'COUNT', group_by_column: 'educational_attainment' },
         avg_age_kpi: { title: 'Average Age of Residents', chart_type: 'KPI', aggregate_function: 'AVG', group_by_column: '' },
+        voter_pie: { title: 'Voter Population', chart_type: 'PieChart', aggregate_function: 'COUNT', group_by_column: 'is_registered_voter' },
+        solo_parent_pie: { title: 'Solo Parents', chart_type: 'PieChart', aggregate_function: 'COUNT', group_by_column: 'is_solo_parent' },
+        occupation_bar: { title: 'Top 15 Occupations', chart_type: 'BarChart', aggregate_function: 'COUNT', group_by_column: 'occupation' },
     };
 
     const applyTemplate = (templateName) => {
@@ -71,6 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
         civil_status: ['Single', 'Married', 'Widowed', 'Separated'],
         status: ['Active', 'Inactive', 'Moved', 'Deceased'],
         ownership_status: ['Owned', 'Rented', 'Living with Relatives'],
+        employment_status: ['Employed', 'Unemployed'],
         educational_attainment: [
             'No Formal Education', 'Pre-school', 'Elementary Level', 'Elementary Graduate', 
             'High School Level', 'High School Graduate', 'Vocational Graduate', 
@@ -97,7 +101,13 @@ document.addEventListener('DOMContentLoaded', () => {
             select.name = filterName;
             options.forEach(opt => {
                 const optionEl = document.createElement('option');
-                optionEl.value = (selectedColumn.startsWith('is_') ? (opt === 'Yes' ? '1' : '0') : opt);
+                if (selectedColumn.startsWith('is_')) {
+                    optionEl.value = (opt === 'Yes' ? '1' : '0');
+                } else if (selectedColumn === 'employment_status') {
+                    optionEl.value = opt.toLowerCase();
+                } else {
+                    optionEl.value = opt;
+                }
                 optionEl.textContent = opt;
                 select.appendChild(optionEl);
             });
@@ -124,6 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <option value="purok">Purok</option>
             <option value="gender">Gender</option>
             <option value="civil_status">Civil Status</option>
+            <option value="employment_status">Employment Status</option>
             <option value="status">Resident Status</option>
             <option value="ownership_status">Ownership Status</option>
             <option value="educational_attainment">Educational Attainment</option>
@@ -270,8 +281,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (result.status === 'success') {
                     modal.style.display = 'none';
-                    alert('Chart saved successfully! The page will now reload to show your changes.');
-                    location.reload();
+                    if (isUpdate) {
+                        if (window.redrawChartInPlace) {
+                            window.redrawChartInPlace(result.chart.id, result.chart);
+                        }
+                    } else {
+                        if (formData.get('add_to_dashboard') && window.addChartToDashboard) {
+                            const newChartDef = result.chart;
+                            const visibleChartIds = JSON.parse(localStorage.getItem('visibleChartIds')) || [];
+                            visibleChartIds.push(newChartDef.id.toString());
+                            localStorage.setItem('visibleChartIds', JSON.stringify(visibleChartIds));
+                            window.addChartToDashboard(newChartDef);
+                        }
+                    }
                 } else {
                     alert('Error: ' + (result.message || 'Could not save the chart.'));
                 }
