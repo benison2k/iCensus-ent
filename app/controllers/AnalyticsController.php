@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../../core/Auth.php';
 require_once __DIR__ . '/../models/Analytics.php';
 require_once __DIR__ . '/../models/Residents.php';
+require_once __DIR__ . '/../models/Chart.php';
 
 
 class AnalyticsController {
@@ -20,13 +21,30 @@ class AnalyticsController {
     public function getFilteredResidents() {
         $this->checkAuth();
         header('Content-Type: application/json');
-
+    
         $db = new Database(require __DIR__ . '/../../config/database.php');
         $residentModel = new Resident($db);
-
-        // This will receive all filter params from our JS
-        $filters = $_GET; 
-
+        
+        $filters = $_GET;
+    
+        if (!empty($filters['chart_id'])) {
+            $chartModel = new Chart($db);
+            $chartDef = $chartModel->find($filters['chart_id']);
+    
+            if ($chartDef && !empty($chartDef['filter_conditions'])) {
+                $savedFilters = json_decode($chartDef['filter_conditions'], true);
+                $translatedFilters = [];
+                if (is_array($savedFilters)) {
+                    foreach ($savedFilters as $filter) {
+                        if (isset($filter['column'], $filter['operator'], $filter['value']) && $filter['operator'] === '=') {
+                            $translatedFilters[$filter['column']] = $filter['value'];
+                        }
+                    }
+                }
+                $filters = array_merge($translatedFilters, $filters);
+            }
+        }
+    
         $residents = $residentModel->getFiltered($filters);
         echo json_encode(['status' => 'success', 'residents' => $residents]);
         exit;

@@ -41,7 +41,8 @@ class ChartController {
 
         if ($chartId) {
             log_action('INFO', 'CHART_SAVED', "User saved chart definition ID#{$chartId}.");
-            echo json_encode(['status' => 'success', 'message' => 'Chart saved successfully!', 'chart_id' => $chartId]);
+            $newChartDef = $chartModel->find($chartId);
+            echo json_encode(['status' => 'success', 'message' => 'Chart saved successfully!', 'chart' => $newChartDef]);
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Failed to save chart to the database.']);
         }
@@ -71,7 +72,8 @@ class ChartController {
         $chartModel = new Chart($GLOBALS['db']);
         if ($chartModel->update($chartId, $data)) {
             log_action('INFO', 'CHART_UPDATED', "User updated chart definition ID#{$chartId}.");
-            echo json_encode(['status' => 'success', 'message' => 'Chart updated successfully!', 'chart_id' => $chartId]);
+            $updatedChart = $chartModel->find($chartId);
+            echo json_encode(['status' => 'success', 'message' => 'Chart updated successfully!', 'chart' => $updatedChart]);
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Failed to update chart.']);
         }

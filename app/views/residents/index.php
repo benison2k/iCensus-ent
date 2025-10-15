@@ -210,6 +210,14 @@
                     <div class="filter-fieldset">
                         <legend>Welfare & Education</legend>
                         <div class="filter-group">
+                            <label for="employmentStatusFilter">Employment Status</label>
+                            <select id="employmentStatusFilter">
+                                <option value="">All</option>
+                                <option value="employed">Employed</option>
+                                <option value="unemployed">Unemployed</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
                             <label for="educationFilter">Educational Attainment</label>
                             <select id="educationFilter">
                                 <option value="">All</option>

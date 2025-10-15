@@ -87,6 +87,7 @@
                                 <option value="purok">Purok</option>
                                 <option value="civil_status">Civil Status</option>
                                 <option value="educational_attainment">Educational Attainment</option>
+                                <option value="employment_status">Employment Status</option>
                                 <option value="occupation">Occupation</option>
                                 <option value="ownership_status">Ownership Status</option>
                                 <option value="blood_type">Blood Type</option>
@@ -110,7 +111,11 @@
 
                     <hr style="margin: 25px 0;">
 
-                    <div style="text-align: right;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div class="chart-builder-group" style="flex-direction: row; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="addToDashboard" name="add_to_dashboard" value="1" checked style="width: auto;">
+                            <label for="addToDashboard" style="margin-bottom: 0;">Add to dashboard immediately</label>
+                        </div>
                         <button type="submit" id="saveChartBtn" style="padding: 12px 20px; background-color: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer;">Save Chart</button>
                     </div>
                 </form>

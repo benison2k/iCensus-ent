@@ -219,6 +219,13 @@ class Resident {
             $query .= " AND occupation = ?";
             $params[] = $filters['occupation'];
         }
+        if (isset($filters['employment_status']) && $filters['employment_status'] !== '') {
+            if ($filters['employment_status'] === 'employed') {
+                $query .= " AND (occupation IS NOT NULL AND occupation != '' AND LOWER(occupation) != 'unemployed' AND LOWER(occupation) != 'n/a')";
+            } else {
+                $query .= " AND (occupation IS NULL OR occupation = '' OR LOWER(occupation) = 'unemployed' OR LOWER(occupation) = 'n/a')";
+            }
+        }
         if (!empty($filters['is_pwd'])) {
             $query .= " AND is_pwd = ?";
             $params[] = $filters['is_pwd'];
