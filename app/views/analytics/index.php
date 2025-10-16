@@ -7,49 +7,12 @@
     <?php $base_url = '/iCensus-ent/public'; ?>
     <link rel="stylesheet" href="<?= $base_url ?>/assets/css/style.css">
     <link rel="stylesheet" href="<?= $base_url ?>/assets/css/dashboard.css">
-    <link rel="stylesheet" href="<?= $base_url ?>/assets/css/analytics.css">
+    <link rel="stylesheet" href="<?= $base_url ?>/assets/css/analytics1.css">
     <link rel="stylesheet" href="<?= $base_url ?>/assets/css/report-modal.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/8.2.1/gridstack.min.css" rel="stylesheet"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/8.2.1/gridstack-all.js"></script>
-    <style>
-        /* Styles for the new date filter section */
-        .date-filter-container {
-            display: flex;
-            align-items: flex-end;
-            gap: 1rem;
-            margin-left: auto; /* Pushes the filter to the right */
-        }
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-        }
-        .filter-group label {
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: #495057;
-            margin-bottom: 0.3rem;
-        }
-        .filter-group input[type="date"] {
-            border: 1px solid #ccc;
-            padding: 0.5rem;
-            border-radius: 8px;
-            font-size: 0.9rem;
-        }
-        .filter-group button {
-            border: none;
-            padding: 0.6rem 1rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background-color 0.2s;
-        }
-        #filter-btn { background-color: #0d6efd; color: white; }
-        #clear-filter-btn { background-color: #6c757d; color: white; }
-        body.dark-mode .filter-group label { color: #adb5bd; }
-        body.dark-mode .filter-group input[type="date"] { background-color: #2C3E50; border-color: #4a5a6a; color: #fff; }
-    </style>
 </head>
 <body class="<?= $theme === 'dark' ? 'dark-mode' : '' ?>">
 
@@ -61,134 +24,54 @@
     <div class="dashboard-card">
         <div class="controls-wrapper">
             <div class="buttons-container">
+                <button id="addChartBtn" style="background-color: #e0f2f1; color: #00796b;"><span class="material-icons">add_chart</span> Add New Chart</button>
+                <button id="manageChartsBtn" style="background-color: #e3f2fd; color: #0d6efd;"><span class="material-icons">visibility</span> Manage Charts</button>
                 <button id="generate-report-btn"><span class="material-icons">assessment</span> Generate Report</button>
                 <button id="reset-layout-btn"><span class="material-icons">refresh</span> Reset Layout</button>
                 <button id="save-layout-btn"><span class="material-icons">save</span> Save Layout</button>
             </div>
-            
-            <div class="date-filter-container">
-                <div class="filter-group">
-                    <label for="startDate">Start Date</label>
-                    <input type="date" id="startDate">
-                </div>
-                <div class="filter-group">
-                    <label for="endDate">End Date</label>
-                    <input type="date" id="endDate">
-                </div>
-                <div class="filter-group">
-                    <button id="filter-btn" title="Apply Date Filter"><span class="material-icons">filter_alt</span></button>
-                    <button id="clear-filter-btn" title="Clear Date Filter"><span class="material-icons">clear</span></button>
-                </div>
-            </div>
-            </div>
+        </div>
         <hr class="separator-line">
         <div class="grid-stack"></div>
     </div>
 </main>
 
-<div id="report-modal" class="modal">
-    <div class="modal-content wide">
-        <span class="close-btn">&times;</span>
-        <h2 class="modal-title">Generate Custom Report</h2>
-        <form action="<?= $base_url ?>/analytics/report" method="post" target="_blank">
-            <div class="modal-form-grid">
-                <div class="modal-form-column">
-                     <fieldset>
-                        <legend><span class="material-icons">description</span> Report Data</legend>
-                        <div class="checkbox-group">
-                            <?php foreach($available_columns as $key => $label): ?>
-                                <label><input type="checkbox" name="columns[]" value="<?= $key ?>" <?= in_array($key, ['full_name', 'address', 'age', 'gender', 'status']) ? 'checked' : '' ?>> <?= $label ?></label>
-                            <?php endforeach; ?>
-                        </div>
-                    </fieldset>
-                </div>
-                <div class="modal-form-column">
-                    <fieldset>
-                        <legend><span class="material-icons">settings</span> Configuration</legend>
-                        <div class="form-group">
-                            <label for="orientation">Orientation:</label>
-                            <select name="orientation" id="orientation"><option value="portrait" selected>Portrait</option><option value="landscape">Landscape</option></select>
-                        </div>
-                        <div class="form-group">
-                            <label for="font_size">Font Size:</label>
-                            <select name="font_size" id="font_size"><option value="10px">Small</option><option value="12px" selected>Normal</option><option value="14px">Large</option></select>
-                        </div>
-                         <div class="form-group">
-                            <label for="sort_by">Sort Table By:</label>
-                            <select name="sort_by" id="sort_by"><option value="last_name">Last Name</option><option value="first_name">First Name</option><option value="date_added">Date Added</option><option value="dob">Age</option></select>
-                        </div>
-                        <div class="form-group">
-                            <label for="sort_order">Order:</label>
-                            <select name="sort_order" id="sort_order"><option value="ASC">Ascending</option><option value="DESC">Descending</option></select>
-                        </div>
-                    </fieldset>
-                </div>
-                <div class="modal-form-column">
-                    <fieldset>
-                        <legend><span class="material-icons">pie_chart</span> Visualizations</legend>
-                        <div class="checkbox-group">
-                            <?php foreach($available_charts as $key => $label): ?>
-                                <label><input type="checkbox" name="charts[]" value="<?= $key ?>"> <?= $label ?></label>
-                            <?php endforeach; ?>
-                        </div>
-                    </fieldset>
-                </div>
-            </div>
-            <button type="submit" class="btn-generate">Generate Report</button>
-        </form>
-    </div>
-</div>
-
-<div id="chart-detail-modal" class="modal">
+<div id="chartDetailModal" class="modal">
     <div class="modal-content large">
-        <span class="close-btn">&times;</span>
-        <div class="modal-grid">
-            <div id="chart-detail-content">
-                </div>
-            <div class="chart-info-panel">
-                <h3 id="chart-detail-title"></h3>
-                <p id="chart-detail-explanation"></p>
-                <div class="chart-interaction-tip">
-                    <span class="material-icons">ads_click</span>
-                    <p>Click on a chart segment (e.g., a pie slice or bar) to view the filtered residents.</p>
-                </div>
+        <span class="close-btn material-icons">close</span>
+        <div class="modal-header-controls">
+            <h3 id="chartDetailTitle">Chart Details</h3>
+            <div class="modal-date-filter">
+                <input type="date" id="modalStartDate">
+                <span>to</span>
+                <input type="date" id="modalEndDate">
+                <button id="modalFilterBtn" title="Apply Date Filter"><span class="material-icons">filter_alt</span></button>
+                <button id="modalClearBtn" title="Clear Date Filter"><span class="material-icons">clear</span></button>
+                <button id="editChartFromModalBtn" title="Edit Chart" style="background-color: #e8eaf6; color: #3949ab; margin-left: 1rem;"><span class="material-icons">edit</span></button>
             </div>
         </div>
-    </div>
-</div>
-
-<div id="filtered-residents-modal" class="modal">
-    <div class="modal-content large">
-        <span class="close-btn">&times;</span>
-        <h3 id="filtered-title">Filtered Residents</h3>
-        <div class="table-responsive" style="overflow-y: auto; max-height: 60vh;">
-            <table class="resident-table" id="filtered-residents-table">
-                <thead>
-                    <tr>
-                        <th>Full Name</th>
-                        <th>Age</th>
-                        <th>Gender</th>
-                        <th>Address</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    </tbody>
-            </table>
+        <div class="modal-grid">
+            <div id="chartDetailContent" class="chart-div" style="height: 100%;"></div>
+            <div id="residentListContainer">
+                <div class="list-placeholder">Click on a chart segment to see the list of residents.</div>
+            </div>
         </div>
     </div>
 </div>
 
 <div id="analytics-resident-detail-modal" class="modal">
-    <div class="modal-content large"> <span class="close-btn">&times;</span>
-        <h3 id="detail-modal-title">Resident Details</h3>
-        <div id="detail-modal-content" class="resident-details-grid">
-            <p>Loading...</p>
+    <div class="modal-content">
         </div>
-    </div>
 </div>
 
+<?php include __DIR__ . '/../components/chart_builder_modal.php'; ?>
+<?php include __DIR__ . '/../components/manage_charts_modal.php'; ?>
+
 <?php include __DIR__ . '/../components/footer.php'; ?>
-<script type="module" src="<?= $base_url ?>/assets/js/analytics1.js"></script>
+
+<script src="<?= $base_url ?>/assets/js/dynamic_analytics.js"></script>
+<script src="<?= $base_url ?>/assets/js/chart_builder.js"></script>
+<script src="<?= $base_url ?>/assets/js/manage_chart.js"></script> 
+
 </body>
 </html>

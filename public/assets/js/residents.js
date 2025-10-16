@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const isVoterFilter = document.getElementById('isVoterFilter');
     const educationFilter = document.getElementById('educationFilter');
     const occupationFilter = document.getElementById('occupationFilter');
+    const employmentStatusFilter = document.getElementById('employmentStatusFilter');
     const isPwdFilter = document.getElementById('isPwdFilter');
     const isSoloParentFilter = document.getElementById('isSoloParentFilter');
     const is4psMemberFilter = document.getElementById('is4psMemberFilter');
@@ -174,6 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const isVoter = isVoterFilter.checked;
         const education = educationFilter.value;
         const occupation = occupationFilter.value;
+        const employmentStatus = employmentStatusFilter.value;
         const isPwd = isPwdFilter.value;
         const isSoloParent = isSoloParentFilter.value;
         const is4ps = is4psMemberFilter.value;
@@ -204,6 +206,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isVoter && !r.is_registered_voter) return false;
             if (education && r.educational_attainment !== education) return false;
             if (occupation && r.occupation !== occupation) return false;
+            if (employmentStatus === 'employed' && (!r.occupation || r.occupation.trim() === '')) return false;
+            if (employmentStatus === 'unemployed' && r.occupation && r.occupation.trim() !== '') return false;
             if (isPwd !== "" && r.is_pwd != isPwd) return false;
             if (isSoloParent !== "" && r.is_solo_parent != isSoloParent) return false;
             if (is4ps !== "" && r.is_4ps_member != is4ps) return false;
@@ -341,7 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(el) el.addEventListener('input', applyFilters);
     });
 
-    [statusFilter, genderFilter, purokFilter, householdFilter, civilStatusFilter, bloodTypeFilter, residencyStatusFilter, relationshipFilter, isHeadFilter, birthMonthFilter, emergencyContactFilter, isVoterFilter, educationFilter, occupationFilter, isPwdFilter, isSoloParentFilter, is4psMemberFilter].forEach(el => {
+    [statusFilter, genderFilter, purokFilter, householdFilter, civilStatusFilter, bloodTypeFilter, residencyStatusFilter, relationshipFilter, isHeadFilter, birthMonthFilter, emergencyContactFilter, isVoterFilter, educationFilter, occupationFilter, employmentStatusFilter, isPwdFilter, isSoloParentFilter, is4psMemberFilter].forEach(el => {
         if(el) el.addEventListener('change', applyFilters);
     });
     
@@ -377,7 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
         relationshipFilter.value = ''; isHeadFilter.value = ''; birthMonthFilter.value = '';
         dateAddedMin.value = ''; dateAddedMax.value = ''; emergencyContactFilter.value = '';
         isVoterFilter.checked = false;
-        educationFilter.value = ''; occupationFilter.value = ''; isPwdFilter.value = '';
+        educationFilter.value = ''; occupationFilter.value = ''; employmentStatusFilter.value = ''; isPwdFilter.value = '';
         isSoloParentFilter.value = ''; is4psMemberFilter.value = '';
         applyFilters();
     });

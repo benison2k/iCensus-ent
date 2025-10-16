@@ -50,6 +50,9 @@ class Auth {
             'two_fa' => $user['two_fa'] ?? 0
         ];
 
+        // --- BUG FIX: Add this line to initialize the session timer ---
+        $_SESSION['LAST_ACTIVITY'] = time();
+
         // UPDATED: Log the successful login event after setting the session
         log_action('INFO', 'USER_LOGIN_SUCCESS', "User '" . htmlspecialchars($username) . "' logged in successfully.");
 
