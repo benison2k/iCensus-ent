@@ -46,6 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
         education_bar: { title: 'Educational Attainment', chart_type: 'BarChart', aggregate_function: 'COUNT', group_by_column: 'educational_attainment' },
         avg_age_kpi: { title: 'Average Age of Residents', chart_type: 'KPI', aggregate_function: 'AVG', group_by_column: '' },
         voter_pie: { title: 'Voter Population', chart_type: 'PieChart', aggregate_function: 'COUNT', group_by_column: 'is_registered_voter' },
+        student_pie: { title: 'Student Population', chart_type: 'PieChart', aggregate_function: 'COUNT', group_by_column: 'occupation', filters: [{ column: 'occupation', operator: '=', value: 'Student' }] },
         solo_parent_pie: { title: 'Solo Parents', chart_type: 'PieChart', aggregate_function: 'COUNT', group_by_column: 'is_solo_parent' },
         occupation_bar: { title: 'Top 15 Occupations', chart_type: 'BarChart', aggregate_function: 'COUNT', group_by_column: 'occupation' },
     };
@@ -58,6 +59,12 @@ document.addEventListener('DOMContentLoaded', () => {
         form.querySelector('#aggregateFunction').value = template.aggregate_function;
         form.querySelector('#groupByColumn').value = template.group_by_column;
         filterContainer.innerHTML = '';
+
+        if (template.filters) {
+            template.filters.forEach(filter => {
+                createFilterRow(filter);
+            });
+        }
         debouncedUpdate();
     };
 
@@ -68,7 +75,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- DYNAMIC FILTER LOGIC (MODIFIED) ---
     let filterCount = 0;
 
-    // Predefined options for specific filter columns
     const filterOptions = {
         gender: ['Male', 'Female'],
         civil_status: ['Single', 'Married', 'Widowed', 'Separated'],
@@ -82,26 +88,26 @@ document.addEventListener('DOMContentLoaded', () => {
         ],
         blood_type: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
         is_pwd: ['Yes', 'No'],
+        is_student: ['Yes', 'No'],
         is_4ps_member: ['Yes', 'No'],
         is_registered_voter: ['Yes', 'No'],
         is_solo_parent: ['Yes', 'No'],
         is_indigent: ['Yes', 'No']
     };
 
-    const updateValueInput = (columnSelect, valueContainer) => {
+    const updateValueInput = (columnSelect, valueContainer, preselectedValue = null) => {
         const selectedColumn = columnSelect.value;
         const options = filterOptions[selectedColumn];
         const filterName = valueContainer.dataset.name;
 
-        valueContainer.innerHTML = ''; // Clear previous input
+        valueContainer.innerHTML = '';
 
         if (options) {
-            // Create a select dropdown
             const select = document.createElement('select');
             select.name = filterName;
             options.forEach(opt => {
                 const optionEl = document.createElement('option');
-                if (selectedColumn.startsWith('is_')) {
+                if (selectedColumn.startsWith('is_') || selectedColumn === 'is_student') {
                     optionEl.value = (opt === 'Yes' ? '1' : '0');
                 } else if (selectedColumn === 'employment_status') {
                     optionEl.value = opt.toLowerCase();
@@ -109,20 +115,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     optionEl.value = opt;
                 }
                 optionEl.textContent = opt;
+                if (preselectedValue && optionEl.value === preselectedValue) {
+                    optionEl.selected = true;
+                }
                 select.appendChild(optionEl);
             });
             valueContainer.appendChild(select);
         } else {
-            // Create a text input
             const input = document.createElement('input');
             input.type = 'text';
             input.name = filterName;
             input.placeholder = (selectedColumn === 'purok') ? 'e.g., 3' : 'Enter value';
+            if (preselectedValue) {
+                input.value = preselectedValue;
+            }
             valueContainer.appendChild(input);
         }
     };
 
-    const createFilterRow = () => {
+    const createFilterRow = (filterData = null) => {
         filterCount++;
         const row = document.createElement('div');
         row.classList.add('filter-row');
@@ -135,6 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <option value="gender">Gender</option>
             <option value="civil_status">Civil Status</option>
             <option value="employment_status">Employment Status</option>
+            <option value="is_student">Is Student?</option>
             <option value="status">Resident Status</option>
             <option value="ownership_status">Ownership Status</option>
             <option value="educational_attainment">Educational Attainment</option>
@@ -154,10 +166,6 @@ document.addEventListener('DOMContentLoaded', () => {
         operatorSelect.innerHTML = `
             <option value="=">is equal to</option>
             <option value="!=">is not equal to</option>
-            <option value=">">is greater than</option>
-            <option value="<">is less than</option>
-            <option value=">=">is greater than or equal to</option>
-            <option value="<=">is less than or equal to</option>
         `;
 
         const valueContainer = document.createElement('div');
@@ -172,7 +180,13 @@ document.addEventListener('DOMContentLoaded', () => {
         row.append(columnSelect, operatorSelect, valueContainer, removeBtn);
         filterContainer.appendChild(row);
 
-        updateValueInput(columnSelect, valueContainer);
+        if (filterData) {
+            columnSelect.value = filterData.column;
+            operatorSelect.value = filterData.operator;
+            updateValueInput(columnSelect, valueContainer, filterData.value);
+        } else {
+            updateValueInput(columnSelect, valueContainer);
+        }
 
         columnSelect.addEventListener('change', () => updateValueInput(columnSelect, valueContainer));
 
@@ -186,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     if (addFilterBtn) {
-        addFilterBtn.addEventListener('click', createFilterRow);
+        addFilterBtn.addEventListener('click', () => createFilterRow());
     }
     
     const debounce = (func, delay) => {

@@ -221,9 +221,9 @@ class Resident {
         }
         if (isset($filters['employment_status']) && $filters['employment_status'] !== '') {
             if ($filters['employment_status'] === 'employed') {
-                $query .= " AND (occupation IS NOT NULL AND occupation != '' AND LOWER(occupation) != 'unemployed' AND LOWER(occupation) != 'n/a')";
+                $query .= " AND (occupation IS NOT NULL AND occupation != '' AND LOWER(occupation) NOT IN ('unemployed', 'n/a', 'student'))";
             } else {
-                $query .= " AND (occupation IS NULL OR occupation = '' OR LOWER(occupation) = 'unemployed' OR LOWER(occupation) = 'n/a')";
+                $query .= " AND (occupation IS NULL OR occupation = '' OR LOWER(occupation) IN ('unemployed', 'n/a', 'student'))";
             }
         }
         if (!empty($filters['is_pwd'])) {

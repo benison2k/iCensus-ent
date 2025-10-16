@@ -341,3 +341,28 @@ body.dark-mode .action-button-link:hover {
     top: -10px !important;      /* Pulls the badge up */
     right: -10px !important;     /* Pushes the badge to the right */
 }
+
+/* --- NEW: Styles for Sort Dropdown --- */
+.resident-table th {
+    position: relative;
+}
+.sort-select {
+    font-size: 0.75rem;
+    padding: 2px 4px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    margin-top: 4px;
+    display: block; /* Make it appear below the header text */
+}
+body.dark-mode .sort-select {
+    background-color: #2C3E50;
+    color: #fff;
+    border-color: #4a5a6a;
+}
+.sortable {
+    cursor: pointer;
+}
+.sortable .sort-icon .material-icons {
+    font-size: 1rem;
+    vertical-align: middle;
+}

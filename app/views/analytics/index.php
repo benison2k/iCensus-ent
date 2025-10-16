@@ -30,6 +30,13 @@
                 <button id="reset-layout-btn"><span class="material-icons">refresh</span> Reset Layout</button>
                 <button id="save-layout-btn"><span class="material-icons">save</span> Save Layout</button>
             </div>
+            <div class="toggle-switch-group" style="background-color: transparent;">
+                <label for="autoFillSwitch">Auto-fill</label>
+                <label class="switch">
+                    <input type="checkbox" id="autoFillSwitch">
+                    <span class="slider"></span>
+                </label>
+            </div>
         </div>
         <hr class="separator-line">
         <div class="grid-stack"></div>
@@ -48,6 +55,8 @@
                 <button id="modalFilterBtn" title="Apply Date Filter"><span class="material-icons">filter_alt</span></button>
                 <button id="modalClearBtn" title="Clear Date Filter"><span class="material-icons">clear</span></button>
                 <button id="editChartFromModalBtn" title="Edit Chart" style="background-color: #e8eaf6; color: #3949ab; margin-left: 1rem;"><span class="material-icons">edit</span></button>
+                <button id="hideChartFromModalBtn" title="Hide Chart" style="background-color: #fffde7; color: #f57f17; margin-left: 0.5rem;"><span class="material-icons">visibility_off</span></button>
+                <button id="deleteChartFromModalBtn" title="Delete Chart" style="background-color: #ffebee; color: #c62828; margin-left: 0.5rem;"><span class="material-icons">delete_forever</span></button>
             </div>
         </div>
         <div class="modal-grid">
@@ -58,6 +67,7 @@
         </div>
     </div>
 </div>
+
 
 <div id="analytics-resident-detail-modal" class="modal">
     <div class="modal-content">

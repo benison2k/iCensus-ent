@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const addResidentBtn = document.getElementById('addResidentBtn');
 
     // --- TABLE & FILTER ELEMENTS ---
+    const residentsTable = document.getElementById('residentsTable');
     const tableBody = document.getElementById('residentsTableBody');
     const searchInput = document.getElementById('searchInput');
     const houseNoFilter = document.getElementById('houseNoFilter');
@@ -35,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const educationFilter = document.getElementById('educationFilter');
     const occupationFilter = document.getElementById('occupationFilter');
     const employmentStatusFilter = document.getElementById('employmentStatusFilter');
+    const isStudentFilter = document.getElementById('isStudentFilter');
     const isPwdFilter = document.getElementById('isPwdFilter');
     const isSoloParentFilter = document.getElementById('isSoloParentFilter');
     const is4psMemberFilter = document.getElementById('is4psMemberFilter');
@@ -57,6 +59,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentPage = 1;
     let pageSize = parseInt(pageSizeSelect.value, 10);
     let filteredResidents = [];
+    let currentSort = {
+        column: 'last_name',
+        order: 'asc'
+    };
 
     // --- MODAL & FORM FUNCTIONS ---
     const setFormEditable = (editable) => {
@@ -116,12 +122,21 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const renderTable = () => {
+        filteredResidents.sort((a, b) => {
+            const valA = (a[currentSort.column] || '').toString().toLowerCase();
+            const valB = (b[currentSort.column] || '').toString().toLowerCase();
+            
+            let comparison = valA.localeCompare(valB, undefined, {numeric: true});
+
+            return currentSort.order === 'desc' ? comparison * -1 : comparison;
+        });
+
         tableBody.innerHTML = '';
         const start = (currentPage - 1) * pageSize;
         const end = start + pageSize;
         const pageSlice = filteredResidents.slice(start, end);
         let rowsHtml = '';
-    
+
         if (filteredResidents.length === 0) {
             rowsHtml = '<tr><td colspan="6" style="text-align: center; height: 380px; vertical-align: middle;">No residents found matching the criteria.</td></tr>';
         } else {
@@ -132,26 +147,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 const safeStatus = (r.status || '').toLowerCase();
                 rowsHtml += `
                     <tr data-id="${r.id}">
-                        <td>${fullName}</td><td>${r.age}</td><td>${r.gender}</td>
+                        <td>${fullName}</td>
+                        <td>${r.age}</td>
+                        <td>${r.gender}</td>
                         <td>${address}</td>
                         <td><span class="status-label status-${safeStatus}">${r.status}</span></td>
                         <td><button class="moreBtn material-icons" data-id="${r.id}" title="View Resident Info">more_vert</button></td>
                     </tr>`;
             });
         }
-    
+
         tableBody.innerHTML = rowsHtml;
-    
+
         if (filteredResidents.length > 0) {
             const placeholdersNeeded = pageSize - pageSlice.length;
             for (let i = 0; i < placeholdersNeeded; i++) {
                 tableBody.innerHTML += '<tr><td colspan="6">&nbsp;</td></tr>';
             }
         }
-    
+
         updatePagination();
+        updateSortIcons();
         attachEventListenersToRows();
-    };    
+    };
 
     const applyFilters = () => {
         const searchTerm = searchInput.value.toLowerCase();
@@ -176,12 +194,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const education = educationFilter.value;
         const occupation = occupationFilter.value;
         const employmentStatus = employmentStatusFilter.value;
+        const isStudent = isStudentFilter.value;
         const isPwd = isPwdFilter.value;
         const isSoloParent = isSoloParentFilter.value;
         const is4ps = is4psMemberFilter.value;
 
         filteredResidents = allResidentsData.filter(r => {
             const fullName = `${r.first_name} ${r.last_name}`.toLowerCase();
+            const residentOccupation = (r.occupation || '').trim().toLowerCase();
 
             if (searchTerm && !fullName.includes(searchTerm)) return false;
             if (houseNo && r.house_no && !r.house_no.toString().toLowerCase().includes(houseNo)) return false;
@@ -205,9 +225,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (hasEmergency === 'No' && r.emergency_name) return false;
             if (isVoter && !r.is_registered_voter) return false;
             if (education && r.educational_attainment !== education) return false;
-            if (occupation && r.occupation !== occupation) return false;
-            if (employmentStatus === 'employed' && (!r.occupation || r.occupation.trim() === '')) return false;
-            if (employmentStatus === 'unemployed' && r.occupation && r.occupation.trim() !== '') return false;
+            if (occupation && residentOccupation !== occupation.toLowerCase()) return false;
+            if (employmentStatus) {
+                const isConsideredUnemployed = residentOccupation === '' || residentOccupation === 'unemployed' || residentOccupation === 'n/a' || residentOccupation === 'student';
+                if (employmentStatus === 'employed' && isConsideredUnemployed) return false;
+                if (employmentStatus === 'unemployed' && !isConsideredUnemployed) return false;
+            }
+            if (isStudent !== '' && (isStudent === '1' ? residentOccupation !== 'student' : residentOccupation === 'student')) return false;
             if (isPwd !== "" && r.is_pwd != isPwd) return false;
             if (isSoloParent !== "" && r.is_solo_parent != isSoloParent) return false;
             if (is4ps !== "" && r.is_4ps_member != is4ps) return false;
@@ -239,6 +263,23 @@ document.addEventListener('DOMContentLoaded', () => {
         nextPageBtn.disabled = currentPage === totalPages;
     };
 
+    const updateSortIcons = () => {
+        document.querySelectorAll('.sort-icon').forEach(icon => icon.innerHTML = '');
+        
+        const activeHeader = document.querySelector(`th[data-sort="${currentSort.column}"]`);
+        if (activeHeader) {
+            let indicator = '';
+            if (currentSort.column === 'age') {
+                indicator = `<span class="material-icons">${currentSort.order === 'asc' ? 'arrow_upward' : 'arrow_downward'}</span>`;
+            } else if (currentSort.column === 'last_name' || currentSort.column === 'first_name') {
+                const sortOrderText = currentSort.order === 'asc' ? '(A-Z)' : '(Z-A)';
+                const sortColumnText = `(by ${currentSort.column === 'first_name' ? 'First' : 'Last'})`;
+                indicator = `${sortColumnText} ${sortOrderText}`;
+            }
+            activeHeader.querySelector('.sort-icon').innerHTML = indicator;
+        }
+    };
+
     const jumpToPage = () => {
         const totalPages = Math.ceil(filteredResidents.length / pageSize) || 1;
         const page = parseInt(gotoPageInput.value, 10);
@@ -257,7 +298,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
     editBtn.addEventListener('click', () => setFormEditable(true));
 
-    // --- START: AJAX FORM SUBMISSION LOGIC ---
     const ajaxModal = document.getElementById('ajaxResultModal');
     const ajaxMessage = document.getElementById('ajaxResultMessage');
     const ajaxModalContent = ajaxModal.querySelector('.modal-content');
@@ -272,11 +312,10 @@ document.addEventListener('DOMContentLoaded', () => {
         ajaxMessage.textContent = message;
         ajaxModalContent.className = 'modal-content ' + type;
         ajaxModal.style.display = 'block';
-        // Reload the page after showing the message
         setTimeout(() => {
             ajaxModal.style.display = "none";
             window.location.reload();
-        }, 2000); // Reload after 2 seconds
+        }, 2000);
     }
 
     async function handleFormSubmit(form) {
@@ -288,10 +327,10 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const result = await response.json();
             if (response.ok && result.status === 'success') {
-                modal.style.display = 'none'; // Close the resident form modal
+                modal.style.display = 'none';
                 showAjaxResult(result.message || 'Resident saved successfully!', 'success');
             } else {
-                alert(result.message || 'An error occurred.'); // Show an alert for immediate error feedback
+                alert(result.message || 'An error occurred.');
             }
         } catch (error) {
             alert('A network error occurred. Please try again.');
@@ -323,7 +362,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-    // --- END: AJAX FORM SUBMISSION LOGIC ---
 
     toggleFiltersBtn.addEventListener('click', () => {
         const isExpanded = advancedFilters.style.display === 'grid';
@@ -331,7 +369,6 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleFiltersBtn.classList.toggle('expanded', !isExpanded);
     });
 
-    // --- NEW: Click outside to close advanced filters ---
     window.addEventListener('click', (e) => {
         const filterWrapper = document.querySelector('.filter-wrapper');
         if (filterWrapper && !filterWrapper.contains(e.target) && advancedFilters.style.display === 'grid') {
@@ -339,13 +376,12 @@ document.addEventListener('DOMContentLoaded', () => {
             toggleFiltersBtn.classList.remove('expanded');
         }
     });
-    // --- END NEW ---
 
     [searchInput, houseNoFilter, streetFilter, ageMin, ageMax, dateAddedMin, dateAddedMax].forEach(el => {
         if(el) el.addEventListener('input', applyFilters);
     });
 
-    [statusFilter, genderFilter, purokFilter, householdFilter, civilStatusFilter, bloodTypeFilter, residencyStatusFilter, relationshipFilter, isHeadFilter, birthMonthFilter, emergencyContactFilter, isVoterFilter, educationFilter, occupationFilter, employmentStatusFilter, isPwdFilter, isSoloParentFilter, is4psMemberFilter].forEach(el => {
+    [statusFilter, genderFilter, purokFilter, householdFilter, civilStatusFilter, bloodTypeFilter, residencyStatusFilter, relationshipFilter, isHeadFilter, birthMonthFilter, emergencyContactFilter, isVoterFilter, educationFilter, occupationFilter, employmentStatusFilter, isStudentFilter, isPwdFilter, isSoloParentFilter, is4psMemberFilter].forEach(el => {
         if(el) el.addEventListener('change', applyFilters);
     });
     
@@ -381,10 +417,50 @@ document.addEventListener('DOMContentLoaded', () => {
         relationshipFilter.value = ''; isHeadFilter.value = ''; birthMonthFilter.value = '';
         dateAddedMin.value = ''; dateAddedMax.value = ''; emergencyContactFilter.value = '';
         isVoterFilter.checked = false;
-        educationFilter.value = ''; occupationFilter.value = ''; employmentStatusFilter.value = ''; isPwdFilter.value = '';
+        educationFilter.value = ''; occupationFilter.value = ''; employmentStatusFilter.value = '';
+        isStudentFilter.value = ''; isPwdFilter.value = '';
         isSoloParentFilter.value = ''; is4psMemberFilter.value = '';
         applyFilters();
     });
+    
+    if (residentsTable) {
+        residentsTable.querySelector('thead').addEventListener('click', (e) => {
+            const header = e.target.closest('.sortable');
+            if (header) {
+                const sortColumn = header.dataset.sort;
+
+                if (sortColumn === 'last_name') {
+                    if (currentSort.column === 'last_name') {
+                        if (currentSort.order === 'asc') {
+                            currentSort.order = 'desc';
+                        } else {
+                            currentSort.column = 'first_name';
+                            currentSort.order = 'asc';
+                        }
+                    } else if (currentSort.column === 'first_name') {
+                        if (currentSort.order === 'asc') {
+                            currentSort.order = 'desc';
+                        } else {
+                            currentSort.column = 'last_name';
+                            currentSort.order = 'asc';
+                        }
+                    } else {
+                        currentSort.column = 'last_name';
+                        currentSort.order = 'asc';
+                    }
+                } else {
+                    if (currentSort.column === sortColumn) {
+                        currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        currentSort.column = sortColumn;
+                        currentSort.order = 'asc';
+                    }
+                }
+                
+                renderTable();
+            }
+        });
+    }
 
     // --- INITIALIZATION ---
     if (typeof allResidentsData !== 'undefined' && !isPendingView) {

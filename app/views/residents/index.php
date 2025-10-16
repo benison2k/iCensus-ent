@@ -218,6 +218,14 @@
                             </select>
                         </div>
                         <div class="filter-group">
+                            <label for="isStudentFilter">Is Student?</label>
+                            <select id="isStudentFilter">
+                                <option value="">All</option>
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
                             <label for="educationFilter">Educational Attainment</label>
                             <select id="educationFilter">
                                 <option value="">All</option>
@@ -325,7 +333,10 @@
                 <table class="resident-table" id="residentsTable">
                     <thead>
                         <tr>
-                            <th>Full Name</th><th>Age</th><th>Gender</th><th>Address</th>
+                            <th class="sortable" data-sort="last_name">Full Name <span class="sort-icon"></span></th>
+                            <th class="sortable" data-sort="age">Age <span class="sort-icon"></span></th>
+                            <th>Gender</th>
+                            <th>Address</th>
                             <th><?= $isPendingView ? 'Date Submitted' : 'Status' ?></th>
                             <th>Actions</th>
                         </tr>

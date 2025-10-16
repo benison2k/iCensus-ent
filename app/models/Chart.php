@@ -114,7 +114,7 @@ class Chart
                 break;
             case 'employment_status':
                 $categorySelect = "CASE 
-                    WHEN occupation IS NULL OR occupation = '' OR LOWER(occupation) = 'unemployed' OR LOWER(occupation) = 'n/a' 
+                    WHEN occupation IS NULL OR occupation = '' OR LOWER(occupation) IN ('unemployed', 'n/a', 'student') 
                     THEN 'Unemployed' 
                     ELSE 'Employed' 
                 END as category";
@@ -140,20 +140,25 @@ class Chart
         $allowedColumns = [
             'purok', 'gender', 'civil_status', 'educational_attainment', 'occupation',
             'ownership_status', 'blood_type', 'nationality', 'relationship', 'residency_status', 'status',
-            'employment_status', 'is_pwd', 'is_4ps_member', 'is_registered_voter', 'is_solo_parent', 'is_indigent'
+            'employment_status', 'is_student', 'is_pwd', 'is_4ps_member', 'is_registered_voter', 'is_solo_parent', 'is_indigent'
         ];
-        $allowedOperators = ['=', '!=', '>', '<', '>=', '<='];
+        $allowedOperators = ['=', '!='];
 
-        // Handle JSON filter conditions from the chart builder
         if (!empty($def['filter_conditions'])) {
             $filters = json_decode($def['filter_conditions'], true);
             foreach ($filters as $filter) {
                 if (isset($filter['column'], $filter['operator']) && in_array($filter['column'], $allowedColumns) && in_array($filter['operator'], $allowedOperators)) {
                     if ($filter['column'] === 'employment_status') {
                         if ($filter['value'] === 'employed') {
-                            $where .= " AND (occupation IS NOT NULL AND occupation != '' AND LOWER(occupation) != 'unemployed' AND LOWER(occupation) != 'n/a')";
+                            $where .= " AND (occupation IS NOT NULL AND occupation != '' AND LOWER(occupation) NOT IN ('unemployed', 'n/a', 'student'))";
                         } else {
-                            $where .= " AND (occupation IS NULL OR occupation = '' OR LOWER(occupation) = 'unemployed' OR LOWER(occupation) = 'n/a')";
+                            $where .= " AND (occupation IS NULL OR occupation = '' OR LOWER(occupation) IN ('unemployed', 'n/a', 'student'))";
+                        }
+                    } elseif ($filter['column'] === 'is_student') {
+                        if ($filter['value'] === '1') {
+                            $where .= " AND LOWER(occupation) = 'student'";
+                        } else {
+                            $where .= " AND (LOWER(occupation) != 'student' OR occupation IS NULL)";
                         }
                     } else {
                         $where .= " AND {$filter['column']} {$filter['operator']} ?";
@@ -163,7 +168,6 @@ class Chart
             }
         }
 
-        // --- NEW: Handle date range filters passed directly for the modal ---
         if (!empty($def['start_date']) && !empty($def['end_date'])) {
             $where .= " AND DATE(date_approved) BETWEEN ? AND ?";
             $params[] = $def['start_date'];
