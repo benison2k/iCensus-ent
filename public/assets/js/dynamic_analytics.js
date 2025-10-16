@@ -34,10 +34,38 @@ let currentResidentList = [];
 let currentSort = { column: 'first_name', order: 'asc' };
 
 function initializeDynamicDashboard() {
+    const autoFillEnabled = JSON.parse(localStorage.getItem('autoFillCharts')) ?? true;
+
     grid = GridStack.init({
         cellHeight: 80,
         margin: 20,
-        float: true,
+        float: autoFillEnabled,
+    });
+
+    const autoFillSwitch = document.getElementById('autoFillSwitch');
+    autoFillSwitch.checked = autoFillEnabled;
+
+    autoFillSwitch.addEventListener('change', async (e) => {
+        const isEnabled = e.target.checked;
+        grid.float(isEnabled);
+        if (isEnabled) {
+            grid.compact();
+        }
+        localStorage.setItem('autoFillCharts', isEnabled);
+
+        // --- AJAX call to save preference on the server ---
+        try {
+            const formData = new FormData();
+            formData.append('autoFill', isEnabled);
+            
+            await fetch(`${basePath}/analytics/preferences/save`, {
+                method: 'POST',
+                body: formData
+            });
+            // You can add a success/error message here if you like
+        } catch (error) {
+            console.error('Failed to save auto-fill preference:', error);
+        }
     });
 
     loadUserCharts();
@@ -47,6 +75,7 @@ function initializeDynamicDashboard() {
         if(confirm('Are you sure you want to reset the layout? This will clear all chart settings, including saved date ranges.')) {
             localStorage.removeItem('chartLayout');
             localStorage.removeItem('visibleChartIds');
+            localStorage.removeItem('autoFillCharts');
             // Clear all chart-specific date ranges
             Object.keys(localStorage).forEach(key => {
                 if (key.startsWith('chartDateRange_')) {
@@ -67,10 +96,15 @@ async function loadUserCharts() {
         const response = await fetch(`${basePath}/charts/user-charts`);
         const result = await response.json();
         
-        const visibleChartIds = JSON.parse(localStorage.getItem('visibleChartIds')) || null;
-
         if (result.status === 'success' && result.charts) {
-            const chartsToDisplay = result.charts.filter(chart => visibleChartIds === null || visibleChartIds.includes(chart.id.toString()));
+            let visibleChartIds = JSON.parse(localStorage.getItem('visibleChartIds'));
+            
+            if (visibleChartIds === null) {
+                visibleChartIds = result.charts.map(chart => chart.id.toString());
+                localStorage.setItem('visibleChartIds', JSON.stringify(visibleChartIds));
+            }
+
+            const chartsToDisplay = result.charts.filter(chart => visibleChartIds.includes(chart.id.toString()));
             const savedLayout = JSON.parse(localStorage.getItem('chartLayout')) || [];
 
             for (const chartDef of chartsToDisplay) {
@@ -89,7 +123,6 @@ async function loadUserCharts() {
                 
                 grid.addWidget(widgetHtml, gridOptions);
                 
-                // --- MODIFIED: Check for and apply saved date range for this chart ---
                 const savedDates = JSON.parse(localStorage.getItem(`chartDateRange_${chartId}`)) || {};
                 let dataUrl = `${basePath}/charts/data?chart_id=${chartId}`;
                 if (savedDates.start && savedDates.end) {
@@ -113,6 +146,7 @@ async function loadUserCharts() {
         console.error("Failed to load user charts:", error);
     }
 }
+
 
 function drawChart(chartId, chartType, chartData) {
     const chartDiv = (chartId === 'DetailContent') ? document.getElementById('chartDetailContent') : document.getElementById(`chart-div-${chartId}`);
@@ -263,7 +297,7 @@ async function redrawDashboardChart(chartId, startDate, endDate) {
 function showChartDetailModal(chartId) {
     const chartContainer = document.querySelector(`.chart-container[data-chart-id='${chartId}']`);
     const modal = document.getElementById('chartDetailModal');
-    modal.dataset.chartId = chartId; // Store the chartId on the modal
+    modal.dataset.chartId = chartId;
     const chartDetailContent = document.getElementById('chartDetailContent');
     const modalGrid = modal.querySelector('.modal-grid');
     const modalTitle = document.getElementById('chartDetailTitle');
@@ -273,6 +307,8 @@ function showChartDetailModal(chartId) {
     const filterBtn = modal.querySelector('#modalFilterBtn');
     const clearBtn = modal.querySelector('#modalClearBtn');
     const editBtn = modal.querySelector('#editChartFromModalBtn');
+    const hideBtn = modal.querySelector('#hideChartFromModalBtn');
+    const deleteBtn = modal.querySelector('#deleteChartFromModalBtn');
 
     const chartTitle = chartContainer.querySelector('.chart-title').textContent;
     const groupByColumn = chartContainer.dataset.groupBy;
@@ -346,6 +382,39 @@ function showChartDetailModal(chartId) {
         redrawDashboardChart(chartId, null, null); 
     };
 
+    const handleHide = () => {
+        const visibleChartIds = JSON.parse(localStorage.getItem('visibleChartIds')) || [];
+        const updatedVisibleIds = visibleChartIds.filter(id => id !== chartId);
+        localStorage.setItem('visibleChartIds', JSON.stringify(updatedVisibleIds));
+        
+        removeChartFromDashboard(chartId);
+        modal.style.display = 'none';
+    };
+
+    const handleDelete = async () => {
+        if (confirm('Are you sure you want to permanently delete this chart? This action cannot be undone.')) {
+            try {
+                const formData = new FormData();
+                formData.append('chart_id', chartId);
+
+                const response = await fetch(`${basePath}/charts/delete`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    handleHide(); // Hide it first, which also closes the modal
+                } else {
+                    alert('Error: ' + (result.message || 'Could not delete the chart.'));
+                }
+            } catch (error) {
+                console.error("Deletion failed:", error);
+                alert('An unexpected error occurred.');
+            }
+        }
+    };
+
     if (chartType === 'KPI') {
         chartDetailContent.style.display = 'none';
         modalGrid.style.gridTemplateColumns = '1fr';
@@ -361,6 +430,8 @@ function showChartDetailModal(chartId) {
     filterBtn.onclick = handleFilter;
     clearBtn.onclick = handleClear;
     editBtn.onclick = () => openChartBuilderForEdit(chartId);
+    hideBtn.onclick = handleHide;
+    deleteBtn.onclick = handleDelete;
     modal.style.display = 'flex';
 }
 
@@ -533,9 +604,12 @@ window.updateDashboardGrid = function(allCharts, visibleChartIds) {
 };
 
 window.removeChartFromDashboard = function(chartId) {
-    const widget = grid.engine.nodes.find(n => n.id === chartId);
-    if (widget) {
-        grid.removeWidget(widget.el);
+    const widgetEl = document.querySelector(`.grid-stack-item[gs-id='${chartId}']`);
+    if (widgetEl) {
+        grid.removeWidget(widgetEl);
+        if (grid.opts.float) {
+            grid.compact();
+        }
     }
 };
 
@@ -548,13 +622,11 @@ window.redrawChartInPlace = function(chartId, updatedChartDef) {
             titleEl.textContent = updatedChartDef.title;
         }
         // Update dataset for group-by
-        widget.el.dataset.groupBy = updatedChartDef.group_by_column || '';
+        widget.el.querySelector('.grid-stack-item-content').dataset.groupBy = updatedChartDef.group_by_column || '';
         
         // Redraw chart with potentially new data
         redrawDashboardChart(chartId);
         
-        // --- THIS IS THE FIX ---
-        // If the detail modal is open for this chart, redraw it too
         const detailModal = document.getElementById('chartDetailModal');
         if (detailModal.style.display === 'flex' && detailModal.dataset.chartId === chartId.toString()) {
             showChartDetailModal(chartId); 

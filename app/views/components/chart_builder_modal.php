@@ -47,6 +47,7 @@
                         <button type="button" class="btn-template" data-template="education_bar">Education</button>
                         <button type="button" class="btn-template" data-template="avg_age_kpi">Avg. Age (KPI)</button>
                         <button type="button" class="btn-template" data-template="voter_pie">Voters</button>
+                        <button type="button" class="btn-template" data-template="student_pie">Students</button>
                         <button type="button" class="btn-template" data-template="solo_parent_pie">Solo Parents</button>
                         <button type="button" class="btn-template" data-template="occupation_bar">Top Occupations</button>
                     </div>

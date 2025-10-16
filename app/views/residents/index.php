@@ -218,6 +218,14 @@
                             </select>
                         </div>
                         <div class="filter-group">
+                            <label for="isStudentFilter">Is Student?</label>
+                            <select id="isStudentFilter">
+                                <option value="">All</option>
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
                             <label for="educationFilter">Educational Attainment</label>
                             <select id="educationFilter">
                                 <option value="">All</option>
@@ -325,15 +333,7 @@
                 <table class="resident-table" id="residentsTable">
                     <thead>
                         <tr>
-                            <th>
-                                <div>Full Name</div>
-                                <select id="nameSortSelect" class="sort-select">
-                                    <option value="last_name_asc">Sort by Last Name (A-Z)</option>
-                                    <option value="last_name_desc">Sort by Last Name (Z-A)</option>
-                                    <option value="first_name_asc">Sort by First Name (A-Z)</option>
-                                    <option value="first_name_desc">Sort by First Name (Z-A)</option>
-                                </select>
-                            </th>
+                            <th class="sortable" data-sort="last_name">Full Name <span class="sort-icon"></span></th>
                             <th class="sortable" data-sort="age">Age <span class="sort-icon"></span></th>
                             <th>Gender</th>
                             <th>Address</th>

@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const addResidentBtn = document.getElementById('addResidentBtn');
 
     // --- TABLE & FILTER ELEMENTS ---
-    const residentsTable = document.getElementById('residentsTable'); // Get the whole table
+    const residentsTable = document.getElementById('residentsTable');
     const tableBody = document.getElementById('residentsTableBody');
     const searchInput = document.getElementById('searchInput');
     const houseNoFilter = document.getElementById('houseNoFilter');
@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const educationFilter = document.getElementById('educationFilter');
     const occupationFilter = document.getElementById('occupationFilter');
     const employmentStatusFilter = document.getElementById('employmentStatusFilter');
+    const isStudentFilter = document.getElementById('isStudentFilter');
     const isPwdFilter = document.getElementById('isPwdFilter');
     const isSoloParentFilter = document.getElementById('isSoloParentFilter');
     const is4psMemberFilter = document.getElementById('is4psMemberFilter');
@@ -53,7 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const filteredCountSpan = document.getElementById('filteredCount');
     const toggleFiltersBtn = document.getElementById('toggleFiltersBtn');
     const advancedFilters = document.getElementById('advanced-filters');
-    const nameSortSelect = document.getElementById('nameSortSelect');
 
     // --- STATE ---
     let currentPage = 1;
@@ -122,17 +122,12 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const renderTable = () => {
-        // Sort the data before rendering
         filteredResidents.sort((a, b) => {
-            const valA = a[currentSort.column];
-            const valB = b[currentSort.column];
+            const valA = (a[currentSort.column] || '').toString().toLowerCase();
+            const valB = (b[currentSort.column] || '').toString().toLowerCase();
+            
+            let comparison = valA.localeCompare(valB, undefined, {numeric: true});
 
-            let comparison = 0;
-            if (valA > valB) {
-                comparison = 1;
-            } else if (valA < valB) {
-                comparison = -1;
-            }
             return currentSort.order === 'desc' ? comparison * -1 : comparison;
         });
 
@@ -141,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const end = start + pageSize;
         const pageSlice = filteredResidents.slice(start, end);
         let rowsHtml = '';
-    
+
         if (filteredResidents.length === 0) {
             rowsHtml = '<tr><td colspan="6" style="text-align: center; height: 380px; vertical-align: middle;">No residents found matching the criteria.</td></tr>';
         } else {
@@ -161,20 +156,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     </tr>`;
             });
         }
-    
+
         tableBody.innerHTML = rowsHtml;
-    
+
         if (filteredResidents.length > 0) {
             const placeholdersNeeded = pageSize - pageSlice.length;
             for (let i = 0; i < placeholdersNeeded; i++) {
                 tableBody.innerHTML += '<tr><td colspan="6">&nbsp;</td></tr>';
             }
         }
-    
+
         updatePagination();
         updateSortIcons();
         attachEventListenersToRows();
-    };    
+    };
 
     const applyFilters = () => {
         const searchTerm = searchInput.value.toLowerCase();
@@ -199,12 +194,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const education = educationFilter.value;
         const occupation = occupationFilter.value;
         const employmentStatus = employmentStatusFilter.value;
+        const isStudent = isStudentFilter.value;
         const isPwd = isPwdFilter.value;
         const isSoloParent = isSoloParentFilter.value;
         const is4ps = is4psMemberFilter.value;
 
         filteredResidents = allResidentsData.filter(r => {
             const fullName = `${r.first_name} ${r.last_name}`.toLowerCase();
+            const residentOccupation = (r.occupation || '').trim().toLowerCase();
 
             if (searchTerm && !fullName.includes(searchTerm)) return false;
             if (houseNo && r.house_no && !r.house_no.toString().toLowerCase().includes(houseNo)) return false;
@@ -228,13 +225,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (hasEmergency === 'No' && r.emergency_name) return false;
             if (isVoter && !r.is_registered_voter) return false;
             if (education && r.educational_attainment !== education) return false;
-            if (occupation && r.occupation !== occupation) return false;
+            if (occupation && residentOccupation !== occupation.toLowerCase()) return false;
             if (employmentStatus) {
-                const residentOccupation = (r.occupation || '').trim().toLowerCase();
-                const isConsideredUnemployed = residentOccupation === '' || residentOccupation === 'unemployed' || residentOccupation === 'n/a';
+                const isConsideredUnemployed = residentOccupation === '' || residentOccupation === 'unemployed' || residentOccupation === 'n/a' || residentOccupation === 'student';
                 if (employmentStatus === 'employed' && isConsideredUnemployed) return false;
                 if (employmentStatus === 'unemployed' && !isConsideredUnemployed) return false;
             }
+            if (isStudent !== '' && (isStudent === '1' ? residentOccupation !== 'student' : residentOccupation === 'student')) return false;
             if (isPwd !== "" && r.is_pwd != isPwd) return false;
             if (isSoloParent !== "" && r.is_solo_parent != isSoloParent) return false;
             if (is4ps !== "" && r.is_4ps_member != is4ps) return false;
@@ -267,28 +264,19 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const updateSortIcons = () => {
-        // Clear all visual indicators first
         document.querySelectorAll('.sort-icon').forEach(icon => icon.innerHTML = '');
         
-        // Check if the current sort is by a name column
-        if (currentSort.column === 'first_name' || currentSort.column === 'last_name') {
-            if (nameSortSelect) {
-                // Set the dropdown to the correct value
-                nameSortSelect.value = `${currentSort.column}_${currentSort.order}`;
+        const activeHeader = document.querySelector(`th[data-sort="${currentSort.column}"]`);
+        if (activeHeader) {
+            let indicator = '';
+            if (currentSort.column === 'age') {
+                indicator = `<span class="material-icons">${currentSort.order === 'asc' ? 'arrow_upward' : 'arrow_downward'}</span>`;
+            } else if (currentSort.column === 'last_name' || currentSort.column === 'first_name') {
+                const sortOrderText = currentSort.order === 'asc' ? '(A-Z)' : '(Z-A)';
+                const sortColumnText = `(by ${currentSort.column === 'first_name' ? 'First' : 'Last'})`;
+                indicator = `${sortColumnText} ${sortOrderText}`;
             }
-        } else {
-            // Otherwise, find the clickable header and show the icon
-            const activeHeader = document.querySelector(`th[data-sort="${currentSort.column}"]`);
-            if (activeHeader) {
-                const iconSpan = activeHeader.querySelector('.sort-icon');
-                if (iconSpan) {
-                    iconSpan.innerHTML = `<span class="material-icons">${currentSort.order === 'asc' ? 'arrow_upward' : 'arrow_downward'}</span>`;
-                }
-            }
-            // Also reset the name dropdown to its default state
-            if (nameSortSelect) {
-                nameSortSelect.value = 'last_name_asc';
-            }
+            activeHeader.querySelector('.sort-icon').innerHTML = indicator;
         }
     };
 
@@ -393,7 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(el) el.addEventListener('input', applyFilters);
     });
 
-    [statusFilter, genderFilter, purokFilter, householdFilter, civilStatusFilter, bloodTypeFilter, residencyStatusFilter, relationshipFilter, isHeadFilter, birthMonthFilter, emergencyContactFilter, isVoterFilter, educationFilter, occupationFilter, employmentStatusFilter, isPwdFilter, isSoloParentFilter, is4psMemberFilter].forEach(el => {
+    [statusFilter, genderFilter, purokFilter, householdFilter, civilStatusFilter, bloodTypeFilter, residencyStatusFilter, relationshipFilter, isHeadFilter, birthMonthFilter, emergencyContactFilter, isVoterFilter, educationFilter, occupationFilter, employmentStatusFilter, isStudentFilter, isPwdFilter, isSoloParentFilter, is4psMemberFilter].forEach(el => {
         if(el) el.addEventListener('change', applyFilters);
     });
     
@@ -429,22 +417,11 @@ document.addEventListener('DOMContentLoaded', () => {
         relationshipFilter.value = ''; isHeadFilter.value = ''; birthMonthFilter.value = '';
         dateAddedMin.value = ''; dateAddedMax.value = ''; emergencyContactFilter.value = '';
         isVoterFilter.checked = false;
-        educationFilter.value = ''; occupationFilter.value = ''; employmentStatusFilter.value = ''; isPwdFilter.value = '';
+        educationFilter.value = ''; occupationFilter.value = ''; employmentStatusFilter.value = '';
+        isStudentFilter.value = ''; isPwdFilter.value = '';
         isSoloParentFilter.value = ''; is4psMemberFilter.value = '';
         applyFilters();
     });
-    
-    if (nameSortSelect) {
-        nameSortSelect.addEventListener('change', (e) => {
-            const value = e.target.value;
-            const [column, order] = value.split('_'); 
-    
-            currentSort.column = column;
-            currentSort.order = order;
-            
-            renderTable();
-        });
-    }
     
     if (residentsTable) {
         residentsTable.querySelector('thead').addEventListener('click', (e) => {
@@ -452,11 +429,32 @@ document.addEventListener('DOMContentLoaded', () => {
             if (header) {
                 const sortColumn = header.dataset.sort;
 
-                if (currentSort.column === sortColumn) {
-                    currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
+                if (sortColumn === 'last_name') {
+                    if (currentSort.column === 'last_name') {
+                        if (currentSort.order === 'asc') {
+                            currentSort.order = 'desc';
+                        } else {
+                            currentSort.column = 'first_name';
+                            currentSort.order = 'asc';
+                        }
+                    } else if (currentSort.column === 'first_name') {
+                        if (currentSort.order === 'asc') {
+                            currentSort.order = 'desc';
+                        } else {
+                            currentSort.column = 'last_name';
+                            currentSort.order = 'asc';
+                        }
+                    } else {
+                        currentSort.column = 'last_name';
+                        currentSort.order = 'asc';
+                    }
                 } else {
-                    currentSort.column = sortColumn;
-                    currentSort.order = 'asc';
+                    if (currentSort.column === sortColumn) {
+                        currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        currentSort.column = sortColumn;
+                        currentSort.order = 'asc';
+                    }
                 }
                 
                 renderTable();
@@ -469,4 +467,3 @@ document.addEventListener('DOMContentLoaded', () => {
         applyFilters();
     }
 });
-

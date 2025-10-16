@@ -84,7 +84,7 @@ class Analytics {
                 foreach ($residents as $r) {
                     $occupation = trim($r['occupation']);
                     // Group empty, null, 'N/A', and explicit 'Unemployed' values together
-                    if (empty($occupation) || strtolower($occupation) === 'n/a' || strtolower($occupation) === 'unemployed') {
+                    if (empty($occupation) || strtolower($occupation) === 'n/a' || strtolower($occupation) === 'unemployed' || strtolower($occupation) === 'student') {
                         $key = 'Unemployed';
                     } else {
                         $key = $occupation;
