@@ -19,7 +19,7 @@ class AnalyticsController {
 
     // --- NEW: Method to get filtered residents ---
     public function getFilteredResidents() {
-        $this->checkAuth();
+        $this.checkAuth();
         header('Content-Type: application/json');
     
         $db = new Database(require __DIR__ . '/../../config/database.php');
@@ -53,7 +53,12 @@ class AnalyticsController {
     public function index() {
         $this->checkAuth();
         $db = new Database(require __DIR__ . '/../../config/database.php');
-        $analyticsModel = new Analytics($db);
+        
+        // --- START: MODIFICATION ---
+        $chartModel = new Chart($db);
+        $user_charts = $chartModel->findAllByUserId($_SESSION['user']['id']);
+        // --- END: MODIFICATION ---
+
         $data = [
             'user' => $_SESSION['user'],
             'theme' => $_SESSION['user']['theme'] ?? 'light',
@@ -71,14 +76,12 @@ class AnalyticsController {
                 'status' => 'Resident Status',
                 'date_added' => 'Date Added'
             ],
-            'available_charts' => [
-                'gender' => 'Gender Distribution',
-                'age' => 'Age Groups',
-                'purok' => 'Population by Purok',
-                'civil_status' => 'Civil Status',
-                'blood_type' => 'Blood Type',
-                'nationality' => 'Nationality',
-            ]
+            // --- START: MODIFICATION ---
+            // This static list is no longer needed for the modal but can be kept for other purposes if necessary.
+            'available_charts' => [], 
+            // Pass the user's dynamic charts to the view
+            'user_charts' => $user_charts
+            // --- END: MODIFICATION ---
         ];
         view('analytics/index', $data);
     }
@@ -138,7 +141,10 @@ class AnalyticsController {
         $this->checkAuth();
         $db = new Database(require __DIR__ . '/../../config/database.php');
         $analyticsModel = new Analytics($db);
+        
         $reportData = $analyticsModel->getDataForReport($_POST);
+        
+        $reportData['user'] = $_SESSION['user']; 
         
         log_action('INFO', 'REPORT_GENERATED', 'User generated a custom report.');
 
