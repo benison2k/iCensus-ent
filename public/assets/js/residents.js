@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const addResidentBtn = document.getElementById('addResidentBtn');
 
     // --- TABLE & FILTER ELEMENTS ---
+    const residentsTable = document.getElementById('residentsTable'); // Get the whole table
     const tableBody = document.getElementById('residentsTableBody');
     const searchInput = document.getElementById('searchInput');
     const houseNoFilter = document.getElementById('houseNoFilter');
@@ -52,11 +53,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const filteredCountSpan = document.getElementById('filteredCount');
     const toggleFiltersBtn = document.getElementById('toggleFiltersBtn');
     const advancedFilters = document.getElementById('advanced-filters');
+    const nameSortSelect = document.getElementById('nameSortSelect');
 
     // --- STATE ---
     let currentPage = 1;
     let pageSize = parseInt(pageSizeSelect.value, 10);
     let filteredResidents = [];
+    let currentSort = {
+        column: 'last_name',
+        order: 'asc'
+    };
 
     // --- MODAL & FORM FUNCTIONS ---
     const setFormEditable = (editable) => {
@@ -116,6 +122,20 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const renderTable = () => {
+        // Sort the data before rendering
+        filteredResidents.sort((a, b) => {
+            const valA = a[currentSort.column];
+            const valB = b[currentSort.column];
+
+            let comparison = 0;
+            if (valA > valB) {
+                comparison = 1;
+            } else if (valA < valB) {
+                comparison = -1;
+            }
+            return currentSort.order === 'desc' ? comparison * -1 : comparison;
+        });
+
         tableBody.innerHTML = '';
         const start = (currentPage - 1) * pageSize;
         const end = start + pageSize;
@@ -132,7 +152,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const safeStatus = (r.status || '').toLowerCase();
                 rowsHtml += `
                     <tr data-id="${r.id}">
-                        <td>${fullName}</td><td>${r.age}</td><td>${r.gender}</td>
+                        <td>${fullName}</td>
+                        <td>${r.age}</td>
+                        <td>${r.gender}</td>
                         <td>${address}</td>
                         <td><span class="status-label status-${safeStatus}">${r.status}</span></td>
                         <td><button class="moreBtn material-icons" data-id="${r.id}" title="View Resident Info">more_vert</button></td>
@@ -150,6 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     
         updatePagination();
+        updateSortIcons();
         attachEventListenersToRows();
     };    
 
@@ -206,8 +229,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isVoter && !r.is_registered_voter) return false;
             if (education && r.educational_attainment !== education) return false;
             if (occupation && r.occupation !== occupation) return false;
-            if (employmentStatus === 'employed' && (!r.occupation || r.occupation.trim() === '')) return false;
-            if (employmentStatus === 'unemployed' && r.occupation && r.occupation.trim() !== '') return false;
+            if (employmentStatus) {
+                const residentOccupation = (r.occupation || '').trim().toLowerCase();
+                const isConsideredUnemployed = residentOccupation === '' || residentOccupation === 'unemployed' || residentOccupation === 'n/a';
+                if (employmentStatus === 'employed' && isConsideredUnemployed) return false;
+                if (employmentStatus === 'unemployed' && !isConsideredUnemployed) return false;
+            }
             if (isPwd !== "" && r.is_pwd != isPwd) return false;
             if (isSoloParent !== "" && r.is_solo_parent != isSoloParent) return false;
             if (is4ps !== "" && r.is_4ps_member != is4ps) return false;
@@ -239,6 +266,32 @@ document.addEventListener('DOMContentLoaded', () => {
         nextPageBtn.disabled = currentPage === totalPages;
     };
 
+    const updateSortIcons = () => {
+        // Clear all visual indicators first
+        document.querySelectorAll('.sort-icon').forEach(icon => icon.innerHTML = '');
+        
+        // Check if the current sort is by a name column
+        if (currentSort.column === 'first_name' || currentSort.column === 'last_name') {
+            if (nameSortSelect) {
+                // Set the dropdown to the correct value
+                nameSortSelect.value = `${currentSort.column}_${currentSort.order}`;
+            }
+        } else {
+            // Otherwise, find the clickable header and show the icon
+            const activeHeader = document.querySelector(`th[data-sort="${currentSort.column}"]`);
+            if (activeHeader) {
+                const iconSpan = activeHeader.querySelector('.sort-icon');
+                if (iconSpan) {
+                    iconSpan.innerHTML = `<span class="material-icons">${currentSort.order === 'asc' ? 'arrow_upward' : 'arrow_downward'}</span>`;
+                }
+            }
+            // Also reset the name dropdown to its default state
+            if (nameSortSelect) {
+                nameSortSelect.value = 'last_name_asc';
+            }
+        }
+    };
+
     const jumpToPage = () => {
         const totalPages = Math.ceil(filteredResidents.length / pageSize) || 1;
         const page = parseInt(gotoPageInput.value, 10);
@@ -257,7 +310,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
     editBtn.addEventListener('click', () => setFormEditable(true));
 
-    // --- START: AJAX FORM SUBMISSION LOGIC ---
     const ajaxModal = document.getElementById('ajaxResultModal');
     const ajaxMessage = document.getElementById('ajaxResultMessage');
     const ajaxModalContent = ajaxModal.querySelector('.modal-content');
@@ -272,11 +324,10 @@ document.addEventListener('DOMContentLoaded', () => {
         ajaxMessage.textContent = message;
         ajaxModalContent.className = 'modal-content ' + type;
         ajaxModal.style.display = 'block';
-        // Reload the page after showing the message
         setTimeout(() => {
             ajaxModal.style.display = "none";
             window.location.reload();
-        }, 2000); // Reload after 2 seconds
+        }, 2000);
     }
 
     async function handleFormSubmit(form) {
@@ -288,10 +339,10 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const result = await response.json();
             if (response.ok && result.status === 'success') {
-                modal.style.display = 'none'; // Close the resident form modal
+                modal.style.display = 'none';
                 showAjaxResult(result.message || 'Resident saved successfully!', 'success');
             } else {
-                alert(result.message || 'An error occurred.'); // Show an alert for immediate error feedback
+                alert(result.message || 'An error occurred.');
             }
         } catch (error) {
             alert('A network error occurred. Please try again.');
@@ -323,7 +374,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-    // --- END: AJAX FORM SUBMISSION LOGIC ---
 
     toggleFiltersBtn.addEventListener('click', () => {
         const isExpanded = advancedFilters.style.display === 'grid';
@@ -331,7 +381,6 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleFiltersBtn.classList.toggle('expanded', !isExpanded);
     });
 
-    // --- NEW: Click outside to close advanced filters ---
     window.addEventListener('click', (e) => {
         const filterWrapper = document.querySelector('.filter-wrapper');
         if (filterWrapper && !filterWrapper.contains(e.target) && advancedFilters.style.display === 'grid') {
@@ -339,7 +388,6 @@ document.addEventListener('DOMContentLoaded', () => {
             toggleFiltersBtn.classList.remove('expanded');
         }
     });
-    // --- END NEW ---
 
     [searchInput, houseNoFilter, streetFilter, ageMin, ageMax, dateAddedMin, dateAddedMax].forEach(el => {
         if(el) el.addEventListener('input', applyFilters);
@@ -385,9 +433,40 @@ document.addEventListener('DOMContentLoaded', () => {
         isSoloParentFilter.value = ''; is4psMemberFilter.value = '';
         applyFilters();
     });
+    
+    if (nameSortSelect) {
+        nameSortSelect.addEventListener('change', (e) => {
+            const value = e.target.value;
+            const [column, order] = value.split('_'); 
+    
+            currentSort.column = column;
+            currentSort.order = order;
+            
+            renderTable();
+        });
+    }
+    
+    if (residentsTable) {
+        residentsTable.querySelector('thead').addEventListener('click', (e) => {
+            const header = e.target.closest('.sortable');
+            if (header) {
+                const sortColumn = header.dataset.sort;
+
+                if (currentSort.column === sortColumn) {
+                    currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSort.column = sortColumn;
+                    currentSort.order = 'asc';
+                }
+                
+                renderTable();
+            }
+        });
+    }
 
     // --- INITIALIZATION ---
     if (typeof allResidentsData !== 'undefined' && !isPendingView) {
         applyFilters();
     }
 });
+

@@ -325,7 +325,18 @@
                 <table class="resident-table" id="residentsTable">
                     <thead>
                         <tr>
-                            <th>Full Name</th><th>Age</th><th>Gender</th><th>Address</th>
+                            <th>
+                                <div>Full Name</div>
+                                <select id="nameSortSelect" class="sort-select">
+                                    <option value="last_name_asc">Sort by Last Name (A-Z)</option>
+                                    <option value="last_name_desc">Sort by Last Name (Z-A)</option>
+                                    <option value="first_name_asc">Sort by First Name (A-Z)</option>
+                                    <option value="first_name_desc">Sort by First Name (Z-A)</option>
+                                </select>
+                            </th>
+                            <th class="sortable" data-sort="age">Age <span class="sort-icon"></span></th>
+                            <th>Gender</th>
+                            <th>Address</th>
                             <th><?= $isPendingView ? 'Date Submitted' : 'Status' ?></th>
                             <th>Actions</th>
                         </tr>
