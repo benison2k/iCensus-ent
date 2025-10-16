@@ -73,8 +73,6 @@ class Analytics {
         unset($r);
 
         switch ($metric) {
-            // (The entire switch statement remains exactly the same as before)
-
             // SIMPLE COUNTS
             case 'gender': case 'civil_status': case 'blood_type': case 'nationality': case 'purok': case 'relationship':
             case 'resident_status_overview': case 'educational_attainment': case 'ownership_status':
@@ -274,5 +272,74 @@ class Analytics {
         return $data;
     }
 
-    public function getDataForReport($postData) { /* ... same as before ... */ }
+    public function getDataForReport($postData) {
+        $sort_by = $postData['sort_by'] ?? 'last_name';
+        $sort_order = $postData['sort_order'] ?? 'ASC';
+        $selected_columns = $postData['columns'] ?? [];
+        $selected_chart_ids = $postData['charts'] ?? [];
+    
+        // Whitelist allowed columns to prevent SQL injection
+        $allowed_sort_columns = ['last_name', 'first_name', 'date_added', 'dob'];
+        if (!in_array($sort_by, $allowed_sort_columns)) {
+            $sort_by = 'last_name';
+        }
+    
+        $all_columns = [
+            'full_name' => ['label' => 'Full Name', 'sql' => "CONCAT(first_name, ' ', last_name)"],
+            'address' => ['label' => 'Full Address', 'sql' => "CONCAT(house_no, ' ', street, ', Purok ', purok)"],
+            'dob' => ['label' => 'Date of Birth', 'sql' => 'dob'],
+            'age' => ['label' => 'Age', 'sql' => 'TIMESTAMPDIFF(YEAR, dob, CURDATE())'],
+            'gender' => ['label' => 'Gender', 'sql' => 'gender'],
+            'civil_status' => ['label' => 'Civil Status', 'sql' => 'civil_status'],
+            'contact_number' => ['label' => 'Contact Number', 'sql' => 'contact_number'],
+            'email' => ['label' => 'Email', 'sql' => 'email'],
+            'blood_type' => ['label' => 'Blood Type', 'sql' => 'blood_type'],
+            'nationality' => ['label' => 'Nationality', 'sql' => 'nationality'],
+            'status' => ['label' => 'Resident Status', 'sql' => 'status'],
+            'date_added' => ['label' => 'Date Added', 'sql' => 'date_added']
+        ];
+        
+        $columns_to_select = [];
+        $report_headers = [];
+        if (!empty($selected_columns)) {
+            foreach ($selected_columns as $col_key) {
+                if (array_key_exists($col_key, $all_columns)) {
+                    $columns_to_select[] = $all_columns[$col_key]['sql'] . " AS `$col_key`";
+                    $report_headers[$col_key] = $all_columns[$col_key]['label'];
+                }
+            }
+        }
+        
+        $results = [];
+        if (!empty($columns_to_select)) {
+            $sql = "SELECT " . implode(', ', $columns_to_select) . " FROM residents WHERE approval_status = 'approved' ORDER BY $sort_by $sort_order";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute();
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+    
+        // --- Chart Data Fetching ---
+        $chart_reports = [];
+        if (!empty($selected_chart_ids)) {
+            $chartModel = new Chart(new Database(require __DIR__ . '/../../config/database.php'));
+            foreach($selected_chart_ids as $chartId) {
+                $chartDef = $chartModel->find($chartId);
+                if ($chartDef) {
+                    $chartData = $chartModel->getDataForChart($chartDef);
+                    $chart_reports[] = [
+                        'id' => $chartId,
+                        'title' => $chartDef['title'],
+                        'type' => $chartDef['chart_type'],
+                        'data' => $chartData,
+                    ];
+                }
+            }
+        }
+    
+        return [
+            'results' => $results,
+            'headers' => $report_headers,
+            'charts' => $chart_reports,
+        ];
+    }
 }

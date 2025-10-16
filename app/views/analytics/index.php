@@ -66,7 +66,7 @@
 
 <?php include __DIR__ . '/../components/chart_builder_modal.php'; ?>
 <?php include __DIR__ . '/../components/manage_charts_modal.php'; ?>
-
+<?php include __DIR__ . '/../components/report_modal.php'; ?>
 <?php include __DIR__ . '/../components/footer.php'; ?>
 
 <script src="<?= $base_url ?>/assets/js/dynamic_analytics.js"></script>

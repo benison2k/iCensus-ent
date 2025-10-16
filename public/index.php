@@ -7,6 +7,10 @@ require_once __DIR__ . '/../core/Database.php';
 
 // Helper function to load view files
 function view($path, $data = []) {
+    // --- THIS IS THE FIX: Ensure $data is always an array ---
+    if (!is_array($data)) {
+        $data = [];
+    }
     extract($data); 
     require __DIR__ . "/../app/views/{$path}.php";
 }

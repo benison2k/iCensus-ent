@@ -561,3 +561,14 @@ window.redrawChartInPlace = function(chartId, updatedChartDef) {
         }
     }
 };
+
+const reportModal = document.getElementById('report-modal');
+const generateReportBtn = document.getElementById('generate-report-btn');
+if (reportModal && generateReportBtn) {
+    const closeBtn = reportModal.querySelector('.close-btn');
+    generateReportBtn.addEventListener('click', () => reportModal.style.display = 'flex');
+    if (closeBtn) closeBtn.addEventListener('click', () => reportModal.style.display = 'none');
+    window.addEventListener('click', (event) => {
+        if (event.target === reportModal) reportModal.style.display = 'none';
+    });
+}
