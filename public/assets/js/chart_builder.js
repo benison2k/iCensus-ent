@@ -294,27 +294,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const result = await response.json();
 
                 if (result.status === 'success') {
-                    modal.style.display = 'none';
-                    if (isUpdate) {
-                        if (window.redrawChartInPlace) {
-                            window.redrawChartInPlace(result.chart.id, result.chart);
-                        }
-                    } else {
-                        if (formData.get('add_to_dashboard') && window.addChartToDashboard) {
-                            const newChartDef = result.chart;
-                            const visibleChartIds = JSON.parse(localStorage.getItem('visibleChartIds')) || [];
-                            visibleChartIds.push(newChartDef.id.toString());
-                            localStorage.setItem('visibleChartIds', JSON.stringify(visibleChartIds));
-                            window.addChartToDashboard(newChartDef);
-                        }
-                    }
+                    // Force a page reload to guarantee the changes are visible.
+                    location.reload();
                 } else {
                     alert('Error: ' + (result.message || 'Could not save the chart.'));
+                    saveButton.disabled = false;
+                    saveButton.textContent = 'Save Chart';
                 }
             } catch (error) {
                 console.error('Submission failed:', error);
                 alert('An unexpected error occurred. Please try again.');
-            } finally {
                 saveButton.disabled = false;
                 saveButton.textContent = 'Save Chart';
             }

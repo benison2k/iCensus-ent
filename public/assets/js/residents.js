@@ -63,6 +63,9 @@ document.addEventListener('DOMContentLoaded', () => {
         column: 'last_name',
         order: 'asc'
     };
+    // Make the main data source mutable
+    let allResidentsData = typeof initialResidentsData !== 'undefined' ? initialResidentsData : [];
+
 
     // --- MODAL & FORM FUNCTIONS ---
     const setFormEditable = (editable) => {
@@ -314,8 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ajaxModal.style.display = 'block';
         setTimeout(() => {
             ajaxModal.style.display = "none";
-            window.location.reload();
-        }, 2000);
+        }, 2500);
     }
 
     async function handleFormSubmit(form) {
@@ -328,7 +330,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
             if (response.ok && result.status === 'success') {
                 modal.style.display = 'none';
-                showAjaxResult(result.message || 'Resident saved successfully!', 'success');
+                showAjaxResult(result.message, 'success');
+
+                if (result.is_new) {
+                    allResidentsData.push(result.resident);
+                } else {
+                    const index = allResidentsData.findIndex(r => r.id == result.resident.id);
+                    if (index > -1) {
+                        allResidentsData[index] = result.resident;
+                    }
+                }
+                applyFilters();
+
             } else {
                 alert(result.message || 'An error occurred.');
             }
@@ -356,7 +369,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
             if (result.status === 'success') {
                 modal.style.display = 'none';
-                showAjaxResult(result.message || 'Resident deleted successfully.', 'success');
+                showAjaxResult(result.message, 'success');
+                allResidentsData = allResidentsData.filter(r => r.id != id);
+                applyFilters();
             } else {
                 alert(result.message || 'Failed to delete resident.');
             }
@@ -463,7 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- INITIALIZATION ---
-    if (typeof allResidentsData !== 'undefined' && !isPendingView) {
+    if (typeof initialResidentsData !== 'undefined' && !isPendingView) {
         applyFilters();
     }
 });

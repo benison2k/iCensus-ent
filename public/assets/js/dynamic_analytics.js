@@ -53,7 +53,6 @@ function initializeDynamicDashboard() {
         }
         localStorage.setItem('autoFillCharts', isEnabled);
 
-        // --- AJAX call to save preference on the server ---
         try {
             const formData = new FormData();
             formData.append('autoFill', isEnabled);
@@ -62,7 +61,6 @@ function initializeDynamicDashboard() {
                 method: 'POST',
                 body: formData
             });
-            // You can add a success/error message here if you like
         } catch (error) {
             console.error('Failed to save auto-fill preference:', error);
         }
@@ -76,7 +74,6 @@ function initializeDynamicDashboard() {
             localStorage.removeItem('chartLayout');
             localStorage.removeItem('visibleChartIds');
             localStorage.removeItem('autoFillCharts');
-            // Clear all chart-specific date ranges
             Object.keys(localStorage).forEach(key => {
                 if (key.startsWith('chartDateRange_')) {
                     localStorage.removeItem(key);
@@ -89,7 +86,7 @@ function initializeDynamicDashboard() {
 
 async function loadUserCharts() {
     if (grid) {
-        grid.removeAll(false); // Clear existing charts without destroying the grid
+        grid.removeAll(false);
     }
     
     try {
@@ -146,7 +143,6 @@ async function loadUserCharts() {
         console.error("Failed to load user charts:", error);
     }
 }
-
 
 function drawChart(chartId, chartType, chartData) {
     const chartDiv = (chartId === 'DetailContent') ? document.getElementById('chartDetailContent') : document.getElementById(`chart-div-${chartId}`);
@@ -294,13 +290,23 @@ async function redrawDashboardChart(chartId, startDate, endDate) {
     }
 }
 
-function showChartDetailModal(chartId) {
+function showChartDetailModal(chartId, updatedChartDef = null) {
     const chartContainer = document.querySelector(`.chart-container[data-chart-id='${chartId}']`);
+    if (!chartContainer && !updatedChartDef) {
+        console.error("Cannot open modal, chart container not found and no data provided.");
+        return;
+    }
+
     const modal = document.getElementById('chartDetailModal');
     modal.dataset.chartId = chartId;
     const chartDetailContent = document.getElementById('chartDetailContent');
     const modalGrid = modal.querySelector('.modal-grid');
     const modalTitle = document.getElementById('chartDetailTitle');
+    
+    const chartTitle = updatedChartDef ? updatedChartDef.title : chartContainer.querySelector('.chart-title').textContent;
+    const groupByColumn = updatedChartDef ? updatedChartDef.group_by_column : chartContainer.dataset.groupBy;
+    modalTitle.textContent = chartTitle;
+
     const residentListContainer = document.getElementById('residentListContainer');
     const startDateInput = modal.querySelector('#modalStartDate');
     const endDateInput = modal.querySelector('#modalEndDate');
@@ -309,10 +315,6 @@ function showChartDetailModal(chartId) {
     const editBtn = modal.querySelector('#editChartFromModalBtn');
     const hideBtn = modal.querySelector('#hideChartFromModalBtn');
     const deleteBtn = modal.querySelector('#deleteChartFromModalBtn');
-
-    const chartTitle = chartContainer.querySelector('.chart-title').textContent;
-    const groupByColumn = chartContainer.dataset.groupBy;
-    modalTitle.textContent = chartTitle;
     
     const originalChartDiv = document.getElementById(`chart-div-${chartId}`);
     const chartType = originalChartDiv.chartType;
@@ -589,11 +591,9 @@ window.updateDashboardGrid = function(allCharts, visibleChartIds) {
     const currentWidgets = grid.engine.nodes;
     const currentChartIds = currentWidgets.map(n => n.id);
 
-    // Find charts to remove
-    const chartsToRemove = currentWidgets.filter(widget => !visibleChartIds.includes(widget.id));
-    chartsToRemove.forEach(widget => grid.removeWidget(widget.el));
+    const chartsToRemoveIds = currentChartIds.filter(id => !visibleChartIds.includes(id));
+    chartsToRemoveIds.forEach(chartId => removeChartFromDashboard(chartId));
 
-    // Find chart IDs to add
     const chartsToAddIds = visibleChartIds.filter(id => !currentChartIds.includes(id));
     chartsToAddIds.forEach(chartId => {
         const chartDef = allCharts.find(c => c.id.toString() === chartId);
@@ -614,22 +614,20 @@ window.removeChartFromDashboard = function(chartId) {
 };
 
 window.redrawChartInPlace = function(chartId, updatedChartDef) {
-    const widget = grid.engine.nodes.find(n => n.id === chartId.toString());
-    if (widget) {
-        // Update title
-        const titleEl = widget.el.querySelector('.chart-title');
+    const chartContentEl = document.querySelector(`.grid-stack-item[gs-id='${chartId.toString()}'] .grid-stack-item-content`);
+
+    if (chartContentEl) {
+        const titleEl = chartContentEl.querySelector('.chart-title');
         if (titleEl) {
             titleEl.textContent = updatedChartDef.title;
         }
-        // Update dataset for group-by
-        widget.el.querySelector('.grid-stack-item-content').dataset.groupBy = updatedChartDef.group_by_column || '';
+        chartContentEl.dataset.groupBy = updatedChartDef.group_by_column || '';
         
-        // Redraw chart with potentially new data
         redrawDashboardChart(chartId);
         
         const detailModal = document.getElementById('chartDetailModal');
         if (detailModal.style.display === 'flex' && detailModal.dataset.chartId === chartId.toString()) {
-            showChartDetailModal(chartId); 
+            showChartDetailModal(chartId, updatedChartDef); 
         }
     }
 };
@@ -642,5 +640,6 @@ if (reportModal && generateReportBtn) {
     if (closeBtn) closeBtn.addEventListener('click', () => reportModal.style.display = 'none');
     window.addEventListener('click', (event) => {
         if (event.target === reportModal) reportModal.style.display = 'none';
-    });
+    }
+    );
 }

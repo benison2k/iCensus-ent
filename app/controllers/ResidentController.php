@@ -40,10 +40,8 @@ class ResidentController {
             'nationalities' => $residentModel->getDistinctValues('nationality'),
             'residency_statuses' => $residentModel->getDistinctValues('residency_status'),
             'relationships' => $residentModel->getDistinctValues('relationship'),
-            // --- NEW: Pass education and occupation lists ---
             'educations' => $residentModel->getDistinctValues('educational_attainment'),
             'occupations' => $residentModel->getDistinctValues('occupation'),
-            // --- END NEW ---
             'isPendingView' => $isPendingView,
             'pending_count' => ($user_role === 'Barangay Admin') ? $residentModel->getPendingCount() : 0,
             'modalMessage' => $_SESSION['modal']['message'] ?? '',
@@ -110,6 +108,7 @@ class ResidentController {
 
                     if ($is_new) {
                         log_action('INFO', 'RESIDENT_CREATE', "New resident record created: {$full_name} (ID#{$residentId}).");
+                        $message = 'New resident added successfully!';
                     } else {
                         $new_data = $residentModel->find($residentId);
                         $changes = array_diff_assoc($new_data, $old_data);
@@ -123,9 +122,13 @@ class ResidentController {
                             $log_details .= ".";
                         }
                         log_action('INFO', 'RESIDENT_UPDATE', $log_details);
+                        $message = 'Resident updated successfully!';
                     }
                     
-                    echo json_encode(['status' => 'success', 'message' => 'Resident saved successfully!']);
+                    // Fetch the complete, saved data to send back to the client
+                    $savedResident = $residentModel->find($residentId);
+
+                    echo json_encode(['status' => 'success', 'message' => $message, 'resident' => $savedResident, 'is_new' => $is_new]);
                     break;
                 
                 case 'delete':
