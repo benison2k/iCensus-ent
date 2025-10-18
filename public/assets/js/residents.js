@@ -54,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const filteredCountSpan = document.getElementById('filteredCount');
     const toggleFiltersBtn = document.getElementById('toggleFiltersBtn');
     const advancedFilters = document.getElementById('advanced-filters');
+    const nameSortSelect = document.getElementById('nameSortSelect');
 
     // --- STATE ---
     let currentPage = 1;
@@ -274,9 +275,14 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (currentSort.column === 'last_name' || currentSort.column === 'first_name') {
                 const sortOrderText = currentSort.order === 'asc' ? '(A-Z)' : '(Z-A)';
                 const sortColumnText = `(by ${currentSort.column === 'first_name' ? 'First' : 'Last'})`;
-                indicator = `${sortColumnText} ${sortOrderText}`;
+                indicator = `<span class="sort-text">${sortColumnText} ${sortOrderText}</span>`;
             }
             activeHeader.querySelector('.sort-icon').innerHTML = indicator;
+        }
+        
+        // Sync dropdown with current sort state
+        if (nameSortSelect) {
+            nameSortSelect.value = `${currentSort.column}-${currentSort.order}`;
         }
     };
 
@@ -426,7 +432,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (residentsTable) {
         residentsTable.querySelector('thead').addEventListener('click', (e) => {
             const header = e.target.closest('.sortable');
-            if (header) {
+            // If the user clicks the dropdown overlay, don't trigger the cycle sort
+            if (header && !e.target.matches('.sort-select-overlay')) {
                 const sortColumn = header.dataset.sort;
 
                 if (sortColumn === 'last_name') {
@@ -459,6 +466,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 renderTable();
             }
+        });
+    }
+
+    if (nameSortSelect) {
+        nameSortSelect.addEventListener('change', (e) => {
+            const [column, order] = e.target.value.split('-');
+            currentSort.column = column;
+            currentSort.order = order;
+            renderTable();
         });
     }
 
