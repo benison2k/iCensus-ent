@@ -556,7 +556,9 @@ async function openChartBuilderForEdit(chartId) {
     }
 }
 
+// ✅ START: FIX - Make this function globally accessible
 window.addChartToDashboard = async function(chartDef) {
+// ✅ END: FIX
     const chartId = chartDef.id.toString();
     try {
         await window.googleChartsPromise;

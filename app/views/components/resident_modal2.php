@@ -146,62 +146,63 @@ document.addEventListener('DOMContentLoaded', function() {
     const headOfHouseholdInput = modal.querySelector('input[name="head_of_household"]');
     const checkHouseholdBtn = document.getElementById('checkHouseholdBtn');
 
-    // Allow only numbers for House No and Purok
-    [houseNoInput, purokInput].forEach(input => {
-        input.addEventListener('input', function() {
-            this.value = this.value.replace(/\D/g, '');
+    // This check is important to prevent errors if the button is not on the page
+    if (checkHouseholdBtn) {
+        // Allow only numbers for House No and Purok
+        [houseNoInput, purokInput].forEach(input => {
+            if(input) input.addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, '');
+            });
         });
-    });
 
-    // Allow only letters and spaces for Street
-    streetInput.addEventListener('input', function() {
-        this.value = this.value.replace(/[^a-zA-Z\s]/g, '');
-    });
-    
-    checkHouseholdBtn.addEventListener('click', async () => {
-        const houseNo = houseNoInput.value.trim();
-        const street = streetInput.value.trim();
-        const purok = purokInput.value.trim();
+        // Allow only letters and spaces for Street
+        if(streetInput) streetInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^a-zA-Z\s]/g, '');
+        });
+        
+        checkHouseholdBtn.addEventListener('click', async () => {
+            const houseNo = houseNoInput.value.trim();
+            const street = streetInput.value.trim();
+            const purok = purokInput.value.trim();
 
-        if (houseNo && street && purok) {
-            const response = await fetch(`${basePath}/residents/find-by-address?house_no=${houseNo}&street=${street}&purok=${purok}`);
-            const residents = await response.json();
-            
-            householdDetector.style.display = 'block';
-            householdHeadSelect.innerHTML = '<option value="">Select Head of Household</option>'; // Reset
-            
-            if (residents.length > 0) {
-                let foundHead = false;
-                residents.forEach(resident => {
-                    const fullName = `${resident.first_name} ${resident.last_name}`;
-                    const option = new Option(fullName, fullName);
-                    householdHeadSelect.add(option);
-                    // If a head is already defined for this household, pre-select them
-                    if(resident.relationship === 'Self') {
-                        option.selected = true;
-                        headOfHouseholdInput.value = fullName;
-                        foundHead = true;
+            if (houseNo && street && purok) {
+                const response = await fetch(`${basePath}/residents/find-by-address?house_no=${houseNo}&street=${street}&purok=${purok}`);
+                const residents = await response.json();
+                
+                if(householdDetector) householdDetector.style.display = 'block';
+                if(householdHeadSelect) householdHeadSelect.innerHTML = '<option value="">Select Head of Household</option>'; // Reset
+                
+                if (residents.length > 0) {
+                    let foundHead = false;
+                    residents.forEach(resident => {
+                        const fullName = `${resident.first_name} ${resident.last_name}`;
+                        const option = new Option(fullName, fullName);
+                        if(householdHeadSelect) householdHeadSelect.add(option);
+                        if(resident.relationship === 'Self') {
+                            option.selected = true;
+                            if(headOfHouseholdInput) headOfHouseholdInput.value = fullName;
+                            foundHead = true;
+                        }
+                    });
+                    if (!foundHead && headOfHouseholdInput) {
+                         headOfHouseholdInput.value = '';
                     }
-                });
-                if (!foundHead) {
-                     headOfHouseholdInput.value = ''; // Clear if no head is found yet
+                } else {
+                     if(householdHeadSelect) householdHeadSelect.innerHTML += '<option value="" disabled>No residents found at this address.</option>';
+                     if(headOfHouseholdInput) headOfHouseholdInput.value = '';
                 }
             } else {
-                 householdHeadSelect.innerHTML += '<option value="" disabled>No residents found at this address.</option>';
-                 headOfHouseholdInput.value = '';
+                alert('Please fill in the House No., Street, and Purok fields first.');
+                if(householdDetector) householdDetector.style.display = 'none';
             }
-        } else {
-            alert('Please fill in the House No., Street, and Purok fields first.');
-            householdDetector.style.display = 'none';
-        }
-    });
-    
-    householdHeadSelect.addEventListener('change', function() {
-        headOfHouseholdInput.value = this.value;
-    });
+        });
+        
+        if(householdHeadSelect) householdHeadSelect.addEventListener('change', function() {
+            if(headOfHouseholdInput) headOfHouseholdInput.value = this.value;
+        });
+    }
     // --- END: NEW LOGIC ---
 
-    // Function to apply dark mode styles
     function applyDarkModeStyles() {
         const isDarkMode = body.classList.contains('dark-mode');
         const content = modal.querySelector('.modal-content');
@@ -242,10 +243,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Apply styles on initial load
     applyDarkModeStyles();
 
-    // Use a MutationObserver to watch for class changes on the body
     const observer = new MutationObserver(mutations => {
         mutations.forEach(mutation => {
             if (mutation.attributeName === 'class') {

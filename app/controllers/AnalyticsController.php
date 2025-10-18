@@ -19,7 +19,7 @@ class AnalyticsController {
 
     // --- NEW: Method to get filtered residents ---
     public function getFilteredResidents() {
-        $this.checkAuth();
+        $this->checkAuth(); // ✅ FIX: Changed . to ->
         header('Content-Type: application/json');
     
         $db = new Database(require __DIR__ . '/../../config/database.php');

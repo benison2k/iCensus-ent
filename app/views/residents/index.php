@@ -385,12 +385,5 @@
         const userRole = '<?= htmlspecialchars($user['role_name']) ?>';
     </script>
     <script src="<?= $base_url ?>/assets/js/residents.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (!isPendingView) {
-                applyFilters();
-            }
-        });
-    </script>
 </body>
 </html>
