@@ -333,7 +333,23 @@
                 <table class="resident-table" id="residentsTable">
                     <thead>
                         <tr>
-                            <th class="sortable" data-sort="last_name">Full Name <span class="sort-icon"></span></th>
+                            <th class="sortable" data-sort="last_name">
+                                <div class="sort-header-content">
+                                    <span>Full Name</span>
+                                    <div class="sort-controls">
+                                        <span class="sort-icon"></span>
+                                        <div class="sort-dropdown-container">
+                                            <span class="material-icons">arrow_drop_down</span>
+                                            <select id="nameSortSelect" class="sort-select-overlay">
+                                                <option value="last_name-asc">Last Name (A-Z)</option>
+                                                <option value="last_name-desc">Last Name (Z-A)</option>
+                                                <option value="first_name-asc">First Name (A-Z)</option>
+                                                <option value="first_name-desc">First Name (Z-A)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </th>
                             <th class="sortable" data-sort="age">Age <span class="sort-icon"></span></th>
                             <th>Gender</th>
                             <th>Address</th>
