@@ -1,20 +1,17 @@
 <?php
 // /public/index.php
 
-// Start session and load essential files
 require_once __DIR__ . '/../core/init.php';
-require_once __DIR__ . '/../core/Database.php';
+require_once __DIR__ . '/../core/Database.php'; 
 
-// Helper function to load view files
 function view($path, $data = []) {
     if (!is_array($data)) {
         $data = [];
     }
-    extract($data);
+    extract($data); 
     require __DIR__ . "/../app/views/{$path}.php";
 }
 
-// Autoloader for Controllers and Models
 spl_autoload_register(function ($class_name) {
     $controller_file = __DIR__ . "/../app/controllers/" . $class_name . '.php';
     if (file_exists($controller_file)) {
@@ -27,20 +24,17 @@ spl_autoload_register(function ($class_name) {
     }
 });
 
-// --- Router ---
 $request_uri = strtok($_SERVER["REQUEST_URI"], '?');
 $base_path = '/iCensus-ent/public';
 $route = str_replace($base_path, '', $request_uri);
 $route = trim($route, '/');
 $route = empty($route) ? 'home' : $route;
 
-// --- Routing Table ---
 switch ($route) {
     case 'home':
-        require __DIR__ . '/../index.php';
+        require __DIR__ . '/../index.php'; 
         break;
 
-    // --- Auth Routes ---
     case 'login':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             (new AuthController())->login();
@@ -52,12 +46,10 @@ switch ($route) {
         (new AuthController())->logout();
         break;
 
-    // --- OTP Route ---
-    case 'otp/verify':
-        (new AuthController())->verifyOtp();
+    case 'verify-otp':
+        (new AuthController())->verifyOtpAndLogin();
         break;
 
-    // --- Dashboard Routes ---
     case 'dashboard':
         (new DashboardController())->index();
         break;
@@ -65,7 +57,6 @@ switch ($route) {
         (new DashboardController())->encoderDashboard();
         break;
 
-    // --- Residents Routes ---
     case 'residents':
         (new ResidentController())->index();
         break;
@@ -88,40 +79,22 @@ switch ($route) {
         (new ResidentController())->reject();
         break;
 
-    // --- DYNAMIC CHART ROUTES ---
     case 'charts/save':
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            (new ChartController())->save();
-        }
-        break;
     case 'charts/update':
+    case 'charts/preview':
+    case 'charts/delete':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            (new ChartController())->update();
+            $action = basename($route);
+            (new ChartController())->$action();
         }
         break;
     case 'charts/get':
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            (new ChartController())->get();
-        }
-        break;
-    case 'charts/preview':
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            (new ChartController())->preview();
-        }
-        break;
     case 'charts/data':
-        (new ChartController())->getData();
-        break;
     case 'charts/user-charts':
-        (new ChartController())->getUserCharts();
+        $action = basename($route);
+        (new ChartController())->$action();
         break;
-    case 'charts/delete':
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            (new ChartController())->delete();
-        }
-        break;
-
-    // --- Analytics Routes ---
+    
     case 'analytics':
         (new AnalyticsController())->index();
         break;
@@ -144,21 +117,16 @@ switch ($route) {
         (new AnalyticsController())->data();
         break;
 
-    // --- Settings Routes ---
     case 'settings':
         (new SettingsController())->index();
         break;
     case 'settings/process':
-        (new SettingsController())->process();
-        break;
     case 'settings/theme':
-        (new SettingsController())->updateTheme();
-        break;
     case 'settings/verify-password':
-        (new SettingsController())->verifyPassword();
+        $action = str_replace('-', '_', basename($route));
+        (new SettingsController())->$action();
         break;
 
-    // --- System Admin Routes ---
     case 'sysadmin/dashboard':
         (new SysadminController())->dashboard();
         break;
@@ -186,12 +154,11 @@ switch ($route) {
     case 'sysadmin/logs/mark-all-as-seen':
         (new SysadminController())->markAllLogsAsSeen();
         break;
-
-    // --- About Page Route ---
+    
     case 'about':
         view('about/index', ['theme' => $_SESSION['user']['theme'] ?? 'light']);
         break;
-
+    
     default:
         http_response_code(404);
         echo "<h1>404 Not Found</h1><p>The page '{$route}' could not be found.</p>";
