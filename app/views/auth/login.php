@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <link rel="stylesheet" href="/iCensus-ent/public/assets/css/login.css">
-</head>
+<link rel="stylesheet" href="/iCensus-ent/public/assets/css/modal.css"> </head>
 <body>
 
 <div class="split-screen">
@@ -31,7 +31,6 @@
             </div>
 
             <?php
-                // Display and then clear the timeout message if it exists
                 if (isset($_SESSION['timeout_message'])) {
                     echo '<div class="error-text" style="color: #0d6efd; margin-bottom: 1rem;">' . htmlspecialchars($_SESSION['timeout_message']) . '</div>';
                     unset($_SESSION['timeout_message']);
@@ -40,15 +39,15 @@
 
             <form method="POST" action="/iCensus-ent/public/login" novalidate>
                 <div class="input-wrapper mb-3">
-                    <input type="text" name="username" class="form-control <?= $error ? 'error' : '' ?>" placeholder="Username" value="<?= $usernameValue ?>" autofocus>
+                    <input type="text" name="username" class="form-control <?= isset($error) ? 'error' : '' ?>" placeholder="Username" value="<?= $usernameValue ?? '' ?>" autofocus>
                     <span class="material-icons input-icon">person</span>
                 </div>
                 <div class="input-wrapper mb-3">
-                    <input type="password" name="password" id="password" class="form-control <?= $error ? 'error' : '' ?>" placeholder="Password">
+                    <input type="password" name="password" id="password" class="form-control <?= isset($error) ? 'error' : '' ?>" placeholder="Password">
                     <span class="material-icons password-toggle" id="togglePassword">visibility_off</span>
                 </div>
-                <?php if ($error): ?>
-                    <div class="error-text"><?= $error ?></div>
+                <?php if (isset($error)): ?>
+                    <div class="error-text"><?= htmlspecialchars($error) ?></div>
                 <?php endif; ?>
                 <button class="btn btn-primary w-100 mb-2">Login</button>
                 <div class="text-center">
@@ -58,6 +57,23 @@
         </div>
     </div>
 </div>
+
+<div id="otpModal" class="modal" style="display:none; align-items: center; justify-content: center;">
+    <div class="modal-content" style="max-width: 400px; margin: auto;">
+        <h3 style="margin-top:0;">Enter OTP</h3>
+        <p>An OTP has been sent to your registered email address.</p>
+        <form method="POST" action="/iCensus-ent/public/otp/verify" style="margin-top: 1.5rem;">
+            <div class="input-wrapper mb-3">
+                <input type="text" name="otp" class="form-control" placeholder="6-digit code" required autofocus>
+            </div>
+            <?php if (isset($otpError)): ?>
+                <div class="error-text" style="margin-bottom: 1rem;"><?= htmlspecialchars($otpError) ?></div>
+            <?php endif; ?>
+            <button type="submit" class="btn btn-primary w-100">Verify</button>
+        </form>
+    </div>
+</div>
+
 
 <script>
 // Password toggle
@@ -122,6 +138,14 @@ function animateParticles(){
 resizeCanvas();
 initParticles();
 animateParticles();
+
+// OTP MODAL LOGIC
+<?php if (isset($showOtpModal) && $showOtpModal): ?>
+    document.addEventListener('DOMContentLoaded', function() {
+        const otpModal = document.getElementById('otpModal');
+        otpModal.style.display = 'flex';
+    });
+<?php endif; ?>
 </script>
 
 </body>

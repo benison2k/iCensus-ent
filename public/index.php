@@ -3,15 +3,14 @@
 
 // Start session and load essential files
 require_once __DIR__ . '/../core/init.php';
-require_once __DIR__ . '/../core/Database.php'; 
+require_once __DIR__ . '/../core/Database.php';
 
 // Helper function to load view files
 function view($path, $data = []) {
-    // --- THIS IS THE FIX: Ensure $data is always an array ---
     if (!is_array($data)) {
         $data = [];
     }
-    extract($data); 
+    extract($data);
     require __DIR__ . "/../app/views/{$path}.php";
 }
 
@@ -38,7 +37,7 @@ $route = empty($route) ? 'home' : $route;
 // --- Routing Table ---
 switch ($route) {
     case 'home':
-        require __DIR__ . '/../index.php'; 
+        require __DIR__ . '/../index.php';
         break;
 
     // --- Auth Routes ---
@@ -51,6 +50,11 @@ switch ($route) {
         break;
     case 'logout':
         (new AuthController())->logout();
+        break;
+
+    // --- OTP Route ---
+    case 'otp/verify':
+        (new AuthController())->verifyOtp();
         break;
 
     // --- Dashboard Routes ---
@@ -90,14 +94,11 @@ switch ($route) {
             (new ChartController())->save();
         }
         break;
-
-    // --- NEW: Route to update an existing chart ---
     case 'charts/update':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             (new ChartController())->update();
         }
         break;
-    // --- NEW: Route to get a single chart's definition for editing ---
     case 'charts/get':
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             (new ChartController())->get();
@@ -108,40 +109,17 @@ switch ($route) {
             (new ChartController())->preview();
         }
         break;
-
-    case 'charts/preview':
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            (new ChartController())->preview();
-        }
-        break;
     case 'charts/data':
         (new ChartController())->getData();
         break;
     case 'charts/user-charts':
         (new ChartController())->getUserCharts();
         break;
-
     case 'charts/delete':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        (new ChartController())->delete();
+            (new ChartController())->delete();
         }
         break;
-    case 'charts/get':
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-        (new ChartController())->get();
-        }
-        break;
-    case 'charts/preview':
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        (new ChartController())->preview();
-        }
-        break;
-    case 'charts/data':
-        (new ChartController())->getData();
-        break;
-    case 'charts/user-charts':
-        (new ChartController())->getUserCharts();
-        break;    
 
     // --- Analytics Routes ---
     case 'analytics':
@@ -162,8 +140,6 @@ switch ($route) {
     case 'analytics/filtered-residents':
         (new AnalyticsController())->getFilteredResidents();
         break;
-    
-    // --- LEGACY ANALYTICS ROUTE (can be removed later) ---
     case 'analytics/data':
         (new AnalyticsController())->data();
         break;
@@ -210,12 +186,12 @@ switch ($route) {
     case 'sysadmin/logs/mark-all-as-seen':
         (new SysadminController())->markAllLogsAsSeen();
         break;
-    
+
     // --- About Page Route ---
     case 'about':
         view('about/index', ['theme' => $_SESSION['user']['theme'] ?? 'light']);
         break;
-    
+
     default:
         http_response_code(404);
         echo "<h1>404 Not Found</h1><p>The page '{$route}' could not be found.</p>";

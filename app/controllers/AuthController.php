@@ -1,6 +1,10 @@
 <?php
 // app/controllers/AuthController.php
 require_once __DIR__ . '/../../core/Auth.php';
+require_once __DIR__ . '/../models/User.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
 class AuthController {
 
@@ -8,11 +12,7 @@ class AuthController {
      * Shows the login form View.
      */
     public function showLoginForm() {
-        // Data to pass to the view (e.g., for error messages)
-        $data = [
-            'error' => '',
-            'usernameValue' => ''
-        ];
+        $data = ['error' => '', 'usernameValue' => ''];
         view('auth/login', $data);
     }
 
@@ -22,51 +22,111 @@ class AuthController {
     public function login() {
         $config = require __DIR__ . '/../../config/database.php';
         $db = new Database($config);
-        
-        // --- THIS IS THE FIX ---
-        // Make the database connection globally available for the log_action function.
         $GLOBALS['db'] = $db;
-        
-        $auth = new Auth($db);
+        $userModel = new User($db);
 
         $username = trim($_POST['username']);
         $password = $_POST['password'];
 
-        // Temporarily store last logout time if it exists
-        $last_logout = $_SESSION['last_logout'] ?? null;
+        $user = $userModel->findByUsername($username);
 
-        $result = $auth->login($username, $password);
+        if ($user && password_verify($password, $user['password'])) {
+            if ($user['role_name'] === 'System Admin') {
+                // Generate and send OTP
+                $otp = random_int(100000, 999999);
+                $expiryTime = (new DateTime('+15 minutes'))->format('Y-m-d H:i:s');
 
-        if ($result['success']) {
-            // If login is successful, store the last logout time in the new session
-            if ($last_logout) {
-                $_SESSION['user']['last_log_view'] = $last_logout;
+                $userModel->setOtp($user['id'], $otp, $expiryTime);
+                $this->sendOtpEmail($user['email'], $otp);
+
+                $_SESSION['otp_user_id'] = $user['id'];
+
+                // RENDER THE LOGIN VIEW AGAIN, BUT WITH THE MODAL TRIGGERED
+                view('auth/login', ['showOtpModal' => true]);
+                exit;
+
+            } else {
+                // Regular user login
+                $auth = new Auth($db);
+                $result = $auth->login($username, $password);
+
+                if ($result['success']) {
+                    $role = $_SESSION['user']['role_name'];
+                    $base_url = '/iCensus-ent/public';
+                    if ($role == 'Barangay Admin') $redirect_to = $base_url . '/dashboard';
+                    elseif ($role == 'Encoder') $redirect_to = $base_url . '/encoder-dashboard';
+                    else $redirect_to = $base_url . '/login';
+                    header("Location: " . $redirect_to);
+                    exit;
+                }
             }
+        }
 
-            $role = $_SESSION['user']['role_name'];
-            $base_url = '/iCensus-ent/public';
+        log_action('WARNING', 'USER_LOGIN_FAIL', "Failed login attempt for username: '" . htmlspecialchars($username) . "'");
+        $data = ['error' => 'Invalid credentials', 'usernameValue' => htmlspecialchars($username)];
+        view('auth/login', $data);
+    }
 
-            // Redirect based on role
-            if ($role == 'System Admin') $redirect_to = $base_url . '/sysadmin/dashboard';
-            elseif ($role == 'Barangay Admin') $redirect_to = $base_url . '/dashboard';
-            elseif ($role == 'Encoder') $redirect_to = $base_url . '/encoder-dashboard';
-            else $redirect_to = $base_url . '/login'; // Fallback
+    public function verifyOtp() {
+        if (empty($_POST['otp']) || empty($_SESSION['otp_user_id'])) {
+            header('Location: /iCensus-ent/public/login');
+            exit;
+        }
 
-            header("Location: " . $redirect_to);
+        $config = require __DIR__ . '/../../config/database.php';
+        $db = new Database($config);
+        $userModel = new User($db);
+        $userId = $_SESSION['otp_user_id'];
+        $otp = $_POST['otp'];
+
+        if ($userModel->verifyOtp($userId, $otp)) {
+            // OTP is correct, log the user in
+            unset($_SESSION['otp_user_id']);
+            $user = $userModel->find($userId);
+            $_SESSION['user'] = [
+                'id' => $user['id'],
+                'username' => $user['username'],
+                'role_id' => $user['role_id'],
+                'role_name' => 'System Admin',
+                'full_name' => $user['full_name'],
+                'theme' => $user['theme'] ?? 'light',
+            ];
+            $_SESSION['LAST_ACTIVITY'] = time();
+            log_action('INFO', 'USER_LOGIN_SUCCESS', "User '" . $user['username'] . "' logged in successfully via OTP.");
+            
+            session_write_close(); // <-- THIS IS THE FIX
+            header("Location: /iCensus-ent/public/sysadmin/dashboard");
             exit;
         } else {
-            // If login fails, show the form again with an error
-            $data = [
-                'error' => 'Invalid credentials',
-                'usernameValue' => htmlspecialchars($username)
-            ];
-            view('auth/login', $data);
+            // OTP is incorrect
+            view('auth/login', ['showOtpModal' => true, 'otpError' => 'Invalid or expired OTP.']);
         }
     }
 
-    /**
-     * Handles user logout.
-     */
+    private function sendOtpEmail($recipientEmail, $otp) {
+        $mailConfig = require __DIR__ . '/../../config/mail.php';
+        require_once __DIR__ . '/../../vendor/autoload.php';
+        $mail = new PHPMailer(true);
+        try {
+            $mail->isSMTP();
+            $mail->Host       = $mailConfig['host'];
+            $mail->SMTPAuth   = true;
+            $mail->Username   = $mailConfig['username'];
+            $mail->Password   = $mailConfig['password'];
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = $mailConfig['port'];
+            $mail->setFrom($mailConfig['from_email'], $mailConfig['from_name']);
+            $mail->addAddress($recipientEmail);
+            $mail->isHTML(true);
+            $mail->Subject = 'Your iCensus OTP';
+            $mail->Body    = "Your One-Time Password is: <b>{$otp}</b>. It will expire in 15 minutes.";
+            $mail->AltBody = "Your One-Time Password is: {$otp}. It will expire in 15 minutes.";
+            $mail->send();
+        } catch (Exception $e) {
+            error_log("Message could not be sent. Mailer Error: {$mail->ErrorInfo}");
+        }
+    }
+
     public function logout() {
         $config = require __DIR__ . '/../../config/database.php';
         require_once __DIR__ . '/../../core/Database.php';
@@ -77,18 +137,9 @@ class AuthController {
         if (isset($_SESSION['user'])) {
             log_action('INFO', 'USER_LOGOUT', "User '" . $_SESSION['user']['username'] . "' logged out.");
         }
-        
-        // Store the logout timestamp to track new logs later
-        $last_logout_time = date('Y-m-d H:i:s');
-        
         session_unset();
         session_destroy();
-
-        // Start a new, clean session just to hold the last_logout time
         session_start();
-        $_SESSION['last_logout'] = $last_logout_time;
-
-
         header("Location: /iCensus-ent/public/login");
         exit;
     }
