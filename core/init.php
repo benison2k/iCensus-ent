@@ -3,23 +3,37 @@
 session_start();
 
 // Define the base URL of your application.
-// This ensures redirects always go to the correct place.
 define('BASE_URL', '/iCensus-ent/public');
 
-// --- RECOMMENDED FIX: Add automatic authentication check ---
-// If the user session doesn't exist, redirect to login immediately.
-// This check runs on every page that includes this file.
-if (!isset($_SESSION['user'])) {
-    // We must check if the current request is for the login page itself
-    // to prevent an infinite redirect loop.
-    $is_login_page = strpos($_SERVER['REQUEST_URI'], '/login') !== false;
-    $is_home_page = in_array(str_replace('/iCensus-ent/public', '', strtok($_SERVER['REQUEST_URI'], '?')), ['/', '/home', '']);
+// --- CRITICAL FIX START: Allow OTP verification pages to bypass redirect ---
 
-    if (!$is_login_page && !$is_home_page) {
-        header("Location: " . BASE_URL . "/login");
-        exit;
-    }
+// Get the current route
+$current_route = str_replace(BASE_URL, '', strtok($_SERVER['REQUEST_URI'], '?'));
+$current_route = trim($current_route, '/');
+
+// Define pages that are allowed without a full user session
+$allowed_pages = [
+    'login',
+    'home',
+    '', // Root path
+    'verify-otp',
+    'resend-otp',
+];
+
+// Check for pages allowed without full login
+$is_allowed_page = in_array($current_route, $allowed_pages);
+
+// Check if we are in the middle of a 2FA flow
+$is_in_2fa_flow = isset($_SESSION['2fa_required']) && $_SESSION['2fa_required'] === true;
+
+// If the user session doesn't exist, redirect to login immediately, 
+// UNLESS the user is trying to access an allowed page OR is in the 2FA flow.
+if (!isset($_SESSION['user']) && !$is_allowed_page && !$is_in_2fa_flow) {
+    header("Location: " . BASE_URL . "/login");
+    exit;
 }
+
+// --- CRITICAL FIX END ---
 
 // Session timeout (1800 = 30 minutes)
 $timeout = 1800; 

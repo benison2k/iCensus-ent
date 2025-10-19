@@ -30,6 +30,13 @@
     <div class="card settings-card">
         <span class="material-icons card-icon">person</span>
         <h3 class="card-title">Account</h3>
+        
+        <form id="emailForm" method="POST">
+             <label>Email Address (for 2FA)</label>
+             <input type="email" name="email" value="<?= htmlspecialchars($user['email'] ?? ''); ?>" placeholder="Enter email address" required>
+             <input type="hidden" name="update_email" value="1">
+             <button type="submit"><span class="material-icons">save</span> Save Email</button>
+         </form>
 
         <form id="usernameForm" method="POST">
             <label>Username</label>
@@ -61,7 +68,25 @@
             </div>
         </form>
     </div>
-
+    
+    <div class="card settings-card">
+        <span class="material-icons card-icon">security</span>
+        <h3 class="card-title">Two-Factor Authentication</h3>
+        <p style="font-size:0.9rem; color:#555; margin-bottom: 1rem;">
+            Enable 2FA via email for an extra layer of security on login.
+        </p>
+        <form id="twoFaForm">
+            <label>Enable 2FA</label><br>
+            <label class="switch">
+                <input type="checkbox" id="twoFaSwitch" <?= $user['two_fa'] == 1 ? 'checked' : ''; ?>>
+                <span class="slider round"></span>
+            </label>
+            <span id="twoFaLabel" style="margin-left: 1rem;"><?= $user['two_fa'] == 1 ? 'Enabled' : 'Disabled'; ?></span>
+        </form>
+        <p style="font-size:0.8rem; color:#777; margin-top: 1.5rem;">
+            *Note: Two-Factor Authentication requires a valid email address to be set above.
+        </p>
+    </div>
     <div class="card settings-card">
         <span class="material-icons card-icon">tune</span>
         <h3 class="card-title">Preferences</h3>
@@ -111,6 +136,12 @@ async function handleFormSubmit(form, url) {
                 document.getElementById('newPasswordFields').style.display = 'none';
                 document.getElementById('passwordSubmit').disabled = true;
             }
+            
+            // Reload user session data to reflect changes immediately
+            if (form.id === 'emailForm' || form.id === 'usernameForm') {
+                 window.location.reload();
+            }
+
         } else {
             showAjaxResult(result.message || 'An error occurred.', 'error');
         }
@@ -119,10 +150,18 @@ async function handleFormSubmit(form, url) {
     }
 }
 
+// Attach listeners to forms
 document.getElementById('usernameForm').addEventListener('submit', function(e) {
     e.preventDefault();
     handleFormSubmit(this, '<?= $base_url ?>/settings/process');
 });
+
+// NEW: Email Form Handler
+document.getElementById('emailForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    handleFormSubmit(this, '<?= $base_url ?>/settings/process');
+});
+// END NEW
 
 document.getElementById('passwordForm').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -197,6 +236,44 @@ themeSwitch.addEventListener('change', () => {
         body: new URLSearchParams({ theme: theme })
     });
 });
+
+// --- NEW: 2FA Toggle Logic ---
+const twoFaSwitch = document.getElementById('twoFaSwitch');
+const twoFaLabel = document.getElementById('twoFaLabel');
+
+if (twoFaSwitch) {
+    twoFaSwitch.addEventListener('change', async () => {
+        const isEnabled = twoFaSwitch.checked;
+        const newStatus = isEnabled ? 1 : 0;
+        
+        twoFaSwitch.disabled = true;
+
+        try {
+            const response = await fetch('<?= $base_url ?>/settings/toggleTwoFA', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: new URLSearchParams({ two_fa: newStatus })
+            });
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                twoFaLabel.textContent = isEnabled ? 'Enabled' : 'Disabled';
+                showAjaxResult(result.message, 'success');
+            } else {
+                // Revert UI change if API fails (e.g., no email registered)
+                twoFaSwitch.checked = !isEnabled;
+                twoFaLabel.textContent = isEnabled ? 'Disabled' : 'Enabled'; // Update label text to match the checkmark state
+                showAjaxResult(result.message, 'error');
+            }
+        } catch (error) {
+            twoFaSwitch.checked = !isEnabled; // Revert on network error
+            twoFaLabel.textContent = isEnabled ? 'Disabled' : 'Enabled'; // Update label text to match the checkmark state
+            showAjaxResult('A network error occurred. Please try again.', 'error');
+        } finally {
+            twoFaSwitch.disabled = false;
+        }
+    });
+}
 </script>
 </body>
 </html>
