@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>iCensus - Database Tools</title>
+<link rel="icon" type="image/png" href="/iCensus-ent/public/assets/img/iCensusLogoOnly2.png">
 <link rel="stylesheet" href="/iCensus-ent/public/assets/css/style.css">
 <link rel="stylesheet" href="/iCensus-ent/public/assets/css/settings.css">
 <link rel="stylesheet" href="/iCensus-ent/public/assets/css/modal.css">
