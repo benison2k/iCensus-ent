@@ -7,7 +7,7 @@ require_once __DIR__ . '/../core/Database.php';
 
 // Helper function to load view files
 function view($path, $data = []) {
-    // --- THIS IS THE FIX: Ensure $data is always an array ---
+    // --- FIX: Ensure $data is always an array ---
     if (!is_array($data)) {
         $data = [];
     }
@@ -44,22 +44,20 @@ switch ($route) {
     // --- Auth Routes ---
     case 'login':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Handles login form submission via AJAX POST (returns JSON)
             (new AuthController())->login();
         } else {
             (new AuthController())->showLoginForm();
         }
         break;
-    case 'verify-otp': // Handles OTP modal submission via AJAX POST (returns JSON)
+    case 'verify-otp':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             (new AuthController())->verifyOtp();
         } else {
-             // Redirect any direct GET request to the login page
              header("Location: " . BASE_URL . "/login");
              exit;
         }
         break;
-    case 'resend-otp': // Handles resend request via AJAX GET (returns JSON)
+    case 'resend-otp':
         (new AuthController())->resendOtp();
         break;
     case 'logout':
@@ -104,13 +102,11 @@ switch ($route) {
         }
         break;
 
-    // --- NEW: Route to update an existing chart ---
     case 'charts/update':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             (new ChartController())->update();
         }
         break;
-    // --- NEW: Route to get a single chart's definition for editing ---
     case 'charts/get':
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             (new ChartController())->get();
@@ -194,8 +190,11 @@ switch ($route) {
     case 'settings/verify-password':
         (new SettingsController())->verifyPassword();
         break;
-    case 'settings/toggleTwoFA': // <--- NEW ROUTE
+    case 'settings/toggleTwoFA':
         (new SettingsController())->toggleTwoFA();
+        break;
+    case 'settings/resendPasswordChangeOtp': // NEW: Route for password change OTP resend
+        (new SettingsController())->resendPasswordChangeOtp();
         break;
 
     // --- System Admin Routes ---

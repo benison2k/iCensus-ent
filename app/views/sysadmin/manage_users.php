@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>iCensus - Manage Users</title>
 <link rel="icon" type="image/png" href="/iCensus-ent/public/assets/img/iCensusLogoOnly2.png">
+<link rel="icon" type="image/png" href="/iCensus-ent/public/assets/img/iCensusLogoOnly2.png">
 <link rel="stylesheet" href="/iCensus-ent/public/assets/css/style.css">
 <link rel="stylesheet" href="/iCensus-ent/public/assets/css/residents.css">
 <link rel="stylesheet" href="/iCensus-ent/public/assets/css/users.css"> 
