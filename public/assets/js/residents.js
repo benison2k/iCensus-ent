@@ -267,7 +267,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateSortIcons = () => {
         document.querySelectorAll('.sort-icon').forEach(icon => icon.innerHTML = '');
         
-        const activeHeader = document.querySelector(`th[data-sort="${currentSort.column}"]`);
+        let activeHeader;
+        if (currentSort.column === 'first_name') {
+            activeHeader = document.querySelector('th[data-sort="last_name"]');
+        } else {
+            activeHeader = document.querySelector(`th[data-sort="${currentSort.column}"]`);
+        }
+
         if (activeHeader) {
             let indicator = '';
             if (currentSort.column === 'age') {

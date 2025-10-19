@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>iCensus - Residents</title>
 <?php $base_url = '/iCensus-ent/public'; ?>
+<link rel="icon" type="image/png" href="<?= $base_url ?>/assets/img/iCensusLogoOnly2.png">
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/style.css">
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/modal.css">
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/residents.css">
@@ -35,8 +36,8 @@
                 <?php if ($user['role_name'] === 'Barangay Admin'): ?>
 
                     <a href="<?= $base_url ?>/residents?view=pending"
-                       class="action-button-link card"
-                       style="text-decoration: none; border-width: 2px; border-style: solid; border-color: <?= $isPendingView ? '#0d6efd' : 'transparent' ?>; padding: 0.6rem 1rem; min-width: auto; min-height: auto;">
+                       class="action-button-link card <?= $isPendingView ? 'active-view' : '' ?>"
+                       style="text-decoration: none; padding: 0.6rem 1rem; min-width: auto; min-height: auto;">
 
                         <?php if ($pending_count > 0): ?>
                             <span class="notification-badge"><?= $pending_count ?></span>
@@ -45,7 +46,7 @@
                         <span class="material-icons">rate_review</span> Pending Review
                     </a>
 
-                     <a href="<?= $base_url ?>/residents" class="action-button-link" style="text-decoration: none; border-width: 2px; border-style: solid; border-color: <?= !$isPendingView ? '#2e7d32' : 'transparent' ?>;">
+                     <a href="<?= $base_url ?>/residents" class="action-button-link <?= !$isPendingView ? 'active-view' : '' ?>" style="text-decoration: none;">
                          <span class="material-icons">verified</span> Approved Residents
                     </a>
 
@@ -98,7 +99,7 @@
                         </div>
                     </div>
                     <div class="filter-group">
-                        <button id="toggleFiltersBtn" class="clear-btn" style="background-color: #17a2b8;">
+                        <button id="toggleFiltersBtn" class="clear-btn" style="background-color: #ffffffff;">
                             Advanced Filters <span class="material-icons">expand_more</span>
                         </button>
                     </div>
@@ -335,9 +336,8 @@
                         <tr>
                             <th class="sortable" data-sort="last_name">
                                 <div class="sort-header-content">
-                                    <span>Full Name</span>
-                                    <div class="sort-controls">
-                                        <span class="sort-icon"></span>
+                                    <div class="sort-header-top-line">
+                                        <span>Full Name</span>
                                         <div class="sort-dropdown-container">
                                             <span class="material-icons">arrow_drop_down</span>
                                             <select id="nameSortSelect" class="sort-select-overlay">
@@ -348,6 +348,7 @@
                                             </select>
                                         </div>
                                     </div>
+                                    <span class="sort-icon"></span>
                                 </div>
                             </th>
                             <th class="sortable" data-sort="age">Age <span class="sort-icon"></span></th>

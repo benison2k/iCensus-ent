@@ -58,6 +58,15 @@
   #save-layout-btn { background-color: #e8eaf6; color: #3949ab; }
   #save-layout-btn:hover { background-color: #c5cae9; transform: translateY(-2px); }
   
+  #addChartBtn, #manageChartsBtn, #generate-report-btn {
+      background-color: #e3f2fd;
+      color: #0d6efd;
+  }
+  #addChartBtn:hover, #manageChartsBtn:hover, #generate-report-btn:hover {
+      background-color: #bbdefb;
+      transform: translateY(-2px);
+  }
+
   .separator-line {
       border: 0;
       height: 1px;
@@ -152,6 +161,13 @@
   body.dark-mode #reset-layout-btn:hover { background-color: #4e342e; }
   body.dark-mode #save-layout-btn { background-color: #283593; color: #e8eaf6; }
   body.dark-mode #save-layout-btn:hover { background-color: #303f9f; }
+  body.dark-mode #addChartBtn, body.dark-mode #manageChartsBtn, body.dark-mode #generate-report-btn {
+      background-color: #0d47a1;
+      color: #bbdefb;
+  }
+  body.dark-mode #addChartBtn:hover, body.dark-mode #manageChartsBtn:hover, body.dark-mode #generate-report-btn:hover {
+      background-color: #1565c0;
+  }
   body.dark-mode .chart-error { background-color: #3e2723; color: #ef9a9a; }
   
   

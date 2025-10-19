@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>iCensus - Settings</title>
+<link rel="icon" type="image/png" href="/iCensus-ent/public/assets/img/iCensusLogoOnly2.png">
 <?php $base_url = '/iCensus-ent/public'; ?>
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/style.css">
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/settings.css">

@@ -73,7 +73,7 @@
     flex-wrap: wrap; /* Allow wrapping on smaller screens */
     gap: 1.5rem;
     align-items: flex-end; /* Align items to the bottom */
-    background: #f8f9fa;
+    background: #ffffff;
     padding: 1rem;
     border-radius: 12px;
     border: 1px solid #dee2e6;
@@ -87,7 +87,7 @@
     left: 0;
     right: 0;
     z-index: 10;
-    background-color: #f8f9fa;
+    background-color: #ffffff;
     padding: 1.5rem;
     border-radius: 0 0 12px 12px;
     box-shadow: 0 8px 15px rgba(0,0,0,0.1);
@@ -185,20 +185,21 @@
 }
 
 .clear-btn {
-    border: none;
-    background-color: #6c757d;
-    color: #fff;
+    border: 1px solid #dee2e6;
+    background-color: #ffffff;
+    color: #333;
     padding: 0.6rem 1rem;
     border-radius: 8px;
     cursor: pointer;
     font-weight: 500;
     font-size: 0.95rem;
-    transition: background-color 0.2s;
+    transition: all 0.2s;
     height: 42px; /* Match height of other filter items */
 }
 
 .clear-btn:hover {
-    background-color: #5a6268;
+    background-color: #f8f9fa;
+    border-color: #0d6efd;
 }
 
 /* --- NEW: Toggle Switch for Voter Status --- */
@@ -279,10 +280,13 @@ body.dark-mode .filter-group input::placeholder {
     color: #8a9bb3;
 }
 body.dark-mode .clear-btn {
-    background-color: #495057;
+    background-color: #34495e;
+    border-color: #4a5a6a;
+    color: #fff;
 }
 body.dark-mode .clear-btn:hover {
-    background-color: #343a40;
+    background-color: #4e6a85;
+    border-color: #4da3ff;
 }
 
 body.dark-mode .toggle-switch-group { background-color: #2C3E50; }
@@ -290,6 +294,11 @@ body.dark-mode .toggle-switch-group { background-color: #2C3E50; }
 /* =========================
    Page Action Buttons
 ========================= */
+@keyframes cardFadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 .page-actions-container {
     display: flex;
     flex-wrap: wrap;
@@ -311,28 +320,47 @@ body.dark-mode .toggle-switch-group { background-color: #2C3E50; }
     cursor: pointer;
     position: relative;
     border: 1px solid transparent;
+    opacity: 0;
+    animation: cardFadeIn 0.6s ease forwards;
 }
+
+.page-actions-container .action-button-link:nth-child(1) { animation-delay: 0.1s; }
+.page-actions-container .action-button-link:nth-child(2) { animation-delay: 0.2s; }
+.page-actions-container .action-button-link:nth-child(3) { animation-delay: 0.3s; }
+.page-actions-container .action-button-link:nth-child(4) { animation-delay: 0.4s; }
+
 
 /* Light Mode Buttons */
 body:not(.dark-mode) .action-button-link {
     background-color: #ffffff;
     color: #333;
+    border-color: #dee2e6;
     box-shadow: 0 2px 8px rgba(0,0,0,0.07);
 }
 body:not(.dark-mode) .action-button-link:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
+body:not(.dark-mode) .action-button-link.active-view {
+    color: #333;
+}
+
 
 /* Dark Mode Buttons */
 body.dark-mode .action-button-link {
     background-color: #2C3E50;
     color: #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    border-color: #4a5a6a;
 }
 body.dark-mode .action-button-link:hover {
     background-color: #34495e;
 }
+body.dark-mode .action-button-link.active-view {
+    border-color: #4da3ff;
+    color: #4da3ff;
+    background-color: #1e1e2f;
+}
+
 
 /* ================================
    GUARANTEED Badge Placement Fix
@@ -357,18 +385,22 @@ body.dark-mode .action-button-link:hover {
 
 .sort-header-content {
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    align-items: flex-start;
-    width: 100%;
+    height: 100%;
 }
 
-.sort-controls {
-    text-align: right;
+.sort-header-top-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
 }
 
 .sort-icon {
     display: block;
     height: 18px; /* Reserve space for the text indicator */
+    text-align: left;
 }
 
 .sort-icon .sort-text {
