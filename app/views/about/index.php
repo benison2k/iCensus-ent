@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About iCensus</title>
     <?php $base_url = '/iCensus-ent/public'; ?>
+    <link rel="icon" type="image/png" href="/iCensus-ent/public/assets/img/iCensusLogoOnly2.png">
     <link rel="stylesheet" href="<?= $base_url ?>/assets/css/style.css">
     <link rel="stylesheet" href="<?= $base_url ?>/assets/css/about.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">

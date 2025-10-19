@@ -14,6 +14,13 @@
     .chart-item-actions button { background: none; border: none; cursor: pointer; padding: 5px; border-radius: 50%; }
     .chart-item-actions button:hover { background-color: #f0f0f0; }
     .chart-item-actions .material-icons { font-size: 20px; }
+
+    /* --- DARK MODE STYLES --- */
+    body.dark-mode .manage-charts-content { background-color: #2C3E50; color: #fff; }
+    body.dark-mode h2, body.dark-mode p, body.dark-mode .chart-list-item label { color: #fff; }
+    body.dark-mode .chart-list-item { border-bottom-color: #4a5a6a; }
+    body.dark-mode .chart-item-actions button { color: #fff; }
+    body.dark-mode .chart-item-actions button:hover { background-color: #37474f; }
 </style>
 
 <div id="manageChartsModal" class="manage-charts-modal">

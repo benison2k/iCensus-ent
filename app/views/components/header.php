@@ -22,6 +22,7 @@ if (strpos($requestUri, '/sysadmin/') !== false && !$isDashboardPage) {
 ?>
 
 <head>
+    <link rel="icon" type="image/png" href="<?= $base_url ?>/assets/img/iCensusLogoOnly2.png">
     <link rel="stylesheet" href="<?= $base_url ?>/assets/css/header2.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">

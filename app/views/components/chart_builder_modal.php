@@ -25,6 +25,22 @@
     .template-section h4 { margin-top: 0; }
     .btn-template { background-color: #e7f1ff; border: 1px solid #b3d1ff; color: #0056b3; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; margin-right: 8px; margin-bottom: 8px; }
     .btn-template:hover { background-color: #d0e3ff; }
+
+    /* --- DARK MODE STYLES --- */
+    body.dark-mode .chart-builder-content { background-color: #2C3E50; color: #fff; }
+    body.dark-mode .chart-builder-form-container { border-right-color: #4a5a6a; }
+    body.dark-mode .chart-builder-group label, body.dark-mode h2, body.dark-mode h4 { color: #fff; }
+    body.dark-mode .chart-builder-group input, body.dark-mode .chart-builder-group select {
+        background-color: #1e1e2f;
+        color: #fff;
+        border-color: #555;
+    }
+    body.dark-mode .chart-placeholder { background-color: #1e1e2f; color: #aaa; }
+    body.dark-mode .kpi-preview-value { color: #9fa8da; }
+    body.dark-mode .template-section { border-bottom-color: #4a5a6a; }
+    body.dark-mode .btn-template { background-color: #37474f; border-color: #546e7a; color: #eceff1; }
+    body.dark-mode .btn-template:hover { background-color: #455a64; }
+    body.dark-mode hr { border-color: #4a5a6a; }
 </style>
 
 <div id="chartBuilderModal" class="chart-builder-modal">
