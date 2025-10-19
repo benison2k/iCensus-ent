@@ -49,10 +49,19 @@ class SysadminController {
         $db = new Database($config);
         $userModel = new User($db);
 
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $pageSize = isset($_GET['pageSize']) ? (int)$_GET['pageSize'] : 10;
+
+        $userData = $userModel->getPaginatedManageableUsers($page, $pageSize);
+
         $data = [
             'user' => $_SESSION['user'],
             'theme' => $_SESSION['user']['theme'] ?? 'light',
-            'all_users' => $userModel->getManageableUsers(),
+            'all_users' => $userData['users'],
+            'totalUsers' => $userData['total'],
+            'totalPages' => $userData['totalPages'],
+            'currentPage' => $page,
+            'pageSize' => $pageSize,
             'assignable_roles' => $userModel->getAssignableRoles(),
             'modalMessage' => $_SESSION['modal']['message'] ?? '',
             'modalType' => $_SESSION['modal']['type'] ?? ''
@@ -115,6 +124,13 @@ class SysadminController {
                     $userModel->delete($user_id_to_delete);
                     $log_message = "User account '" . htmlspecialchars($user_to_delete['username']) . "' (ID#{$user_id_to_delete}) was deleted.";
                     log_action('INFO', 'USER_DELETE', $log_message);
+                    
+                    // --- AJAX Response ---
+                    if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+                        header('Content-Type: application/json');
+                        echo json_encode(['status' => 'success', 'message' => 'User deleted successfully.']);
+                        exit;
+                    }
                     $_SESSION['modal'] = ['message' => 'User deleted successfully.', 'type' => 'success'];
                 } else {
                      $_SESSION['modal'] = ['message' => 'User not found for deletion.', 'type' => 'error'];

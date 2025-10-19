@@ -12,7 +12,10 @@ define('BASE_URL', '/iCensus-ent/public');
 if (!isset($_SESSION['user'])) {
     // We must check if the current request is for the login page itself
     // to prevent an infinite redirect loop.
-    if (strpos($_SERVER['REQUEST_URI'], '/login') === false) {
+    $is_login_page = strpos($_SERVER['REQUEST_URI'], '/login') !== false;
+    $is_home_page = in_array(str_replace('/iCensus-ent/public', '', strtok($_SERVER['REQUEST_URI'], '?')), ['/', '/home', '']);
+
+    if (!$is_login_page && !$is_home_page) {
         header("Location: " . BASE_URL . "/login");
         exit;
     }

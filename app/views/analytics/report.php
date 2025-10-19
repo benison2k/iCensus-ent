@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Custom Resident Report</title>
+    <link rel="icon" type="image/png" href="/iCensus-ent/public/assets/img/iCensusLogoOnly2.png">
     <?php if (!empty($charts)): ?>
         <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <?php endif; ?>
