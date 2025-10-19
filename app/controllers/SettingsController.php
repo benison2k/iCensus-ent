@@ -42,9 +42,26 @@ class SettingsController {
         $auth = new Auth($db);
         $userId = $_SESSION['user']['id'];
         $oldUsername = $_SESSION['user']['username'];
+        $oldEmail = $_SESSION['user']['email'] ?? '';
         
         try {
-            $message = '';
+            $message = 'Settings saved.';
+            
+            // --- Update Email Logic ---
+            if (isset($_POST['update_email'])) {
+                $newEmail = trim($_POST['email']);
+                if ($oldEmail !== $newEmail) {
+                    $stmt = $db->getPdo()->prepare("UPDATE users SET email=? WHERE id=?");
+                    $stmt->execute([$newEmail, $userId]);
+                    $auth->refreshUserSession($userId);
+                    log_action('INFO', 'SETTINGS_UPDATE', "User updated their email address from '{$oldEmail}' to '{$newEmail}'.");
+                    $message = 'Email updated successfully.';
+                } else {
+                    $message = 'Email is the same, no changes made.';
+                }
+            }
+            // --- End Update Email Logic ---
+
             if (isset($_POST['update_username'])) {
                 $newUsername = $_POST['username'];
                 if ($oldUsername !== $newUsername) {
@@ -96,6 +113,33 @@ class SettingsController {
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Incorrect password']);
         }
+        exit;
+    }
+    
+    // --- NEW: Toggle 2FA Method ---
+    public function toggleTwoFA() {
+        $this->checkAuth();
+        header('Content-Type: application/json');
+
+        $twoFA = (int)($_POST['two_fa'] ?? 0);
+        $userId = $_SESSION['user']['id'];
+        $email = $_SESSION['user']['email'] ?? '';
+
+        if ($twoFA === 1 && empty($email)) {
+            echo json_encode(['status' => 'error', 'message' => 'Cannot enable 2FA: Your account must have a registered email address.']);
+            exit;
+        }
+
+        $config = require __DIR__ . '/../../config/database.php';
+        $db = new Database($config);
+        $GLOBALS['db'] = $db;
+        $auth = new Auth($db);
+
+        $auth->updateTwoFA($userId, $twoFA);
+        $action = $twoFA ? '2FA_ENABLED' : '2FA_DISABLED';
+        log_action('INFO', $action, "User toggled 2FA status to: " . ($twoFA ? 'Enabled' : 'Disabled'));
+        
+        echo json_encode(['status' => 'success', 'message' => 'Two-Factor Authentication preference updated.']);
         exit;
     }
 }

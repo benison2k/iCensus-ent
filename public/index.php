@@ -44,10 +44,23 @@ switch ($route) {
     // --- Auth Routes ---
     case 'login':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Handles login form submission via AJAX POST (returns JSON)
             (new AuthController())->login();
         } else {
             (new AuthController())->showLoginForm();
         }
+        break;
+    case 'verify-otp': // Handles OTP modal submission via AJAX POST (returns JSON)
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            (new AuthController())->verifyOtp();
+        } else {
+             // Redirect any direct GET request to the login page
+             header("Location: " . BASE_URL . "/login");
+             exit;
+        }
+        break;
+    case 'resend-otp': // Handles resend request via AJAX GET (returns JSON)
+        (new AuthController())->resendOtp();
         break;
     case 'logout':
         (new AuthController())->logout();
@@ -180,6 +193,9 @@ switch ($route) {
         break;
     case 'settings/verify-password':
         (new SettingsController())->verifyPassword();
+        break;
+    case 'settings/toggleTwoFA': // <--- NEW ROUTE
+        (new SettingsController())->toggleTwoFA();
         break;
 
     // --- System Admin Routes ---
