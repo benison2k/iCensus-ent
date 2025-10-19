@@ -8,16 +8,11 @@ class User {
         $this->pdo = $db->getPdo();
     }
 
-    /**
-     * Gets all users for filtering purposes.
-     * @return array
-     */
     public function getAll() {
         $stmt = $this->pdo->query("SELECT id, username FROM users ORDER BY username ASC");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Gets all users EXCEPT System Admins
     public function getManageableUsers() {
         $stmt = $this->pdo->query("
             SELECT users.id, users.username, users.full_name, roles.role_name 
@@ -29,7 +24,39 @@ class User {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Gets all roles that can be assigned
+    public function getPaginatedManageableUsers($page = 1, $pageSize = 10) {
+        $offset = ($page - 1) * $pageSize;
+
+        // Get total count
+        $countStmt = $this->pdo->query("
+            SELECT COUNT(users.id) 
+            FROM users 
+            JOIN roles ON users.role_id = roles.id 
+            WHERE roles.role_name != 'System Admin'
+        ");
+        $totalUsers = $countStmt->fetchColumn();
+
+        // Get paginated results
+        $stmt = $this->pdo->prepare("
+            SELECT users.id, users.username, users.full_name, roles.role_name 
+            FROM users 
+            JOIN roles ON users.role_id = roles.id 
+            WHERE roles.role_name != 'System Admin' 
+            ORDER BY users.id
+            LIMIT :limit OFFSET :offset
+        ");
+        $stmt->bindValue(':limit', (int) $pageSize, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', (int) $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return [
+            'users' => $users,
+            'total' => $totalUsers,
+            'totalPages' => ceil($totalUsers / $pageSize)
+        ];
+    }
+
     public function getAssignableRoles() {
         $stmt = $this->pdo->query("SELECT id, role_name FROM roles WHERE role_name != 'System Admin'");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

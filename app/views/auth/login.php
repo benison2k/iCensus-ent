@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>iCensus Login</title>
+<link rel="icon" type="image/png" href="/iCensus-ent/public/assets/img/iCensusLogoOnly2.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <link rel="stylesheet" href="/iCensus-ent/public/assets/css/login.css">
@@ -11,7 +12,7 @@
 
 <div class="split-screen">
     <div class="left-side position-relative d-flex flex-column justify-content-center align-items-center text-center overflow-hidden">
-        <a href="/iCensus-ent/public/" class="home-link" title="Back to Home">
+        <a href="/iCensus-ent/public/home" class="home-link" title="Back to Home">
             <span class="material-icons">home</span>
         </a>
         <div class="shape shape1"></div>

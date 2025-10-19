@@ -1,7 +1,9 @@
 .user-management-container {
     padding: 0 2rem;
-    max-width: 1200px;
+    max-width: 1600px;
     margin: auto;
+    width: 100%;
+    margin-bottom: 2rem; /* Added space before footer */
 }
 
 .add-user-btn {
@@ -24,6 +26,7 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     border-radius: 12px;
     overflow: hidden;
+    border: 1px solid #ddd;
 }
 
 .user-table th,
@@ -31,6 +34,12 @@
     padding: 1rem;
     text-align: left;
     border-bottom: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+}
+
+.user-table th:last-child,
+.user-table td:last-child {
+    border-right: none;
 }
 
 .user-table th { background-color: #f4f4f4; }
@@ -44,8 +53,8 @@
     color: #fff;
     text-transform: uppercase;
 }
-.role-barangayadmin { background-color: #c62828; }
-.role-encoder { background-color: #2e7d32; }
+.role-barangayadmin { background-color: #2e7d32; }
+.role-encoder { background-color: #0277bd; }
 
 .action-btn {
     border: none;
@@ -60,6 +69,8 @@
 .editBtn .material-icons { color: #1976d2; }
 .deleteBtn .material-icons { color: #c62828; }
 
+body.dark-mode .user-table { border-color: #4a5a6a; }
 body.dark-mode .user-table th { background-color: #3b4a59; }
+body.dark-mode .user-table td { border-color: #4a5a6a; }
 body.dark-mode .user-table tr { border-bottom-color: #3b4a59; }
 body.dark-mode .user-table tbody tr:hover { background-color: rgba(255, 255, 255, 0.05); }
