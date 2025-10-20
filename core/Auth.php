@@ -133,7 +133,82 @@ class Auth {
 
         return ['success' => false, 'message' => 'Invalid OTP code.'];
     }
+
+    /**
+     * Finds user by email, generates token, saves to DB, and sends reset email.
+     */
+    public function sendPasswordResetLink($email) {
+        global $db; 
+        
+        $stmt = $this->pdo->prepare("SELECT id, username, email FROM users WHERE email = ?");
+        $stmt->execute([$email]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$user || empty($user['email'])) {
+            log_action('WARNING', 'PASSWORD_RESET_FAIL', "Attempted password reset for non-existent or no-email user: '" . htmlspecialchars($email) . "'");
+            return true; // Return true for security to prevent email enumeration
+        }
+
+        // Generate token (hashed version stored in DB, raw version used for link)
+        $rawToken = bin2hex(random_bytes(32));
+        $hashedToken = hash('sha256', $rawToken);
+        $expiresAt = date('Y-m-d H:i:s', time() + 3600); // 1 hour expiration
+
+        // Save token and expiration to DB
+        $updateStmt = $this->pdo->prepare("UPDATE users SET reset_token = ?, reset_token_expires_at = ? WHERE id = ?");
+        $updateStmt->execute([$hashedToken, $expiresAt, $user['id']]);
+
+        // Send email with the link
+        // Note: BASE_URL is defined in core/init.php
+        $resetLink = BASE_URL . '/password/reset?token=' . $rawToken . '&email=' . urlencode($user['email']);
+        $emailService = new Email();
+        $sent = $emailService->sendPasswordReset($user['email'], $user['username'], $resetLink);
+
+        if ($sent) {
+            log_action('INFO', 'PASSWORD_RESET_SENT', "Password reset link sent to user: " . htmlspecialchars($user['email']) . ".");
+        } else {
+            log_action('ERROR', 'PASSWORD_RESET_FAIL', "Failed to send password reset email to: " . htmlspecialchars($user['email']) . ".");
+        }
+
+        return $sent;
+    }
     
+    /**
+     * Verifies the token and updates the user's password.
+     */
+    public function resetPassword($email, $token, $newPassword) {
+        $hashedToken = hash('sha256', $token);
+        
+        $stmt = $this->pdo->prepare("
+            SELECT id, username, reset_token_expires_at 
+            FROM users 
+            WHERE email = ? AND reset_token = ?
+        ");
+        $stmt->execute([$email, $hashedToken]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$user) {
+            return ['success' => false, 'message' => 'Invalid or expired link.'];
+        }
+
+        if (time() > strtotime($user['reset_token_expires_at'])) {
+            // Clear the expired token to prevent reuse
+            $this->pdo->prepare("UPDATE users SET reset_token = NULL, reset_token_expires_at = NULL WHERE id = ?")->execute([$user['id']]);
+            return ['success' => false, 'message' => 'The reset link has expired. Please request a new one.'];
+        }
+
+        // Update password and clear token fields
+        $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+        $updateStmt = $this->pdo->prepare("UPDATE users SET password = ?, reset_token = NULL, reset_token_expires_at = NULL WHERE id = ?");
+        $updateStmt->execute([$hashedPassword, $user['id']]);
+
+        log_action('INFO', 'PASSWORD_RESET_SUCCESS', "User '" . $user['username'] . "' successfully reset their password via token.");
+        
+        return ['success' => true, 'message' => 'Your password has been reset successfully.'];
+    }
+
+    // ... existing refreshUserSession, updateUsername, etc. methods ...
+
     public function refreshUserSession($userId) {
         $stmt = $this->pdo->prepare("
             SELECT users.*, roles.role_name 
