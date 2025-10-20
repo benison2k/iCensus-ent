@@ -133,6 +133,40 @@ class Auth {
 
         return ['success' => false, 'message' => 'Invalid OTP code.'];
     }
+    
+    /**
+     * Verifies the submitted OTP against the stored hash and expiration for a non-login action (like 2FA toggle).
+     */
+    public function verifyOtpForToggle($userId, $submittedOtp) {
+        $stmt = $this->pdo->prepare("SELECT otp, otp_expires_at FROM users WHERE id = ?");
+        $stmt->execute([$userId]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$user) {
+            return ['success' => false, 'message' => 'User not found.'];
+        }
+
+        // Check if OTP exists and is not expired
+        if (empty($user['otp']) || time() > strtotime($user['otp_expires_at'])) {
+            // Clear expired token fields
+            $this->pdo->prepare("UPDATE users SET otp = NULL, otp_expires_at = NULL WHERE id = ?")->execute([$userId]);
+            return ['success' => false, 'message' => 'OTP expired or not set.'];
+        }
+
+        // Verify the code
+        if (password_verify($submittedOtp, $user['otp'])) {
+            // Success: Clear the used OTP immediately, but DO NOT log the user in.
+            $clearStmt = $this->pdo->prepare("UPDATE users SET otp = NULL, otp_expires_at = NULL WHERE id = ?");
+            $clearStmt->execute([$userId]);
+            
+            log_action('INFO', 'OTP_VERIFY_SUCCESS', "OTP verified for 2FA toggle action for user ID #{$userId}.");
+            
+            return ['success' => true, 'message' => 'OTP verified successfully.'];
+        }
+
+        return ['success' => false, 'message' => 'Invalid OTP code.'];
+    }
+
 
     /**
      * Finds user by email, generates token, saves to DB, and sends reset email.
@@ -159,7 +193,6 @@ class Auth {
         $updateStmt->execute([$hashedToken, $expiresAt, $user['id']]);
 
         // Send email with the link
-        // Note: BASE_URL is defined in core/init.php
         $resetLink = BASE_URL . '/password/reset?token=' . $rawToken . '&email=' . urlencode($user['email']);
         $emailService = new Email();
         $sent = $emailService->sendPasswordReset($user['email'], $user['username'], $resetLink);
@@ -206,7 +239,6 @@ class Auth {
         
         return ['success' => true, 'message' => 'Your password has been reset successfully.'];
     }
-
     // ... existing refreshUserSession, updateUsername, etc. methods ...
 
     public function refreshUserSession($userId) {

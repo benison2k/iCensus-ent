@@ -231,6 +231,140 @@ class SettingsController {
         exit;
     }
     
+    /**
+     * MODIFIED: Handles the request to toggle 2FA on or off.
+     * Initiates OTP flow if DISABLING 2FA.
+     */
+    public function toggleTwoFA() {
+        $this->checkAuth();
+        header('Content-Type: application/json');
+        
+        $config = require __DIR__ . '/../../config/database.php';
+        $db = new Database($config);
+        $GLOBALS['db'] = $db;
+        $auth = new Auth($db);
+
+        $userId = $_SESSION['user']['id'];
+        $currentTwoFA = $_SESSION['user']['two_fa'] ?? 0;
+        
+        // Determine the target action
+        $targetTwoFA = (int)($_POST['target_two_fa'] ?? 0); 
+        
+        // SCENARIO 1: ENABLING 2FA (No OTP needed)
+        if ($targetTwoFA == 1 && $currentTwoFA == 0) {
+            $email = $_SESSION['user']['email'] ?? '';
+            if (empty($email)) {
+                 echo json_encode(['status' => 'error', 'message' => 'Cannot enable 2FA: Your account must have a registered email address.']);
+                 exit;
+            }
+            
+            $auth->updateTwoFA($userId, 1); 
+            log_action('INFO', '2FA_ENABLED', "User #{$userId} successfully enabled 2FA.");
+            echo json_encode([
+                'status' => 'success', 
+                'message' => 'Two-Factor Authentication has been successfully enabled.'
+            ]);
+            exit;
+        } 
+        
+        // SCENARIO 2: DISABLING 2FA (OTP Required)
+        if ($targetTwoFA == 0 && $currentTwoFA == 1) {
+            $email = $_SESSION['user']['email'] ?? '';
+
+            // Check Cooldown
+            $cooldown_duration = 60; 
+            $last_sent_time = $_SESSION['otp_last_sent'] ?? 0;
+            $time_since_last_sent = time() - $last_sent_time;
+
+            // Check if user is in a pending state and still in cooldown
+            if ($time_since_last_sent < $cooldown_duration && isset($_SESSION['2fa_toggle_pending'])) {
+                $remaining_time = $cooldown_duration - $time_since_last_sent;
+                echo json_encode([
+                    'status' => 'cooldown',
+                    'message' => "Please wait {$remaining_time} seconds before requesting a new code.",
+                    'cooldown_remaining' => $remaining_time
+                ]);
+                exit;
+            }
+
+            // Generate and send OTP
+            $otp_sent = $auth->generateAndSendOtp($userId, $email);
+
+            if ($otp_sent) {
+                $_SESSION['2fa_toggle_pending'] = true; // Set flag to allow verification later
+                $_SESSION['otp_last_sent'] = time(); // Set cooldown time
+                log_action('INFO', '2FA_DISABLE_OTP_SENT', "OTP sent to user #{$userId} to confirm 2FA disablement.");
+                
+                echo json_encode([
+                    'status' => 'otp_required', 
+                    'message' => 'A One-Time Password has been sent to your email to confirm disabling 2FA.'
+                ]);
+                exit;
+            } else {
+                echo json_encode([
+                    'status' => 'error', 
+                    'message' => 'Failed to send OTP email. Check system configuration.'
+                ]);
+                exit;
+            }
+        }
+        
+        // SCENARIO 3: NO CHANGE OR INVALID REQUEST
+        $action = $targetTwoFA ? '2FA_ENABLED' : '2FA_DISABLED';
+        log_action('INFO', $action, "User toggled 2FA status to: " . ($targetTwoFA ? 'Enabled' : 'Disabled'));
+        echo json_encode(['status' => 'success', 'message' => 'Two-Factor Authentication preference updated.']);
+        exit;
+    }
+    
+    /**
+     * NEW: Verifies the OTP provided to complete the 2FA disabling process.
+     */
+    public function verifyTwoFAToggleOtp() {
+        $this->checkAuth();
+        header('Content-Type: application/json');
+
+        if (!isset($_SESSION['user'])) {
+             echo json_encode(['status' => 'error', 'message' => 'Authentication required.']);
+            exit;
+        }
+
+        if (!isset($_SESSION['2fa_toggle_pending']) || !$_SESSION['2fa_toggle_pending']) {
+            echo json_encode(['status' => 'error', 'message' => 'Invalid session for OTP verification. Please try toggling 2FA again.']);
+            exit;
+        }
+
+        $config = require __DIR__ . '/../../config/database.php';
+        $db = new Database($config);
+        $GLOBALS['db'] = $db;
+        $auth = new Auth($db);
+
+        $userId = $_SESSION['user']['id'];
+        $submittedOtp = trim($_POST['otp'] ?? '');
+
+        $result = $auth->verifyOtpForToggle($userId, $submittedOtp);
+
+        if ($result['success']) {
+            // OTP is correct. Proceed to disable 2FA.
+            $auth->updateTwoFA($userId, 0); // Disable 2FA (set to 0)
+            log_action('INFO', '2FA_DISABLED_OTP', "User #{$userId} successfully disabled 2FA using OTP.");
+            
+            unset($_SESSION['2fa_toggle_pending']); // Clear flag
+            unset($_SESSION['otp_last_sent']); // Clear cooldown
+            
+            echo json_encode([
+                'status' => 'success', 
+                'message' => 'Two-Factor Authentication has been successfully disabled.'
+            ]);
+            exit;
+        } else {
+            echo json_encode([
+                'status' => 'error', 
+                'message' => $result['message']
+            ]);
+            exit;
+        }
+    }
+
     public function updateTheme() {
         $this->checkAuth();
         header('Content-Type: application/json');
@@ -241,32 +375,6 @@ class SettingsController {
         $auth = new Auth($db);
         $auth->updateTheme($userId, $theme);
         echo json_encode(['status' => 'success', 'theme' => $theme]);
-        exit;
-    }
-
-    public function toggleTwoFA() {
-        $this->checkAuth();
-        header('Content-Type: application/json');
-
-        $twoFA = (int)($_POST['two_fa'] ?? 0);
-        $userId = $_SESSION['user']['id'];
-        $email = $_SESSION['user']['email'] ?? '';
-
-        if ($twoFA === 1 && empty($email)) {
-            echo json_encode(['status' => 'error', 'message' => 'Cannot enable 2FA: Your account must have a registered email address.']);
-            exit;
-        }
-
-        $config = require __DIR__ . '/../../config/database.php';
-        $db = new Database($config);
-        $GLOBALS['db'] = $db;
-        $auth = new Auth($db);
-
-        $auth->updateTwoFA($userId, $twoFA);
-        $action = $twoFA ? '2FA_ENABLED' : '2FA_DISABLED';
-        log_action('INFO', $action, "User toggled 2FA status to: " . ($twoFA ? 'Enabled' : 'Disabled'));
-        
-        echo json_encode(['status' => 'success', 'message' => 'Two-Factor Authentication preference updated.']);
         exit;
     }
 }

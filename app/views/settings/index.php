@@ -47,6 +47,28 @@ body.dark-mode .password-otp-group {
 #passwordOtpError {
     margin-top: 10px;
 }
+
+/* NEW: Styles for 2FA Toggle Modal */
+#otpToggleModal .modal-content {
+    max-width: 400px;
+}
+
+#otpToggleInput {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 5px;
+}
+#resendToggleOtpBtn {
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-decoration: underline !important;
+    color: #0d6efd !important;
+    margin-top: 10px;
+}
+#otpToggleError {
+    margin-top: 10px;
+}
 </style>
 
 </head>
@@ -75,7 +97,7 @@ body.dark-mode .password-otp-group {
              <input type="email" name="email" value="<?= htmlspecialchars($user['email'] ?? ''); ?>" placeholder="Enter email address" required>
              <input type="hidden" name="update_email" value="1">
              <button type="submit"><span class="material-icons">save</span> Save Email</button>
-         </form>
+           </form>
 
         <form id="usernameForm" method="POST">
             <label>Username</label>
@@ -155,6 +177,25 @@ body.dark-mode .password-otp-group {
 
 <?php include __DIR__ . '/../components/footer.php'; ?>
 
+
+<div id="otpToggleModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 400px; padding: 30px;">
+        <span class="close" id="closeOtpToggleModal">&times;</span>
+        <h3 style="margin-top: 0; text-align: center;">Confirm Disable 2FA</h3>
+        <p class="text-muted" style="text-align: center;">Enter the 6-digit code sent to your email to confirm you want to disable Two-Factor Authentication.</p>
+        
+        <form id="otpToggleForm" action="<?= $base_url ?>/settings/verify-2fa-toggle-otp" method="POST" style="margin-top: 1.5rem;">
+            <div class="input-wrapper mb-3" style="display: flex; justify-content: center;">
+                <input type="text" name="otp" id="otpToggleInput" class="form-control" placeholder="______" required autofocus maxlength="6" pattern="\d{6}" inputmode="numeric">
+            </div>
+            <div class="error-text" id="otpToggleError" style="margin-bottom: 1rem;"></div>
+            <button type="submit" class="btn btn-primary w-100 mb-3" id="otpToggleVerifyBtn">Confirm Disable</button>
+        </form>
+        
+        <a href="#" id="resendToggleOtpBtn" class="small text-decoration-none" style="display: block; text-align: center;">Resend Code</a>
+        <span id="cooldownToggleTimer" class="small text-muted" style="margin-top: 5px; display: none; text-align: center;"></span>
+    </div>
+</div>
 <script>
 // --- GLOBAL VARS ---
 const BASE_URL = '<?= $base_url ?>';
@@ -200,8 +241,10 @@ async function handleFormSubmit(form, url) {
         } else {
             showAjaxResult(result.message || 'An error occurred.', 'error');
         }
+        return result;
     } catch (error) {
         showAjaxResult('A network error occurred. Please try again.', 'error');
+        return {status: 'error', message: 'Network error'};
     }
 }
 
@@ -215,6 +258,7 @@ document.getElementById('emailForm').addEventListener('submit', function(e) {
     e.preventDefault();
     handleFormSubmit(this, BASE_URL + '/settings/process');
 });
+
 
 // --- PASSWORD CHANGE LOGIC (STEPPED) ---
 const currentPassword = document.getElementById('current_password');
@@ -379,7 +423,7 @@ resendOtpBtnPass.addEventListener('click', async (e) => {
 
 // STEP 2: Password Match Validation
 function checkPasswordMatch() {
-    const passwordValid = password.value !== '' && password.value === confirmPassword.value;
+    const passwordValid = password.value.length >= 6 && password.value === confirmPassword.value;
     
     if (password.value === '' || confirmPassword.value === '') {
         matchIcon.innerHTML = '';
@@ -410,7 +454,7 @@ document.getElementById('passwordForm').addEventListener('submit', function(e) {
     }
     
     // Check OTP field for admin submission
-    if (IS_ADMIN && otpPasswordField.value.trim().length !== 6) {
+    if (IS_ADMIN && otpRequirement.style.display !== 'none' && otpPasswordField.value.trim().length !== 6) {
         passwordOtpError.textContent = 'Please enter the 6-digit OTP.';
         passwordOtpError.style.color = 'red';
         return;
@@ -429,7 +473,206 @@ document.getElementById('passwordForm').addEventListener('submit', function(e) {
 });
 
 
-// Theme toggle logic (omitted for brevity)
+// --- 2FA TOGGLE LOGIC (MODIFIED FOR OTP) ---
+const twoFaSwitch = document.getElementById('twoFaSwitch');
+const twoFaLabel = document.getElementById('twoFaLabel');
+const emailInput = document.querySelector('#emailForm input[name="email"]').value; // Check current email
+
+// --- 2FA Toggle Modal Constants ---
+const otpToggleModal = document.getElementById('otpToggleModal');
+const closeOtpToggleModal = document.getElementById('closeOtpToggleModal');
+const otpToggleForm = document.getElementById('otpToggleForm');
+const otpToggleInput = document.getElementById('otpToggleInput');
+const otpToggleError = document.getElementById('otpToggleError');
+const resendToggleOtpBtn = document.getElementById('resendToggleOtpBtn');
+const cooldownToggleTimer = document.getElementById('cooldownToggleTimer');
+let toggleTimerInterval = null; 
+
+// --- OTP Toggle Countdown Logic ---
+function startToggleCountdown(duration) {
+    clearInterval(toggleTimerInterval);
+    let timeRemaining = duration;
+    
+    resendToggleOtpBtn.style.display = 'none';
+    cooldownToggleTimer.style.display = 'block';
+
+    toggleTimerInterval = setInterval(() => {
+        let seconds = timeRemaining % 60;
+        let display = seconds < 10 ? "0" + seconds : seconds;
+        
+        cooldownToggleTimer.textContent = `Resend available in ${display}s`;
+        
+        if (timeRemaining <= 0) {
+            clearInterval(toggleTimerInterval);
+            resendToggleOtpBtn.style.display = 'block';
+            cooldownToggleTimer.style.display = 'none';
+            otpToggleError.textContent = 'The cooldown has expired. You may resend the code.';
+            otpToggleError.style.color = '#0d6efd';
+        }
+        timeRemaining--;
+    }, 1000);
+}
+
+function showOtpToggleModal(message, cooldown = 60) {
+    otpToggleError.textContent = message;
+    otpToggleError.style.color = '#0d6efd';
+    otpToggleInput.value = '';
+    otpToggleModal.style.display = 'flex';
+    otpToggleInput.focus();
+    startToggleCountdown(cooldown); 
+}
+
+// Event Listeners for the OTP Toggle Modal
+closeOtpToggleModal.onclick = () => {
+    clearInterval(toggleTimerInterval);
+    otpToggleModal.style.display = 'none';
+    window.location.reload(); // Safer to reload to clear session state
+};
+window.addEventListener('click', (event) => {
+    if (event.target === otpToggleModal) {
+        clearInterval(toggleTimerInterval);
+        otpToggleModal.style.display = 'none';
+        window.location.reload(); 
+    }
+});
+
+
+// Resend OTP for 2FA Toggle
+resendToggleOtpBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    
+    otpToggleError.textContent = 'Sending...';
+    otpToggleError.style.color = 'orange';
+    resendToggleOtpBtn.style.display = 'none';
+    
+    try {
+        const response = await fetch(BASE_URL + '/settings/toggleTwoFA', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ target_two_fa: 0 }) 
+        });
+        const result = await response.json();
+        
+        if (result.status === 'otp_required' || result.status === 'success') {
+            otpToggleError.textContent = 'A new code has been sent. Check your email.';
+            otpToggleError.style.color = 'green';
+            startToggleCountdown(60); 
+        } else if (result.status === 'cooldown') {
+            otpToggleError.textContent = result.message;
+            otpToggleError.style.color = 'red';
+            startToggleCountdown(result.cooldown_remaining); 
+        } else {
+            otpToggleError.textContent = result.message;
+            otpToggleError.style.color = 'red';
+            resendToggleOtpBtn.style.display = 'block'; // Re-enable on error
+        }
+    } catch (error) {
+        otpToggleError.textContent = 'Network error while trying to resend.';
+        otpToggleError.style.color = 'red';
+        resendToggleOtpBtn.style.display = 'block';
+        console.error(error);
+    }
+});
+
+// OTP Verification Submission for 2FA Toggle
+otpToggleForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const verifyBtn = document.getElementById('otpToggleVerifyBtn');
+    verifyBtn.disabled = true;
+    verifyBtn.textContent = 'Verifying...';
+    otpToggleError.textContent = '';
+    
+    try {
+        const formData = new URLSearchParams(new FormData(otpToggleForm));
+        
+        const response = await fetch(otpToggleForm.action, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            clearInterval(toggleTimerInterval);
+            showAjaxResult(result.message, 'success');
+            otpToggleModal.style.display = 'none';
+            
+            // CRITICAL: Reload the page to update the UI
+            setTimeout(() => window.location.reload(), 500);
+        } else {
+            otpToggleError.textContent = result.message;
+            otpToggleError.style.color = 'red';
+        }
+    } catch (error) {
+        otpToggleError.textContent = 'Network error during verification.';
+        otpToggleError.style.color = 'red';
+        console.error(error);
+    } finally {
+        verifyBtn.disabled = false;
+        verifyBtn.textContent = 'Confirm Disable';
+    }
+});
+
+
+// MAIN 2FA TOGGLE HANDLER (Intercepts disable request)
+if (twoFaSwitch) {
+    twoFaSwitch.addEventListener('change', async function() {
+        const isChecked = this.checked;
+        const targetTwoFA = isChecked ? 1 : 0;
+        
+        // Check for email BEFORE proceeding to the server
+        if (targetTwoFA === 1 && emailInput.length === 0) {
+            this.checked = false; // Revert switch visually
+            showAjaxResult('Cannot enable 2FA: Please save a valid email address first.', 'error');
+            return;
+        }
+
+        // Disable the toggle temporarily
+        this.disabled = true;
+
+        const data = new URLSearchParams({ target_two_fa: targetTwoFA });
+        
+        try {
+            const response = await fetch(BASE_URL + '/settings/toggleTwoFA', {
+                method: 'POST',
+                body: data,
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            });
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                showAjaxResult(result.message, 'success');
+                twoFaLabel.textContent = isChecked ? 'Enabled' : 'Disabled';
+            } else if (result.status === 'otp_required') {
+                // If 2FA is being disabled, the server will request an OTP.
+                // Reset the toggle visually to ON, then show the modal.
+                this.checked = true; 
+                showOtpToggleModal(result.message, COOLDOWN_DURATION);
+            } else if (result.status === 'cooldown') {
+                this.checked = true; 
+                showOtpToggleModal(result.message, result.cooldown_remaining);
+            } else {
+                // On error, revert the toggle back to its original state (the current state)
+                this.checked = !isChecked;
+                showAjaxResult(result.message, 'error');
+            }
+        } catch (error) {
+            // Network error
+            this.checked = !isChecked;
+            showAjaxResult('A network error occurred. Please try again.', 'error');
+            console.error('Error toggling 2FA:', error);
+        } finally {
+            // Re-enable the toggle only if the modal wasn't shown (i.e., not a pending disable action)
+            if (result.status !== 'otp_required' && result.status !== 'cooldown') {
+                this.disabled = false;
+            }
+        }
+    });
+}
+
+
+// Theme toggle logic
 const themeSwitch = document.getElementById('themeSwitch');
 themeSwitch.addEventListener('change', () => {
     const theme = themeSwitch.checked ? 'dark' : 'light';
@@ -442,43 +685,6 @@ themeSwitch.addEventListener('change', () => {
         body: new URLSearchParams({ theme: theme })
     });
 });
-
-// 2FA Toggle Logic (omitted for brevity)
-const twoFaSwitch = document.getElementById('twoFaSwitch');
-const twoFaLabel = document.getElementById('twoFaLabel');
-
-if (twoFaSwitch) {
-    twoFaSwitch.addEventListener('change', async () => {
-        const isEnabled = twoFaSwitch.checked;
-        const newStatus = isEnabled ? 1 : 0;
-        
-        twoFaSwitch.disabled = true;
-
-        try {
-            const response = await fetch(BASE_URL + '/settings/toggleTwoFA', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: new URLSearchParams({ two_fa: newStatus })
-            });
-            const result = await response.json();
-
-            if (result.status === 'success') {
-                twoFaLabel.textContent = isEnabled ? 'Enabled' : 'Disabled';
-                showAjaxResult(result.message, 'success');
-            } else {
-                twoFaSwitch.checked = !isEnabled;
-                twoFaLabel.textContent = isEnabled ? 'Disabled' : 'Enabled';
-                showAjaxResult(result.message, 'error');
-            }
-        } catch (error) {
-            twoFaSwitch.checked = !isEnabled;
-            twoFaLabel.textContent = isEnabled ? 'Disabled' : 'Enabled';
-            showAjaxResult('A network error occurred. Please try again.', 'error');
-        } finally {
-            twoFaSwitch.disabled = false;
-        }
-    });
-}
 </script>
 </body>
 </html>

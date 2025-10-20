@@ -203,7 +203,10 @@ switch ($route) {
     case 'settings/toggleTwoFA':
         (new SettingsController())->toggleTwoFA();
         break;
-    case 'settings/resendPasswordChangeOtp': // NEW: Route for password change OTP resend
+    case 'settings/verify-2fa-toggle-otp': 
+        (new SettingsController())->verifyTwoFAToggleOtp();
+        break;
+    case 'settings/resendPasswordChangeOtp': 
         (new SettingsController())->resendPasswordChangeOtp();
         break;
 
