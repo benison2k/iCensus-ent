@@ -158,6 +158,78 @@ class AuthController {
         header("Location: /iCensus-ent/public/login");
         exit;
     }
+    
+    /**
+     * Displays the form to request a password reset link or handles the POST request.
+     */
+    public function forgotPassword() {
+        $data = ['message' => '', 'error' => ''];
+        
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $email = trim($_POST['email'] ?? '');
+            
+            if (empty($email)) {
+                $data['error'] = 'Please enter your email address.';
+                view('auth/forgot_password', $data);
+                return;
+            }
+
+            $config = require __DIR__ . '/../../config/database.php';
+            $db = new Database($config);
+            $GLOBALS['db'] = $db;
+            $auth = new Auth($db);
+
+            $auth->sendPasswordResetLink($email);
+            
+            // Always show success message for security reasons
+            $data['message'] = 'If an account with that email exists, a password reset link has been sent.';
+            
+        } 
+        
+        view('auth/forgot_password', $data);
+    }
+
+    /**
+     * Displays the reset password form after clicking the link, or handles the form submission.
+     */
+    public function resetPassword() {
+        $email = $_REQUEST['email'] ?? '';
+        $token = $_REQUEST['token'] ?? '';
+        $data = ['email' => $email, 'token' => $token, 'error' => '', 'success' => ''];
+
+        if (empty($email) || empty($token)) {
+            $data['error'] = 'Invalid reset link. Please try again or request a new one.';
+            view('auth/reset_password', $data);
+            return;
+        }
+        
+        $config = require __DIR__ . '/../../config/database.php';
+        $db = new Database($config);
+        $GLOBALS['db'] = $db;
+        $auth = new Auth($db);
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $newPassword = $_POST['password'] ?? '';
+            $confirmPassword = $_POST['confirm_password'] ?? '';
+            
+            if (strlen($newPassword) < 6) {
+                $data['error'] = 'New password must be at least 6 characters long.';
+            } elseif ($newPassword !== $confirmPassword) {
+                $data['error'] = 'Passwords must match.';
+            } else {
+                $result = $auth->resetPassword($email, $token, $newPassword);
+                
+                if ($result['success']) {
+                    $data['success'] = $result['message'];
+                    $data['error'] = '';
+                } else {
+                    $data['error'] = $result['message'];
+                }
+            }
+        } 
+        
+        view('auth/reset_password', $data);
+    }
 
     public function logout() {
         $config = require __DIR__ . '/../../config/database.php';
