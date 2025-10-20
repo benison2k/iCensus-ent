@@ -63,16 +63,6 @@ switch ($route) {
     case 'logout':
         (new AuthController())->logout();
         break;
-        
-    // --- ADDED PASSWORD RESET ROUTES ---
-    case 'password/forgot':
-        (new AuthController())->forgotPassword();
-        break;
-        
-    case 'password/reset':
-        (new AuthController())->resetPassword();
-        break;
-    // --- END ADDED ---
 
     // --- Dashboard Routes ---
     case 'dashboard':

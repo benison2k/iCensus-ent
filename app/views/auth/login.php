@@ -1,8 +1,6 @@
 <?php
 // app/views/auth/login.php
 $base_url = '/iCensus-ent/public';
-$error = $data['error'] ?? '';
-$usernameValue = $data['usernameValue'] ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -152,7 +150,7 @@ body.dark-mode #resendOtpBtn {
                 <div class="error-text" id="loginError" style="margin-bottom: 1rem;"><?= $error ?></div>
                 <button type="submit" class="btn btn-primary w-100 mb-2" id="loginBtn">Login</button>
                 <div class="text-center">
-                    <a href="<?= $base_url ?>/password/forgot" class="small text-decoration-none">Forgot password?</a>
+                    <a href="#" class="small text-decoration-none">Forgot password?</a>
                 </div>
             </form>
         </div>

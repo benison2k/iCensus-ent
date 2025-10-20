@@ -2,19 +2,13 @@
 // core/init.php
 session_start();
 
-// --- CRITICAL BASE_URL FIX FOR LOCALHOST EMAIL LINKS ---
-// Dynamically determine the scheme and host.
-$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
-$host = $_SERVER['HTTP_HOST'];
-$base_directory = '/iCensus-ent/public'; // This must match your application's folder structure
+// Define the base URL of your application.
+define('BASE_URL', '/iCensus-ent/public');
 
-// Define the absolute base URL for external links (like emails)
-define('BASE_URL', $protocol . '://' . $host . $base_directory);
-// -------------------------------------------------------------------------
-
+// --- CRITICAL FIX START: Allow OTP verification pages to bypass redirect ---
 
 // Get the current route
-$current_route = str_replace($base_directory, '', strtok($_SERVER['REQUEST_URI'], '?'));
+$current_route = str_replace(BASE_URL, '', strtok($_SERVER['REQUEST_URI'], '?'));
 $current_route = trim($current_route, '/');
 
 // Define pages that are allowed without a full user session
@@ -24,10 +18,6 @@ $allowed_pages = [
     '', // Root path
     'verify-otp',
     'resend-otp',
-    // --- ADDED FOR PASSWORD RESET ---
-    'password/forgot',
-    'password/reset'
-    // --- END ADDED ---
 ];
 
 // Check for pages allowed without full login
