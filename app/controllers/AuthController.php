@@ -1,8 +1,18 @@
 <?php
 // app/controllers/AuthController.php
 require_once __DIR__ . '/../../core/Auth.php';
+require_once __DIR__ . '/../../core/Database.php'; // Included here for type hints
 
 class AuthController {
+    
+    private $db;
+    private $auth;
+    
+    // NEW: Constructor to accept and store dependencies
+    public function __construct(Database $db, Auth $auth) {
+        $this->db = $db;
+        $this->auth = $auth;
+    }
 
     public function showLoginForm() {
         $data = [
@@ -15,11 +25,6 @@ class AuthController {
     public function login() {
         header('Content-Type: application/json');
 
-        $config = require __DIR__ . '/../../config/database.php';
-        $db = new Database($config);
-        $GLOBALS['db'] = $db;
-        $auth = new Auth($db);
-
         $username = trim($_POST['username'] ?? '');
         $password = $_POST['password'] ?? '';
 
@@ -30,10 +35,13 @@ class AuthController {
 
         $last_logout = $_SESSION['last_logout'] ?? null;
 
-        $result = $auth->login($username, $password);
+        // Use the injected Auth service
+        $result = $this->auth->login($username, $password);
         $base_url = '/iCensus-ent/public';
 
         if ($result['success']) {
+            // CRITICAL FIX 1.2: Session Fixation should happen in Auth.php, but ensure logic continues here.
+            
             if ($last_logout) {
                 $_SESSION['user']['last_log_view'] = $last_logout;
             }
@@ -65,21 +73,16 @@ class AuthController {
             exit;
         }
         
-        $config = require __DIR__ . '/../../config/database.php';
-        $db = new Database($config);
-        $GLOBALS['db'] = $db;
-        $auth = new Auth($db);
-        
+        // Dependencies are already available via $this->auth
         $userId = $_SESSION['2fa_user_id'];
         $submittedOtp = trim($_POST['otp'] ?? '');
         
-        $result = $auth->verifyOtp($userId, $submittedOtp);
+        $result = $this->auth->verifyOtp($userId, $submittedOtp);
         $base_url = '/iCensus-ent/public';
 
         if ($result['success']) {
             unset($_SESSION['2fa_required']);
             unset($_SESSION['2fa_user_id']);
-            // NEW: Clean up cooldown session variables on successful login
             unset($_SESSION['otp_last_sent']); 
             
             $role = $_SESSION['user']['role_name'];
@@ -108,7 +111,7 @@ class AuthController {
             exit;
         }
 
-        // --- NEW: Cooldown Check (60 seconds) ---
+        // --- Cooldown Check (60 seconds) ---
         $cooldown_duration = 60; 
         $last_sent_time = $_SESSION['otp_last_sent'] ?? 0;
         $time_since_last_sent = time() - $last_sent_time;
@@ -124,20 +127,16 @@ class AuthController {
         }
         // --- END Cooldown Check ---
         
-        $config = require __DIR__ . '/../../config/database.php';
-        $db = new Database($config);
-        $GLOBALS['db'] = $db;
-        $auth = new Auth($db);
-        
         $userId = $_SESSION['2fa_user_id'];
         
-        $user_data = $auth->refreshUserSession($userId);
+        // Get user data without manually loading the DB config
+        $user_data = $this->auth->refreshUserSession($userId);
 
         if (!empty($user_data['email'])) {
-            $otp_sent = $auth->generateAndSendOtp($userId, $user_data['email']);
+            // The Auth class handles the DB/Email interaction
+            $otp_sent = $this->auth->generateAndSendOtp($userId, $user_data['email']);
             
             if ($otp_sent) {
-                // SUCCESS: Update the session variable after successful sending
                 $_SESSION['otp_last_sent'] = time();
                 $message = 'A new OTP has been sent. Check your email.'; 
                 $status = 'success';
@@ -155,7 +154,7 @@ class AuthController {
     }
 
     public function showOtpVerificationForm() {
-        header("Location: /iCensus-ent/public/login");
+        header("Location: " . BASE_URL . "/login");
         exit;
     }
     
@@ -174,12 +173,8 @@ class AuthController {
                 return;
             }
 
-            $config = require __DIR__ . '/../../config/database.php';
-            $db = new Database($config);
-            $GLOBALS['db'] = $db;
-            $auth = new Auth($db);
-
-            $auth->sendPasswordResetLink($email);
+            // Use the injected Auth service
+            $this->auth->sendPasswordResetLink($email);
             
             // Always show success message for security reasons
             $data['message'] = 'If an account with that email exists, a password reset link has been sent.';
@@ -203,11 +198,6 @@ class AuthController {
             return;
         }
         
-        $config = require __DIR__ . '/../../config/database.php';
-        $db = new Database($config);
-        $GLOBALS['db'] = $db;
-        $auth = new Auth($db);
-
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $newPassword = $_POST['password'] ?? '';
             $confirmPassword = $_POST['confirm_password'] ?? '';
@@ -217,7 +207,7 @@ class AuthController {
             } elseif ($newPassword !== $confirmPassword) {
                 $data['error'] = 'Passwords must match.';
             } else {
-                $result = $auth->resetPassword($email, $token, $newPassword);
+                $result = $this->auth->resetPassword($email, $token, $newPassword);
                 
                 if ($result['success']) {
                     $data['success'] = $result['message'];
@@ -232,17 +222,14 @@ class AuthController {
     }
 
     public function logout() {
-        $config = require __DIR__ . '/../../config/database.php';
-        require_once __DIR__ . '/../../core/Database.php';
-        require_once __DIR__ . '/../../core/functions.php';
-        $db = new Database($config);
-        $GLOBALS['db'] = $db;
-
+        // Dependency is available via $this->db for logging in the AuthController, 
+        // though Auth.php also does its own logging.
+        
+        // Log the action before destroying the session
         if (isset($_SESSION['user'])) {
             log_action('INFO', 'USER_LOGOUT', "User '" . $_SESSION['user']['username'] . "' logged out.");
         }
         
-        // NEW: Clean up OTP session variables on logout
         unset($_SESSION['2fa_required']);
         unset($_SESSION['2fa_user_id']);
         unset($_SESSION['otp_last_sent']);
@@ -255,7 +242,7 @@ class AuthController {
         session_start();
         $_SESSION['last_logout'] = $last_logout_time;
 
-        header("Location: /iCensus-ent/public/login");
+        header("Location: " . BASE_URL . "/login");
         exit;
     }
 }

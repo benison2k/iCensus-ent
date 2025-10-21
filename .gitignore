@@ -1,0 +1,10 @@
+# Exclude sensitive environment files
+.env
+.env.local
+.env.staging
+
+# Exclude vendor and IDE files common in PHP projects
+/vendor/
+.idea/
+.vscode/
+*.log

@@ -2,6 +2,9 @@
 // core/init.php
 session_start();
 
+// NEW: Load secure environment variables for configuration
+require_once __DIR__ . '/env_loader.php';
+
 // --- CRITICAL BASE_URL FIX FOR LOCALHOST EMAIL LINKS ---
 // Dynamically determine the scheme and host.
 $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
