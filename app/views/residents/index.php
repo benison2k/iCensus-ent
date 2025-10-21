@@ -1,3 +1,6 @@
+<?php
+// benison2k/icensus-ent/iCensus-ent-development-branch-MVC-/app/views/residents/index.php
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -67,10 +70,6 @@
                 <br>
                 Total in this view: <span><?= count($residents); ?></span>
             </p>
-
-            <div style="margin: 0.5rem 0; font-weight: 500; display:none;" id="filteredResults">
-                 Filtered search results: <span id="filteredCount">0</span>
-            </div>
 
             <div class="filter-wrapper" style="<?= $isPendingView ? 'display:none;' : '' ?>">
                 <div class="filter-container">
@@ -309,18 +308,26 @@
             </div>
 
             <div id="pagination-controls" style="margin: 1rem 0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; <?= $isPendingView ? 'display:none;' : '' ?>">
-                <div>
-                    <label>Show
-                        <select id="pageSizeSelect" style="padding:0.3rem;">
-                            <option value="10" selected>10</option>
-                            <option value="25">25</option>
-                            <option value="50">50</option>
-                        </select>
-                    entries</label>
+                <div style="display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap;">
+                    <div>
+                        <label>Show
+                            <select id="pageSizeSelect" style="padding:0.3rem;">
+                                <option value="10" selected>10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                            </select>
+                        entries</label>
+                    </div>
+                    
+                    <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                        <span>Showing <span id="shownCount">0–0</span> of <span id="totalCountEl">0</span></span>
+                    </div>
+
+                    <div style="margin: 0; font-weight: 500; display:none;" id="filteredResults">
+                         <span style="font-weight: 500;">(Filtered: <span id="filteredCount">0</span>)</span>
+                    </div>
                 </div>
-                <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-                    <span>Showing <span id="shownCount">0–0</span> of <span id="totalCountEl">0</span></span>
-                </div>
+                
                 <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
                     <button id="prevPageBtn" style="padding:0.3rem 0.5rem;">Prev</button>
                     <span id="pageInfo">Page 1 of 1</span>

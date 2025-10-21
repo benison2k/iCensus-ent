@@ -1,3 +1,5 @@
+// benison2k/icensus-ent/iCensus-ent-development-branch-MVC-/public/assets/js/residents.js
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- MODAL ELEMENTS ---
     const modal = document.getElementById('residentModal');
@@ -50,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const gotoPageInput = document.getElementById('gotoPage');
     const gotoPageBtn = document.getElementById('gotoPageBtn');
     const basePath = '/iCensus-ent/public';
+    // MODIFIED: Uses the new inline IDs for the filtered count display
     const filteredResultsDiv = document.getElementById('filteredResults');
     const filteredCountSpan = document.getElementById('filteredCount');
     const toggleFiltersBtn = document.getElementById('toggleFiltersBtn');
@@ -242,6 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalResidents = allResidentsData.length;
         const filteredCount = filteredResidents.length;
 
+        // CHECK: If the number of filtered results is less than the total, display the filtered count indicator.
         if (filteredCount < totalResidents) {
             filteredCountSpan.textContent = filteredCount;
             filteredResultsDiv.style.display = 'block';
