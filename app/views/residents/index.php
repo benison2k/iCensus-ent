@@ -71,6 +71,7 @@
                 Total in this view: <span><?= count($residents); ?></span>
             </p>
 
+            
             <div class="filter-wrapper" style="<?= $isPendingView ? 'display:none;' : '' ?>">
                 <div class="filter-container">
                     <div class="filter-group search-filter">
@@ -307,6 +308,9 @@
                 </div>
             </div>
 
+            <div id="activeFiltersContainer" class="active-filters-container" style="display: none;">
+                </div>
+
             <div id="pagination-controls" style="margin: 1rem 0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; <?= $isPendingView ? 'display:none;' : '' ?>">
                 <div style="display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap;">
                     <div>
@@ -366,33 +370,7 @@
                         </tr>
                     </thead>
                     <tbody id="residentsTableBody">
-                        <?php if (empty($residents)): ?>
-                            <tr><td colspan="6" style="text-align: center;">No residents found in this view.</td></tr>
-                        <?php else: ?>
-                            <?php foreach($residents as $r): ?>
-                                <tr>
-                                    <td><?= htmlspecialchars($r['first_name'] . ' ' . $r['last_name']) ?></td>
-                                    <td><?= htmlspecialchars($r['age'] ?? 'N/A') ?></td>
-                                    <td><?= htmlspecialchars($r['gender']) ?></td>
-                                    <td><?= htmlspecialchars($r['house_no'] . ' ' . $r['street'] . ', Purok ' . $r['purok']) ?></td>
-                                    <td>
-                                        <?php if ($isPendingView): ?>
-                                            <?= date('M d, Y h:i A', strtotime($r['created_at'])) ?>
-                                        <?php else: ?>
-                                            <span class="status-label status-<?= strtolower($r['status'] ?? '') ?>"><?= htmlspecialchars($r['status']) ?></span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <?php if ($isPendingView): ?>
-                                            <a href="<?= $base_url ?>/residents/approve?id=<?= $r['id'] ?>" class="action-btn" title="Approve"><span class="material-icons" style="color:green;">check_circle</span></a>
-                                            <a href="<?= $base_url ?>/residents/reject?id=<?= $r['id'] ?>" class="action-btn" title="Reject" onclick="return confirm('Are you sure you want to reject and delete this entry?');"><span class="material-icons" style="color:red;">cancel</span></a>
-                                        <?php else: ?>
-                                            <button class="moreBtn material-icons" data-id="<?= $r['id'] ?>" title="View Resident Info">more_vert</button>
-                                        <?php endif; ?>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
+                        <tr><td colspan="6" style="text-align: center;">Loading residents...</td></tr>
                     </tbody>
                 </table>
             </div>
