@@ -52,23 +52,152 @@ document.addEventListener('DOMContentLoaded', () => {
     const gotoPageInput = document.getElementById('gotoPage');
     const gotoPageBtn = document.getElementById('gotoPageBtn');
     const basePath = '/iCensus-ent/public';
-    // MODIFIED: Uses the new inline IDs for the filtered count display
+    
     const filteredResultsDiv = document.getElementById('filteredResults');
     const filteredCountSpan = document.getElementById('filteredCount');
     const toggleFiltersBtn = document.getElementById('toggleFiltersBtn');
     const advancedFilters = document.getElementById('advanced-filters');
     const nameSortSelect = document.getElementById('nameSortSelect');
 
-    // --- STATE ---
+    // --- STATE INITIALIZATION (FIXED) ---
+    // These variables must be declared here to be accessible by all inner functions (renderTable, applyFilters)
     let currentPage = 1;
     let pageSize = parseInt(pageSizeSelect.value, 10);
     let filteredResidents = [];
-    let currentSort = {
+    let currentSort = { // FIX: Declaration ensured here
         column: 'last_name',
         order: 'asc'
     };
+    
+    // --- NEW ELEMENTS FOR TAGS ---
+    const activeFiltersContainer = document.getElementById('activeFiltersContainer');
 
-    // --- MODAL & FORM FUNCTIONS ---
+    // Map filter input IDs/names to display labels
+    const filterLabels = {
+        // Demographics
+        genderFilter: 'Gender', civilStatusFilter: 'Civil Status', isHeadFilter: 'Is Head',
+        ageMin: 'Age Min', ageMax: 'Age Max', birthMonthFilter: 'Birth Month',
+        // Address
+        purokFilter: 'Purok', streetFilter: 'Street', houseNoFilter: 'House No.',
+        // Household
+        householdFilter: 'Head of Household', relationshipFilter: 'Relationship',
+        // Welfare & Education
+        employmentStatusFilter: 'Employment', isStudentFilter: 'Student', educationFilter: 'Education',
+        occupationFilter: 'Occupation', isPwdFilter: 'PWD', isSoloParentFilter: 'Solo Parent',
+        is4psMemberFilter: '4Ps Member',
+        // Administrative
+        statusFilter: 'Status', residencyStatusFilter: 'Residency Type', bloodTypeFilter: 'Blood Type',
+        emergencyContactFilter: 'Emergency Contact', dateAddedMin: 'Date Added From', dateAddedMax: 'Date Added To',
+        isVoterFilter: 'Is Voter', // Checkbox
+        searchInput: 'Search', // Main search bar
+    };
+
+    // Function to reset a specific filter element
+    const resetFilterElement = (id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        if (el.type === 'checkbox') {
+            el.checked = false;
+        } else if (el.tagName === 'SELECT' || el.tagName === 'INPUT') {
+            el.value = '';
+        }
+    };
+    
+    // Function to display active filters as tags
+    const displayActiveFilterTags = () => {
+        let tagsHtml = '';
+        const activeFilters = [];
+        const filterElements = [
+            // Map elements to their IDs for easy iteration
+            { id: 'genderFilter', type: 'select' }, { id: 'civilStatusFilter', type: 'select' }, { id: 'isHeadFilter', type: 'select' },
+            { id: 'ageMin', type: 'input' }, { id: 'ageMax', type: 'input' }, { id: 'birthMonthFilter', type: 'select' },
+            { id: 'purokFilter', type: 'select' }, { id: 'streetFilter', type: 'input' }, { id: 'houseNoFilter', type: 'input' },
+            { id: 'householdFilter', type: 'select' }, { id: 'relationshipFilter', type: 'select' },
+            { id: 'employmentStatusFilter', type: 'select' }, { id: 'isStudentFilter', type: 'select' }, { id: 'educationFilter', type: 'select' },
+            { id: 'occupationFilter', type: 'select' }, { id: 'isPwdFilter', type: 'select' }, { id: 'isSoloParentFilter', type: 'select' },
+            { id: 'is4psMemberFilter', type: 'select' }, { id: 'statusFilter', type: 'select' }, { id: 'residencyStatusFilter', type: 'select' },
+            { id: 'bloodTypeFilter', type: 'select' }, { id: 'emergencyContactFilter', type: 'select' },
+            { id: 'dateAddedMin', type: 'input' }, { id: 'dateAddedMax', type: 'input' },
+            { id: 'isVoterFilter', type: 'checkbox' }, // Checkbox
+            { id: 'searchInput', type: 'input' }, // Main search
+        ];
+
+        filterElements.forEach(item => {
+            const el = document.getElementById(item.id);
+            let value = null;
+            let displayValue = null;
+
+            if (!el) return;
+
+            if (item.id === 'ageMin' && el.value && el.value.trim() !== '') {
+                // Combine age ranges into a single tag
+                if (!document.getElementById('ageMax').value) {
+                    value = `${el.value}+`;
+                } else if (parseInt(el.value) < parseInt(document.getElementById('ageMax').value)) {
+                    value = `${el.value}-${document.getElementById('ageMax').value}`;
+                }
+                displayValue = value;
+            } else if (item.id === 'ageMax' && el.value && el.value.trim() !== '') {
+                // Handled by ageMin unless only max is set
+                if (!document.getElementById('ageMin').value) {
+                    value = `<${el.value}`;
+                    displayValue = value;
+                }
+            } else if (item.id === 'dateAddedMin' && el.value && el.value.trim() !== '') {
+                value = `${el.value} to ${document.getElementById('dateAddedMax').value || 'Now'}`;
+                displayValue = value;
+            } else if (item.id === 'dateAddedMax' && el.value && el.value.trim() !== '') {
+                if (!document.getElementById('dateAddedMin').value) {
+                    value = `Before ${el.value}`;
+                    displayValue = value;
+                }
+            } else if (item.type === 'checkbox') {
+                if (el.checked) {
+                    value = '1';
+                    displayValue = 'Yes';
+                }
+            } else if (el.value && el.value.trim() !== '') {
+                value = el.value.trim();
+                // Handle complex selectors for display value
+                if (item.id === 'employmentStatusFilter') {
+                    displayValue = value === 'employed' ? 'Employed' : 'Unemployed';
+                } else if (item.id === 'isStudentFilter') {
+                    displayValue = value === '1' ? 'Yes' : 'No';
+                } else if (item.id.startsWith('is')) {
+                    displayValue = value === '1' ? 'Yes' : 'No';
+                } else if (item.id === 'birthMonthFilter') {
+                    displayValue = el.options[el.selectedIndex].textContent;
+                } else {
+                    displayValue = value;
+                }
+            }
+
+            // Push active filter if it has a calculated display value and hasn't been merged (like ageMax/dateAddedMax)
+            const isHandledByMin = (item.id === 'ageMax' && document.getElementById('ageMin').value) ||
+                                   (item.id === 'dateAddedMax' && document.getElementById('dateAddedMin').value);
+
+            if (value !== null && !isHandledByMin) {
+                activeFilters.push({ id: item.id, label: filterLabels[item.id], value: displayValue || value });
+            }
+        });
+
+        if (activeFilters.length > 0) {
+            activeFiltersContainer.style.display = 'flex';
+            tagsHtml = activeFilters.map(filter => `
+                <span class="filter-tag" data-filter-id="${filter.id}">
+                    ${filter.label}: ${filter.value}
+                    <span class="material-icons remove-filter-tag">close</span>
+                </span>
+            `).join('');
+            activeFiltersContainer.innerHTML = tagsHtml;
+        } else {
+            activeFiltersContainer.style.display = 'none';
+            activeFiltersContainer.innerHTML = '';
+        }
+    };
+    
+    // --- MODAL & FORM FUNCTIONS (UNCHANGED) ---
     const setFormEditable = (editable) => {
         form.querySelectorAll('input, select').forEach(input => input.disabled = !editable);
         saveBtn.style.display = editable ? 'inline-flex' : 'none';
@@ -118,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.style.display = 'block';
     };
 
-    // --- TABLE & PAGINATION FUNCTIONS ---
+    // --- TABLE & PAGINATION FUNCTIONS (MODIFIED) ---
     const attachEventListenersToRows = () => {
         document.querySelectorAll('.moreBtn').forEach(btn => {
             btn.addEventListener('click', (e) => openModalForEdit(e.currentTarget.dataset.id));
@@ -126,6 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const renderTable = () => {
+        // IMPORTANT: Ensure sorting and slicing are done on the filtered list
         filteredResidents.sort((a, b) => {
             const valA = (a[currentSort.column] || '').toString().toLowerCase();
             const valB = (b[currentSort.column] || '').toString().toLowerCase();
@@ -138,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tableBody.innerHTML = '';
         const start = (currentPage - 1) * pageSize;
         const end = start + pageSize;
-        const pageSlice = filteredResidents.slice(start, end);
+        const pageSlice = filteredResidents.slice(start, end); // CORRECTLY uses filteredResidents
         let rowsHtml = '';
 
         if (filteredResidents.length === 0) {
@@ -181,8 +311,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const street = streetFilter.value.toLowerCase();
         const status = statusFilter.value;
         const gender = genderFilter.value;
+        // Parse numbers from filter inputs, default to null if empty
         const minAge = ageMin.value ? parseInt(ageMin.value, 10) : null;
         const maxAge = ageMax.value ? parseInt(ageMax.value, 10) : null;
+
         const purok = purokFilter.value;
         const household = householdFilter.value;
         const civilStatus = civilStatusFilter.value;
@@ -207,45 +339,77 @@ document.addEventListener('DOMContentLoaded', () => {
             const fullName = `${r.first_name} ${r.last_name}`.toLowerCase();
             const residentOccupation = (r.occupation || '').trim().toLowerCase();
 
+            // 1. General Search/Text Filters
             if (searchTerm && !fullName.includes(searchTerm)) return false;
-            if (houseNo && r.house_no && !r.house_no.toString().toLowerCase().includes(houseNo)) return false;
-            if (street && r.street && !r.street.toLowerCase().includes(street)) return false;
+            // Ensure resident field exists AND matches filter
+            if (houseNo && (!r.house_no || !r.house_no.toString().toLowerCase().includes(houseNo))) return false;
+            if (street && (!r.street || !r.street.toLowerCase().includes(street))) return false;
+            
+            // 2. Age Filters
+            if (minAge !== null && (r.age === null || r.age < minAge)) return false;
+            if (maxAge !== null && (r.age === null || r.age > maxAge)) return false;
+
+            // 3. Select/Dropdown Filters (Ensures resident value is not null/empty if filter value is set)
             if (status && r.status !== status) return false;
             if (gender && r.gender !== gender) return false;
-            if (minAge !== null && r.age < minAge) return false;
-            if (maxAge !== null && r.age > maxAge) return false;
-            if (purok && r.purok != purok) return false;
-            if (household && r.head_of_household !== household) return false;
-            if (civilStatus && r.civil_status !== civilStatus) return false;
-            if (bloodType && r.blood_type !== bloodType) return false;
             if (residencyStatus && r.residency_status !== residencyStatus) return false;
-            if (relationship && r.relationship !== relationship) return false;
+
+            // Strict checks for fields that might be empty or null in data
+            if (purok) {
+                if (r.purok === null || r.purok === undefined || r.purok.toString() !== purok) return false;
+            }
+            if (household) {
+                 if (r.head_of_household === null || r.head_of_household === undefined || r.head_of_household !== household) return false;
+            }
+            if (civilStatus) {
+                 if (r.civil_status === null || r.civil_status === undefined || r.civil_status !== civilStatus) return false;
+            }
+            if (bloodType) {
+                 if (r.blood_type === null || r.blood_type === undefined || r.blood_type !== bloodType) return false;
+            }
+            if (relationship) {
+                 if (r.relationship === null || r.relationship === undefined || r.relationship !== relationship) return false;
+            }
+            if (education) {
+                 if (r.educational_attainment === null || r.educational_attainment === undefined || r.educational_attainment !== education) return false;
+            }
+            if (occupation) {
+                 if (r.occupation === null || r.occupation === undefined || residentOccupation !== occupation.toLowerCase()) return false;
+            }
+            
+            // 4. Checkbox/Binary/Complex Filters
             if (isHead === 'Yes' && r.relationship !== 'Self') return false;
             if (isHead === 'No' && r.relationship === 'Self') return false;
-            if (birthMonth && r.dob && new Date(r.dob).getMonth() + 1 != birthMonth) return false;
-            if (minDateAdded && r.date_added && r.date_added < minDateAdded) return false;
-            if (maxDateAdded && r.date_added && r.date_added.split(' ')[0] > maxDateAdded) return false;
-            if (hasEmergency === 'Yes' && !r.emergency_name) return false;
-            if (hasEmergency === 'No' && r.emergency_name) return false;
-            if (isVoter && !r.is_registered_voter) return false;
-            if (education && r.educational_attainment !== education) return false;
-            if (occupation && residentOccupation !== occupation.toLowerCase()) return false;
+            if (birthMonth && (r.dob === null || new Date(r.dob).getMonth() + 1 != birthMonth)) return false;
+            
             if (employmentStatus) {
                 const isConsideredUnemployed = residentOccupation === '' || residentOccupation === 'unemployed' || residentOccupation === 'n/a' || residentOccupation === 'student';
                 if (employmentStatus === 'employed' && isConsideredUnemployed) return false;
                 if (employmentStatus === 'unemployed' && !isConsideredUnemployed) return false;
             }
+
             if (isStudent !== '' && (isStudent === '1' ? residentOccupation !== 'student' : residentOccupation === 'student')) return false;
+
+            if (minDateAdded && r.date_added && r.date_added < minDateAdded) return false;
+            if (maxDateAdded && r.date_added && r.date_added.split(' ')[0] > maxDateAdded) return false;
+            
+            if (hasEmergency === 'Yes' && !r.emergency_name) return false;
+            if (hasEmergency === 'No' && r.emergency_name) return false;
+            if (isVoter && !r.is_registered_voter) return false;
             if (isPwd !== "" && r.is_pwd != isPwd) return false;
             if (isSoloParent !== "" && r.is_solo_parent != isSoloParent) return false;
             if (is4ps !== "" && r.is_4ps_member != is4ps) return false;
+
             return true;
         });
 
         const totalResidents = allResidentsData.length;
         const filteredCount = filteredResidents.length;
 
-        // CHECK: If the number of filtered results is less than the total, display the filtered count indicator.
+        // Display active filters (NEW)
+        displayActiveFilterTags();
+        
+        // Update filtered count indicator
         if (filteredCount < totalResidents) {
             filteredCountSpan.textContent = filteredCount;
             filteredResultsDiv.style.display = 'block';
@@ -393,14 +557,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    [searchInput, houseNoFilter, streetFilter, ageMin, ageMax, dateAddedMin, dateAddedMax].forEach(el => {
-        if(el) el.addEventListener('input', applyFilters);
+    // Consolidate input/change listeners to trigger filtering and tag display
+    const filterInputs = [
+        searchInput, houseNoFilter, streetFilter, ageMin, ageMax, dateAddedMin, dateAddedMax,
+        statusFilter, genderFilter, purokFilter, householdFilter, civilStatusFilter, bloodTypeFilter, 
+        residencyStatusFilter, relationshipFilter, isHeadFilter, birthMonthFilter, emergencyContactFilter, 
+        isVoterFilter, educationFilter, occupationFilter, employmentStatusFilter, isStudentFilter, 
+        isPwdFilter, isSoloParentFilter, is4psMemberFilter
+    ];
+    
+    filterInputs.forEach(el => {
+        if(el) {
+            const eventType = (el.tagName === 'INPUT' && el.type === 'text' || el.type === 'search' || el.type === 'number') ? 'input' : 'change';
+            el.addEventListener(eventType, applyFilters);
+        }
     });
 
-    [statusFilter, genderFilter, purokFilter, householdFilter, civilStatusFilter, bloodTypeFilter, residencyStatusFilter, relationshipFilter, isHeadFilter, birthMonthFilter, emergencyContactFilter, isVoterFilter, educationFilter, occupationFilter, employmentStatusFilter, isStudentFilter, isPwdFilter, isSoloParentFilter, is4psMemberFilter].forEach(el => {
-        if(el) el.addEventListener('change', applyFilters);
-    });
-    
     demographicButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             ageMin.value = btn.dataset.min || '';
@@ -426,19 +598,34 @@ document.addEventListener('DOMContentLoaded', () => {
     gotoPageInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') jumpToPage(); });
     
     clearBtn.addEventListener('click', () => {
-        searchInput.value = ''; houseNoFilter.value = ''; streetFilter.value = '';
-        statusFilter.value = ''; genderFilter.value = ''; ageMin.value = '';
-        ageMax.value = ''; purokFilter.value = ''; householdFilter.value = '';
-        civilStatusFilter.value = ''; bloodTypeFilter.value = ''; residencyStatusFilter.value = '';
-        relationshipFilter.value = ''; isHeadFilter.value = ''; birthMonthFilter.value = '';
-        dateAddedMin.value = ''; dateAddedMax.value = ''; emergencyContactFilter.value = '';
-        isVoterFilter.checked = false;
-        educationFilter.value = ''; occupationFilter.value = ''; employmentStatusFilter.value = '';
-        isStudentFilter.value = ''; isPwdFilter.value = '';
-        isSoloParentFilter.value = ''; is4psMemberFilter.value = '';
+        // Clear all elements using resetFilterElement
+        filterInputs.forEach(el => { if(el) resetFilterElement(el.id); });
         applyFilters();
     });
     
+    // NEW: Add delegated event listener to the container to handle tag removal
+    activeFiltersContainer.addEventListener('click', (e) => {
+        const removeBtn = e.target.closest('.remove-filter-tag');
+        if (removeBtn) {
+            const tag = removeBtn.closest('.filter-tag');
+            const filterId = tag.dataset.filterId;
+            
+            // 1. Reset the corresponding filter element(s)
+            if (filterId === 'ageMin' || filterId === 'ageMax' || filterId === 'dateAddedMin' || filterId === 'dateAddedMax') {
+                 // Clear both linked range fields
+                 resetFilterElement('ageMin');
+                 resetFilterElement('ageMax');
+                 resetFilterElement('dateAddedMin');
+                 resetFilterElement('dateAddedMax');
+            } else {
+                 resetFilterElement(filterId);
+            }
+
+            // 2. Re-run filters and update tags
+            applyFilters();
+        }
+    });
+
     if (residentsTable) {
         residentsTable.querySelector('thead').addEventListener('click', (e) => {
             const header = e.target.closest('.sortable');
@@ -488,8 +675,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- INITIALIZATION ---
-    if (typeof allResidentsData !== 'undefined' && !isPendingView) {
-        applyFilters();
+    // --- INITIALIZATION (FINAL ROBUST FIX) ---
+    // The core initialization block to guarantee the table is populated correctly on page load
+    if (typeof allResidentsData !== 'undefined' && allResidentsData.length >= 0) {
+        // 1. Initialize filteredResidents with the full dataset first.
+        filteredResidents = allResidentsData; 
+
+        if (!isPendingView) {
+            // 2. Approved View: Run filters (which runs renderTable inside)
+            applyFilters(); 
+        } else {
+            // 3. Pending View: Directly render the full list of pending entries.
+            renderTable(); 
+        }
+    } else if (typeof allResidentsData !== 'undefined' && allResidentsData.length === 0) {
+        // Handle case where no residents exist at all
+        tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No residents found in this view.</td></tr>';
+        updatePagination();
     }
 });

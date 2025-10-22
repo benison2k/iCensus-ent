@@ -439,3 +439,52 @@ body.dark-mode .action-button-link.active-view {
 body.dark-mode .sort-icon .sort-text {
     color: #bbb;
 }
+
+/* --- NEW STYLES FOR ACTIVE FILTERS --- */
+
+/* Active Filter Tags Container */
+.active-filters-container {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background-color: #e3f2fd; /* Light blue background */
+    border: 1px solid #bbdefb;
+    border-radius: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    min-height: 40px;
+    transition: all 0.3s;
+    font-size: 0.9rem;
+}
+body.dark-mode .active-filters-container {
+    background-color: #1e3a4d;
+    border-color: #3f51b5;
+}
+
+/* Individual Filter Tag */
+.filter-tag {
+    display: inline-flex;
+    align-items: center;
+    background-color: #2196f3; /* Blue for visibility */
+    color: white;
+    padding: 0.3rem 0.6rem;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+body.dark-mode .filter-tag {
+    background-color: #4da3ff;
+}
+
+.filter-tag .material-icons {
+    font-size: 16px;
+    margin-left: 5px;
+    cursor: pointer;
+    line-height: 1;
+    transition: opacity 0.2s;
+}
+
+.filter-tag .material-icons:hover {
+    opacity: 0.8;
+}
