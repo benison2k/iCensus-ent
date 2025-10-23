@@ -101,12 +101,37 @@
                             <option value="Active">Active</option> <option value="Inactive">Inactive</option> <option value="Moved">Moved</option> <option value="Deceased">Deceased</option>
                         </select>
                     </label>
-                     <div class="checkbox-group" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
-                        <label style="flex-direction: row; align-items: center;"><input type="hidden" name="is_registered_voter" value="0"><input type="checkbox" name="is_registered_voter" value="1" style="width: auto;"> Registered Voter</label>
-                        <label style="flex-direction: row; align-items: center;"><input type="hidden" name="is_pwd" value="0"><input type="checkbox" name="is_pwd" value="1" style="width: auto;"> PWD</label>
-                        <label style="flex-direction: row; align-items: center;"><input type="hidden" name="is_solo_parent" value="0"><input type="checkbox" name="is_solo_parent" value="1" style="width: auto;"> Solo Parent</label>
-                        <label style="flex-direction: row; align-items: center;"><input type="hidden" name="is_indigent" value="0"><input type="checkbox" name="is_indigent" value="1" style="width: auto;"> Indigent</label>
-                        <label style="flex-direction: row; align-items: center;"><input type="hidden" name="is_4ps_member" value="0"><input type="checkbox" name="is_4ps_member" value="1" style="width: auto;"> 4Ps Member</label>
+                     <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.8rem;">
+                        <label>Registered Voter
+                            <select name="is_registered_voter">
+                                <option value="0">No</option>
+                                <option value="1">Yes</option>
+                            </select>
+                        </label>
+                        <label>PWD
+                             <select name="is_pwd">
+                                <option value="0">No</option>
+                                <option value="1">Yes</option>
+                            </select>
+                        </label>
+                        <label>Solo Parent
+                             <select name="is_solo_parent">
+                                <option value="0">No</option>
+                                <option value="1">Yes</option>
+                            </select>
+                        </label>
+                        <label>Indigent
+                             <select name="is_indigent">
+                                <option value="0">No</option>
+                                <option value="1">Yes</option>
+                            </select>
+                        </label>
+                        <label>4Ps Member
+                             <select name="is_4ps_member">
+                                <option value="0">No</option>
+                                <option value="1">Yes</option>
+                            </select>
+                        </label>
                     </div>
                 </div>
             </div>
