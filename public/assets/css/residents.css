@@ -343,6 +343,8 @@ body:not(.dark-mode) .action-button-link:hover {
 }
 body:not(.dark-mode) .action-button-link.active-view {
     color: #333;
+    border-color: #0d6efd; /* Blue border for active view */
+    box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25); /* Blue glow */
 }
 
 
