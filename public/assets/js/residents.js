@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="material-icons remove-filter-tag">close</span>
                 </span>
             `).join('');
-            activeFiltersContainer.innerHTML = tagsHtml;
+            activeFiltersContainer.innerHTML = '<span class="active-filters-label">Active Filters:</span>' + tagsHtml;
         } else {
             activeFiltersContainer.style.display = 'none';
             activeFiltersContainer.innerHTML = '';
@@ -693,4 +693,25 @@ document.addEventListener('DOMContentLoaded', () => {
         tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No residents found in this view.</td></tr>';
         updatePagination();
     }
+    
+    // --- NEW: Accordion Logic for Advanced Filters ---
+    const accordionItems = document.querySelectorAll('.accordion-item');
+    accordionItems.forEach(item => {
+        const header = item.querySelector('.accordion-header');
+        header.addEventListener('click', () => {
+            const currentlyActive = document.querySelector('.accordion-item.active');
+            if (currentlyActive && currentlyActive !== item) {
+                currentlyActive.classList.remove('active');
+                currentlyActive.querySelector('.accordion-content').style.maxHeight = 0;
+            }
+    
+            item.classList.toggle('active');
+            const content = item.querySelector('.accordion-content');
+            if (item.classList.contains('active')) {
+                content.style.maxHeight = content.scrollHeight + "px";
+            } else {
+                content.style.maxHeight = 0;
+            }
+        });
+    });
 });
