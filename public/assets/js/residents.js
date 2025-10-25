@@ -543,17 +543,39 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    toggleFiltersBtn.addEventListener('click', () => {
+    const closeAdvancedFilters = () => {
+        if (advancedFilters.style.display !== 'grid') return; // Do nothing if already hidden
+
+        advancedFilters.classList.add('fade-out');
+        toggleFiltersBtn.classList.remove('expanded');
+
+        // Wait for the animation to finish before hiding the element
+        setTimeout(() => {
+            advancedFilters.style.display = 'none';
+            advancedFilters.classList.remove('fade-out'); // Clean up the class
+        }, 300); // This duration should match your CSS animation time
+    };
+
+    const openAdvancedFilters = () => {
+        advancedFilters.style.display = 'grid';
+        toggleFiltersBtn.classList.add('expanded');
+    };
+
+    toggleFiltersBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevents the window click listener from firing immediately
         const isExpanded = advancedFilters.style.display === 'grid';
-        advancedFilters.style.display = isExpanded ? 'none' : 'grid';
-        toggleFiltersBtn.classList.toggle('expanded', !isExpanded);
+        if (isExpanded) {
+            closeAdvancedFilters();
+        } else {
+            openAdvancedFilters();
+        }
     });
 
     window.addEventListener('click', (e) => {
         const filterWrapper = document.querySelector('.filter-wrapper');
-        if (filterWrapper && !filterWrapper.contains(e.target) && advancedFilters.style.display === 'grid') {
-            advancedFilters.style.display = 'none';
-            toggleFiltersBtn.classList.remove('expanded');
+        // If the click is outside the filter container, close the filters
+        if (filterWrapper && !filterWrapper.contains(e.target)) {
+            closeAdvancedFilters();
         }
     });
 
