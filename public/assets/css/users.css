@@ -74,3 +74,80 @@ body.dark-mode .user-table th { background-color: #3b4a59; }
 body.dark-mode .user-table td { border-color: #4a5a6a; }
 body.dark-mode .user-table tr { border-bottom-color: #3b4a59; }
 body.dark-mode .user-table tbody tr:hover { background-color: rgba(255, 255, 255, 0.05); }
+
+/* Filter Styles for User and Log Pages */
+.filter-container {
+    background: #ffffff;
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid #dee2e6;
+    margin-bottom: 1.5rem;
+}
+
+.main-filter-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    align-items: flex-end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-group label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 0.3rem;
+}
+
+.filter-group input,
+.filter-group select {
+    border: 1px solid #ccc;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.95rem;
+    outline: none;
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+.filter-group.search-filter {
+    flex-grow: 1;
+}
+
+.clear-btn {
+    border: 1px solid #dee2e6;
+    background-color: #ffffff;
+    color: #333;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.95rem;
+    height: 42px; /* Match height */
+}
+
+/* Dark Mode Overrides */
+body.dark-mode .filter-container {
+    background-color: #1e1e2f;
+    border-color: #4a5a6a;
+}
+
+body.dark-mode .filter-group label {
+    color: #adb5bd;
+}
+
+body.dark-mode .filter-group input,
+body.dark-mode .filter-group select {
+    background-color: #2C3E50;
+    border-color: #4a5a6a;
+    color: #fff;
+}
+
+body.dark-mode .clear-btn {
+    background-color: #34495e;
+    border-color: #4a5a6a;
+    color: #fff;
+}

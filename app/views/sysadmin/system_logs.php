@@ -97,65 +97,69 @@
         <h2>System Logs</h2>
     </div>
     
-    <form method="GET" action="/iCensus-ent/public/sysadmin/logs" class="filter-container" id="filterForm">
-        <input type="hidden" name="sort_by" value="<?= htmlspecialchars($currentSortBy) ?>">
-        <input type="hidden" name="sort_order" value="<?= htmlspecialchars($currentSortOrder) ?>">
+    <div class="filter-container">
+        <form method="GET" action="/iCensus-ent/public/sysadmin/logs" id="filterForm">
+            <div class="main-filter-controls">
+                <input type="hidden" name="sort_by" value="<?= htmlspecialchars($currentSortBy) ?>">
+                <input type="hidden" name="sort_order" value="<?= htmlspecialchars($currentSortOrder) ?>">
 
-        <div class="filter-group search-filter">
-            <label for="search">Search Details</label>
-            <input type="search" name="search" id="search" value="<?= htmlspecialchars($currentSearch) ?>" placeholder="e.g., resident ID, username...">
-        </div>
+                <div class="filter-group search-filter">
+                    <label for="search">Search Details</label>
+                    <input type="search" name="search" id="search" value="<?= htmlspecialchars($currentSearch) ?>" placeholder="e.g., resident ID, username...">
+                </div>
 
-        <div class="filter-group">
-            <label for="level">Level</label>
-            <select name="level" id="level" class="auto-submit-filter">
-                <option value="">All Levels</option>
-                <option value="INFO" <?= $currentLevel == 'INFO' ? 'selected' : '' ?>>Info</option>
-                <option value="WARNING" <?= $currentLevel == 'WARNING' ? 'selected' : '' ?>>Warning</option>
-                <option value="ERROR" <?= $currentLevel == 'ERROR' ? 'selected' : '' ?>>Error</option>
-            </select>
-        </div>
+                <div class="filter-group">
+                    <label for="level">Level</label>
+                    <select name="level" id="level" class="auto-submit-filter">
+                        <option value="">All Levels</option>
+                        <option value="INFO" <?= $currentLevel == 'INFO' ? 'selected' : '' ?>>Info</option>
+                        <option value="WARNING" <?= $currentLevel == 'WARNING' ? 'selected' : '' ?>>Warning</option>
+                        <option value="ERROR" <?= $currentLevel == 'ERROR' ? 'selected' : '' ?>>Error</option>
+                    </select>
+                </div>
 
-        <div class="filter-group">
-            <label for="filter">Category</label>
-            <select name="filter" id="filter" class="auto-submit-filter">
-                <option value="all" <?= $currentFilter === 'all' ? 'selected' : '' ?>>All Actions</option>
-                <option value="auth" <?= $currentFilter === 'auth' ? 'selected' : '' ?>>Authentication</option>
-                <option value="data" <?= $currentFilter === 'data' ? 'selected' : '' ?>>Data Changes</option>
-                <option value="user_management" <?= $currentFilter === 'user_management' ? 'selected' : '' ?>>User Management</option>
-                <option value="system" <?= $currentFilter === 'system' ? 'selected' : '' ?>>System</option>
-            </select>
-        </div>
-        
-        <div class="filter-group">
-            <label for="user_id">User</label>
-            <select name="user_id" id="user_id" class="auto-submit-filter">
-                <option value="">All Users</option>
-                <?php foreach($all_users as $u): ?>
-                    <option value="<?= $u['id'] ?>" <?= $currentUserId == $u['id'] ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($u['username']) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
+                <div class="filter-group">
+                    <label for="filter">Category</label>
+                    <select name="filter" id="filter" class="auto-submit-filter">
+                        <option value="all" <?= $currentFilter === 'all' ? 'selected' : '' ?>>All Actions</option>
+                        <option value="auth" <?= $currentFilter === 'auth' ? 'selected' : '' ?>>Authentication</option>
+                        <option value="data" <?= $currentFilter === 'data' ? 'selected' : '' ?>>Data Changes</option>
+                        <option value="user_management" <?= $currentFilter === 'user_management' ? 'selected' : '' ?>>User Management</option>
+                        <option value="system" <?= $currentFilter === 'system' ? 'selected' : '' ?>>System</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="user_id">User</label>
+                    <select name="user_id" id="user_id" class="auto-submit-filter">
+                        <option value="">All Users</option>
+                        <?php foreach($all_users as $u): ?>
+                            <option value="<?= $u['id'] ?>" <?= $currentUserId == $u['id'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($u['username']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
 
-        <div class="filter-group">
-            <label for="start_date">Start Date</label>
-            <input type="date" name="start_date" id="start_date" value="<?= htmlspecialchars($_GET['start_date'] ?? '') ?>">
-        </div>
-        <div class="filter-group">
-            <label for="end_date">End Date</label>
-            <input type="date" name="end_date" id="end_date" value="<?= htmlspecialchars($_GET['end_date'] ?? '') ?>">
-        </div>
-        
-        <div class="filter-group">
-            <div class="button-group">
-                <button type="submit" class="clear-btn" style="background-color:#0d6efd; height: 42px;">Filter</button>
-                <a href="/iCensus-ent/public/sysadmin/logs" class="clear-btn" style="text-decoration:none;">Clear Filters</a>
-                <button id="markAllSeenBtn" type="button" class="clear-btn" style="background-color:#f57c00;">Mark all as seen</button>
+                <div class="filter-group">
+                    <label for="start_date">Start Date</label>
+                    <input type="date" name="start_date" id="start_date" value="<?= htmlspecialchars($_GET['start_date'] ?? '') ?>">
+                </div>
+                <div class="filter-group">
+                    <label for="end_date">End Date</label>
+                    <input type="date" name="end_date" id="end_date" value="<?= htmlspecialchars($_GET['end_date'] ?? '') ?>">
+                </div>
+                
+                <div class="filter-group">
+                    <div class="button-group">
+                        <button type="submit" class="clear-btn" style="background-color:#0d6efd; height: 42px;">Filter</button>
+                        <a href="/iCensus-ent/public/sysadmin/logs" class="clear-btn" style="text-decoration:none;">Clear Filters</a>
+                        <button id="markAllSeenBtn" type="button" class="clear-btn" style="background-color:#f57c00;">Mark all as seen</button>
+                    </div>
+                </div>
             </div>
-        </div>
-    </form>
+        </form>
+    </div>
     
     <div class="table-container">
         <div class="table-responsive">
