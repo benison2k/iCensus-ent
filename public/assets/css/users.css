@@ -43,7 +43,14 @@
 }
 
 .user-table th { background-color: #f4f4f4; }
-.user-table tbody tr:hover { background-color: rgba(0, 0, 0, 0.05); }
+
+.user-table tbody tr:nth-of-type(odd) {
+    background-color: #f9f9f9;
+}
+
+body.dark-mode .user-table tbody tr:hover {
+    background-color: rgba(77, 163, 255, 0.15);
+}
 
 .role-label {
     padding: 0.3rem 0.6rem;
@@ -73,7 +80,9 @@ body.dark-mode .user-table { border-color: #4a5a6a; }
 body.dark-mode .user-table th { background-color: #3b4a59; }
 body.dark-mode .user-table td { border-color: #4a5a6a; }
 body.dark-mode .user-table tr { border-bottom-color: #3b4a59; }
-body.dark-mode .user-table tbody tr:hover { background-color: rgba(255, 255, 255, 0.05); }
+body.dark-mode .user-table tbody tr:nth-of-type(odd) {
+    background-color: #34495e;
+}
 
 /* Filter Styles for User and Log Pages */
 .filter-container {
