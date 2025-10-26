@@ -1,0 +1,76 @@
+/* =========================
+   Page Action Buttons
+========================= */
+@keyframes cardFadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.page-actions-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.action-button-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+    border: 1px solid transparent;
+    opacity: 0;
+    animation: cardFadeIn 0.6s ease forwards;
+}
+
+.page-actions-container .action-button-link:nth-child(1) { animation-delay: 0.1s; }
+.page-actions-container .action-button-link:nth-child(2) { animation-delay: 0.2s; }
+.page-actions-container .action-button-link:nth-child(3) { animation-delay: 0.3s; }
+.page-actions-container .action-button-link:nth-child(4) { animation-delay: 0.4s; }
+
+
+/* Light Mode Buttons */
+body:not(.dark-mode) .action-button-link {
+    background-color: #ffffff;
+    color: #333;
+    border-color: #dee2e6;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+body:not(.dark-mode) .action-button-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+body:not(.dark-mode) .action-button-link.active-view {
+    color: #333;
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
+}
+
+
+/* Dark Mode Buttons */
+body.dark-mode .action-button-link {
+    background-color: #2C3E50;
+    color: #fff;
+    border-color: #4a5a6a;
+}
+body.dark-mode .action-button-link:hover {
+    background-color: #34495e;
+}
+body.dark-mode .action-button-link.active-view {
+    border-color: #4da3ff;
+    color: #4da3ff;
+    background-color: #1e1e2f;
+}
+
+.action-button-link .notification-badge {
+    top: -10px !important;
+    right: -10px !important;
+}

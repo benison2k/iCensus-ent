@@ -11,7 +11,9 @@
 <link rel="icon" type="image/png" href="<?= $base_url ?>/assets/img/iCensusLogoOnly2.png">
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/style.css">
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/modal.css">
-<link rel="stylesheet" href="<?= $base_url ?>/assets/css/residents.css">
+<link rel="stylesheet" href="<?= $base_url ?>/assets/css/residents_table.css">
+<link rel="stylesheet" href="<?= $base_url ?>/assets/css/residents_filters.css">
+<link rel="stylesheet" href="<?= $base_url ?>/assets/css/page_actions.css">
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/dashboard.css">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
