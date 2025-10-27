@@ -108,215 +108,143 @@
 
                 <div id="advanced-filters" class="accordion">
                     <div class="accordion-item">
-                        <div class="accordion-header">
-                            <h4>Demographics</h4>
-                            <span class="material-icons">expand_more</span>
-                        </div>
+                        <div class="accordion-header"><h4>Personal Info</h4><span class="material-icons">expand_more</span></div>
                         <div class="accordion-content">
                             <div class="filter-fieldset">
                                 <div class="filter-group">
                                     <label for="genderFilter">Gender</label>
-                                    <select id="genderFilter">
-                                        <option value="">All</option>
-                                        <option value="Male">Male</option>
-                                        <option value="Female">Female</option>
-                                    </select>
+                                    <select id="genderFilter"><option value="">All</option><option value="Male">Male</option><option value="Female">Female</option></select>
                                 </div>
                                 <div class="filter-group age-filter">
                                     <label>Age Range</label>
-                                    <div class="age-inputs">
-                                        <input type="number" id="ageMin" placeholder="Min">
-                                        <span>-</span>
-                                        <input type="number" id="ageMax" placeholder="Max">
-                                    </div>
+                                    <div class="age-inputs"><input type="number" id="ageMin" placeholder="Min"><span>-</span><input type="number" id="ageMax" placeholder="Max"></div>
                                 </div>
                                 <div class="filter-group">
                                     <label for="civilStatusFilter">Civil Status</label>
                                     <select id="civilStatusFilter">
                                         <option value="">All</option>
-                                        <?php foreach($civil_statuses as $cs): ?>
-                                            <option value="<?= htmlspecialchars($cs) ?>"><?= htmlspecialchars($cs) ?></option>
-                                        <?php endforeach; ?>
+                                        <?php foreach($civil_statuses as $cs): ?><option value="<?= htmlspecialchars($cs) ?>"><?= htmlspecialchars($cs) ?></option><?php endforeach; ?>
                                     </select>
                                 </div>
-                                 <div class="filter-group">
+                                <div class="filter-group">
                                     <label for="birthMonthFilter">Birthday Month</label>
                                     <select id="birthMonthFilter">
                                         <option value="">All</option>
-                                        <?php for($i = 1; $i <= 12; $i++): ?>
-                                            <option value="<?= $i ?>"><?= date('F', mktime(0, 0, 0, $i, 10)) ?></option>
-                                        <?php endfor; ?>
+                                        <?php for($i = 1; $i <= 12; $i++): ?><option value="<?= $i ?>"><?= date('F', mktime(0, 0, 0, $i, 10)) ?></option><?php endfor; ?>
                                     </select>
                                 </div>
-                                 <div class="toggle-switch-group">
-                                    <label class="switch"><input type="checkbox" id="isHeadFilter"><span class="slider round"></span></label>
-                                    <label for="isHeadFilter">Is Head of Household?</label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="accordion-item">
-                        <div class="accordion-header">
-                            <h4>Address & Household</h4>
-                            <span class="material-icons">expand_more</span>
-                        </div>
-                        <div class="accordion-content">
-                            <div class="filter-fieldset">
                                 <div class="filter-group">
-                                    <label for="purokFilter">Purok</label>
-                                    <select id="purokFilter">
+                                    <label for="nationalityFilter">Nationality</label>
+                                    <select id="nationalityFilter">
                                         <option value="">All</option>
-                                        <?php
-                                        if (!$isPendingView) {
-                                            $puroks = array_unique(array_column($residents, 'purok'));
-                                            sort($puroks);
-                                            foreach($puroks as $p) if(!empty($p)) echo "<option value=\"".htmlspecialchars($p)."\">".htmlspecialchars($p)."</option>";
-                                        }
-                                        ?>
+                                        <?php foreach($nationalities as $nat): ?><option value="<?= htmlspecialchars($nat) ?>"><?= htmlspecialchars($nat) ?></option><?php endforeach; ?>
                                     </select>
-                                </div>
-                                <div class="filter-group">
-                                    <label for="streetFilter">Street</label>
-                                    <input type="text" id="streetFilter" placeholder="Enter street name...">
-                                </div>
-                                <div class="filter-group">
-                                    <label for="houseNoFilter">House No.</label>
-                                    <input type="text" id="houseNoFilter" placeholder="Enter house no...">
-                                </div>
-                                <div class="filter-group">
-                                    <label for="householdFilter">Head of Household</label>
-                                    <select id="householdFilter">
-                                        <option value="">All</option>
-                                        <?php
-                                        if (!$isPendingView) {
-                                            foreach($household_heads as $head) {
-                                                echo "<option value=\"".htmlspecialchars($head)."\">".htmlspecialchars($head)."</option>";
-                                            }
-                                        }
-                                        ?>
-                                    </select>
-                                </div>
-                                <div class="filter-group">
-                                    <label for="relationshipFilter">Relationship to Head</label>
-                                    <select id="relationshipFilter">
-                                        <option value="">All</option>
-                                        <?php foreach($relationships as $rel): ?>
-                                            <option value="<?= htmlspecialchars($rel) ?>"><?= htmlspecialchars($rel) ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="accordion-item">
-                        <div class="accordion-header">
-                            <h4>Welfare & Education</h4>
-                            <span class="material-icons">expand_more</span>
-                        </div>
-                        <div class="accordion-content">
-                             <div class="filter-fieldset">
-                                <div class="filter-group">
-                                    <label for="employmentStatusFilter">Employment Status</label>
-                                    <select id="employmentStatusFilter">
-                                        <option value="">All</option>
-                                        <option value="employed">Employed</option>
-                                        <option value="unemployed">Unemployed</option>
-                                    </select>
-                                </div>
-                                <div class="filter-group">
-                                    <label for="educationFilter">Educational Attainment</label>
-                                    <select id="educationFilter">
-                                        <option value="">All</option>
-                                        <?php foreach($educations as $edu): ?>
-                                            <option value="<?= htmlspecialchars($edu) ?>"><?= htmlspecialchars($edu) ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                <div class="filter-group">
-                                    <label for="occupationFilter">Occupation</label>
-                                    <select id="occupationFilter">
-                                        <option value="">All</option>
-                                        <?php foreach($occupations as $occ): ?>
-                                            <option value="<?= htmlspecialchars($occ) ?>"><?= htmlspecialchars($occ) ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                <div class="toggle-switch-group">
-                                    <label class="switch"><input type="checkbox" id="isStudentFilter"><span class="slider round"></span></label>
-                                    <label for="isStudentFilter">Is Student?</label>
-                                </div>
-                                 <div class="toggle-switch-group">
-                                    <label class="switch"><input type="checkbox" id="isPwdFilter"><span class="slider round"></span></label>
-                                    <label for="isPwdFilter">Is PWD?</label>
-                                </div>
-                                <div class="toggle-switch-group">
-                                    <label class="switch"><input type="checkbox" id="isSoloParentFilter"><span class="slider round"></span></label>
-                                    <label for="isSoloParentFilter">Is Solo Parent?</label>
-                                </div>
-                                 <div class="toggle-switch-group">
-                                    <label class="switch"><input type="checkbox" id="is4psMemberFilter"><span class="slider round"></span></label>
-                                    <label for="is4psMemberFilter">Is 4Ps Member?</label>
-                                </div>
-                                 <div class="toggle-switch-group">
-                                    <label class="switch"><input type="checkbox" id="isIndigentFilter"><span class="slider round"></span></label>
-                                    <label for="isIndigentFilter">Is Indigent?</label>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
                     <div class="accordion-item">
-                        <div class="accordion-header">
-                            <h4>Administrative</h4>
-                            <span class="material-icons">expand_more</span>
+                        <div class="accordion-header"><h4>Address & Household</h4><span class="material-icons">expand_more</span></div>
+                        <div class="accordion-content">
+                            <div class="filter-fieldset">
+                                <div class="filter-group"><label for="purokFilter">Purok</label>
+                                    <select id="purokFilter">
+                                        <option value="">All</option>
+                                        <?php if (!$isPendingView) { $puroks = array_unique(array_column($residents, 'purok')); sort($puroks); foreach($puroks as $p) if(!empty($p)) echo "<option value=\"".htmlspecialchars($p)."\">".htmlspecialchars($p)."</option>"; } ?>
+                                    </select>
+                                </div>
+                                <div class="filter-group"><label for="streetFilter">Street</label><input type="text" id="streetFilter" placeholder="Enter street name..."></div>
+                                <div class="filter-group"><label for="houseNoFilter">House No.</label><input type="text" id="houseNoFilter" placeholder="Enter house no..."></div>
+                                <div class="filter-group"><label for="householdFilter">Head of Household</label>
+                                    <select id="householdFilter">
+                                        <option value="">All</option>
+                                        <?php if (!$isPendingView) { foreach($household_heads as $head) { echo "<option value=\"".htmlspecialchars($head)."\">".htmlspecialchars($head)."</option>"; } } ?>
+                                    </select>
+                                </div>
+                                <div class="filter-group"><label for="relationshipFilter">Relationship to Head</label>
+                                    <select id="relationshipFilter">
+                                        <option value="">All</option>
+                                        <?php foreach($relationships as $rel): ?><option value="<?= htmlspecialchars($rel) ?>"><?= htmlspecialchars($rel) ?></option><?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="ownershipStatusFilter">Ownership Status</label>
+                                    <select id="ownershipStatusFilter">
+                                        <option value="">All</option>
+                                        <?php foreach($ownership_statuses as $os): ?><option value="<?= htmlspecialchars($os) ?>"><?= htmlspecialchars($os) ?></option><?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="toggle-switch-group"><label class="switch"><input type="checkbox" id="isHeadFilter"><span class="slider round"></span></label><label for="isHeadFilter">Is Head of Household?</label></div>
+                            </div>
                         </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header"><h4>Contact & Health</h4><span class="material-icons">expand_more</span></div>
+                        <div class="accordion-content">
+                            <div class="filter-fieldset">
+                                <div class="filter-group"><label for="bloodTypeFilter">Blood Type</label>
+                                    <select id="bloodTypeFilter">
+                                        <option value="">All</option>
+                                        <?php foreach($blood_types as $bt): ?><option value="<?= htmlspecialchars($bt) ?>"><?= htmlspecialchars($bt) ?></option><?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="toggle-switch-group"><label class="switch"><input type="checkbox" id="emergencyContactFilter"><span class="slider round"></span></label><label for="emergencyContactFilter">Has Emergency Contact?</label></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header"><h4>Education & Occupation</h4><span class="material-icons">expand_more</span></div>
+                        <div class="accordion-content">
+                            <div class="filter-fieldset">
+                                <div class="filter-group"><label for="educationFilter">Educational Attainment</label>
+                                    <select id="educationFilter">
+                                        <option value="">All</option>
+                                        <?php foreach($educations as $edu): ?><option value="<?= htmlspecialchars($edu) ?>"><?= htmlspecialchars($edu) ?></option><?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="filter-group"><label for="occupationFilter">Occupation</label>
+                                    <select id="occupationFilter">
+                                        <option value="">All</option>
+                                        <?php foreach($occupations as $occ): ?><option value="<?= htmlspecialchars($occ) ?>"><?= htmlspecialchars($occ) ?></option><?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="filter-group"><label for="employmentStatusFilter">Employment Status</label>
+                                    <select id="employmentStatusFilter">
+                                        <option value="">All</option><option value="employed">Employed</option><option value="unemployed">Unemployed</option>
+                                    </select>
+                                </div>
+                                <div class="toggle-switch-group"><label class="switch"><input type="checkbox" id="isStudentFilter"><span class="slider round"></span></label><label for="isStudentFilter">Is Student?</label></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header"><h4>Administrative & Welfare</h4><span class="material-icons">expand_more</span></div>
                         <div class="accordion-content">
                             <div class="filter-fieldset">
                                 <div class="filter-group">
                                     <label for="statusFilter">Resident Status</label>
-                                    <select id="statusFilter">
-                                        <option value="">All</option>
-                                        <option value="Active">Active</option>
-                                        <option value="Inactive">Inactive</option>
-                                        <option value="Moved">Moved</option>
-                                        <option value="Deceased">Deceased</option>
-                                    </select>
+                                    <select id="statusFilter"><option value="">All</option><option value="Active">Active</option><option value="Inactive">Inactive</option><option value="Moved">Moved</option><option value="Deceased">Deceased</option></select>
                                 </div>
                                 <div class="filter-group">
                                     <label for="residencyStatusFilter">Residency Type</label>
                                     <select id="residencyStatusFilter">
                                         <option value="">All</option>
-                                         <?php foreach($residency_statuses as $rs): ?>
-                                            <option value="<?= htmlspecialchars($rs) ?>"><?= htmlspecialchars($rs) ?></option>
-                                        <?php endforeach; ?>
+                                        <?php foreach($residency_statuses as $rs): ?><option value="<?= htmlspecialchars($rs) ?>"><?= htmlspecialchars($rs) ?></option><?php endforeach; ?>
                                     </select>
                                 </div>
                                 <div class="filter-group">
-                                    <label for="bloodTypeFilter">Blood Type</label>
-                                    <select id="bloodTypeFilter">
-                                        <option value="">All</option>
-                                         <?php foreach($blood_types as $bt): ?>
-                                            <option value="<?= htmlspecialchars($bt) ?>"><?= htmlspecialchars($bt) ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                 <div class="filter-group">
                                     <label>Date Added</label>
-                                    <div class="age-inputs">
-                                        <input type="date" id="dateAddedMin" placeholder="From">
-                                        <input type="date" id="dateAddedMax" placeholder="To">
-                                    </div>
+                                    <div class="age-inputs"><input type="date" id="dateAddedMin" placeholder="From"><input type="date" id="dateAddedMax" placeholder="To"></div>
                                 </div>
-                                <div class="toggle-switch-group">
-                                    <label class="switch"><input type="checkbox" id="emergencyContactFilter"><span class="slider round"></span></label>
-                                    <label for="emergencyContactFilter">Has Emergency Contact?</label>
-                                </div>
-                                <div class="toggle-switch-group">
-                                    <label class="switch"><input type="checkbox" id="isVoterFilter"><span class="slider round"></span></label>
-                                    <label for="isVoterFilter">Is Registered Voter?</label>
-                                </div>
+                                <div class="toggle-switch-group"><label class="switch"><input type="checkbox" id="isVoterFilter"><span class="slider round"></span></label><label for="isVoterFilter">Is Registered Voter?</label></div>
+                                <div class="toggle-switch-group"><label class="switch"><input type="checkbox" id="isPwdFilter"><span class="slider round"></span></label><label for="isPwdFilter">Is PWD?</label></div>
+                                <div class="toggle-switch-group"><label class="switch"><input type="checkbox" id="isSoloParentFilter"><span class="slider round"></span></label><label for="isSoloParentFilter">Is Solo Parent?</label></div>
+                                <div class="toggle-switch-group"><label class="switch"><input type="checkbox" id="is4psMemberFilter"><span class="slider round"></span></label><label for="is4psMemberFilter">Is 4Ps Member?</label></div>
+                                <div class="toggle-switch-group"><label class="switch"><input type="checkbox" id="isIndigentFilter"><span class="slider round"></span></label><label for="isIndigentFilter">Is Indigent?</label></div>
                             </div>
                         </div>
                     </div>
