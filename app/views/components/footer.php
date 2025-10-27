@@ -3,6 +3,8 @@
 $base_url = '/iCensus-ent/public';
 ?>
 
+<link rel="stylesheet" href="<?= $base_url ?>/assets/css/footer.css">
+
 <style>
 /* Back to Top Button Styles */
 #backToTopBtn {
