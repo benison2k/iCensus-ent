@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/dashboard.css">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
-<body class="<?= $theme==='dark'?'dark-mode':''; ?>">
+<body class="<?= $theme === 'dark' ? 'dark-mode' : 'light-mode'; ?>">
 
     <?php include __DIR__ . '/../components/header.php'; ?>
 
@@ -66,13 +66,6 @@
 
                 <?php endif; ?>
             </div>
-
-            <p style="margin: 1rem 0; font-weight: 500;">
-                Viewing: <span style="font-weight: bold; color: <?= $isPendingView ? '#0d6efd' : '#2e7d32' ?>;"><?= $isPendingView ? 'Pending Entries' : 'Approved Residents' ?></span>
-                <br>
-                Total in this view: <span><?= count($residents); ?></span>
-            </p>
-
             
             <div class="filter-wrapper" style="<?= $isPendingView ? 'display:none;' : '' ?>">
                 <div class="filter-container">
