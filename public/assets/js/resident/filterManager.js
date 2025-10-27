@@ -30,6 +30,8 @@ function applyFilters(state) {
     const isSoloParentFilter = document.getElementById('isSoloParentFilter');
     const is4psMemberFilter = document.getElementById('is4psMemberFilter');
     const isIndigentFilter = document.getElementById('isIndigentFilter');
+    const nationalityFilter = document.getElementById('nationalityFilter');
+    const ownershipStatusFilter = document.getElementById('ownershipStatusFilter');
 
 
     const searchTerm = searchInput.value.toLowerCase();
@@ -51,6 +53,8 @@ function applyFilters(state) {
     const education = educationFilter.value;
     const occupation = occupationFilter.value;
     const employmentStatus = employmentStatusFilter.value;
+    const nationality = nationalityFilter.value;
+    const ownershipStatus = ownershipStatusFilter.value;
 
     // Read boolean values from checkboxes
     const isHead = isHeadFilter.checked;
@@ -86,22 +90,23 @@ function applyFilters(state) {
         if (birthMonth && (r.dob === null || new Date(r.dob).getMonth() + 1 != birthMonth)) return false;
         if (minDateAdded && r.date_added && r.date_added < minDateAdded) return false;
         if (maxDateAdded && r.date_added && r.date_added.split(' ')[0] > maxDateAdded) return false;
+        if (nationality && r.nationality !== nationality) return false;
+        if (ownershipStatus && r.ownership_status !== ownershipStatus) return false;
         if (employmentStatus) {
             const isConsideredUnemployed = residentOccupation === '' || residentOccupation === 'unemployed' || residentOccupation === 'n/a' || residentOccupation === 'student';
             if (employmentStatus === 'employed' && isConsideredUnemployed) return false;
             if (employmentStatus === 'unemployed' && !isConsideredUnemployed) return false;
         }
 
-        // --- FIX START: Corrected boolean checks for all toggle switches ---
+        // Checkbox/Switch filters (only apply if checked)
         if (isHead && r.relationship !== 'Self') return false;
-        if (hasEmergency && !r.emergency_name) return false; // This checks for a non-empty string, which is correct.
+        if (hasEmergency && !r.emergency_name) return false;
         if (isVoter && (r.is_registered_voter == 0 || r.is_registered_voter == null)) return false;
-        if (isStudent && residentOccupation !== 'student') return false; // This has custom logic that works.
+        if (isStudent && residentOccupation !== 'student') return false;
         if (isPwd && (r.is_pwd == 0 || r.is_pwd == null)) return false;
         if (isSoloParent && (r.is_solo_parent == 0 || r.is_solo_parent == null)) return false;
         if (is4ps && (r.is_4ps_member == 0 || r.is_4ps_member == null)) return false;
         if (isIndigent && (r.is_indigent == 0 || r.is_indigent == null)) return false;
-        // --- FIX END ---
 
         return true;
     });
@@ -152,6 +157,8 @@ function initializeFilters(state) {
     const isSoloParentFilter = document.getElementById('isSoloParentFilter');
     const is4psMemberFilter = document.getElementById('is4psMemberFilter');
     const isIndigentFilter = document.getElementById('isIndigentFilter');
+    const nationalityFilter = document.getElementById('nationalityFilter');
+    const ownershipStatusFilter = document.getElementById('ownershipStatusFilter');
     const clearBtn = document.getElementById('clearFiltersBtn');
     const demographicButtons = document.querySelectorAll('.demographic-btn');
     const toggleFiltersBtn = document.getElementById('toggleFiltersBtn');
@@ -163,7 +170,7 @@ function initializeFilters(state) {
         statusFilter, genderFilter, purokFilter, householdFilter, civilStatusFilter, bloodTypeFilter, 
         residencyStatusFilter, relationshipFilter, isHeadFilter, birthMonthFilter, emergencyContactFilter, 
         isVoterFilter, educationFilter, occupationFilter, employmentStatusFilter, isStudentFilter, 
-        isPwdFilter, isSoloParentFilter, is4psMemberFilter, isIndigentFilter
+        isPwdFilter, isSoloParentFilter, is4psMemberFilter, isIndigentFilter, nationalityFilter, ownershipStatusFilter
     ];
     
     filterInputs.forEach(el => {
@@ -279,7 +286,7 @@ function displayActiveFilterTags() {
         is4psMemberFilter: '4Ps Member', isIndigentFilter: 'Indigent',
         statusFilter: 'Status', residencyStatusFilter: 'Residency Type', bloodTypeFilter: 'Blood Type',
         emergencyContactFilter: 'Has Emergency Contact', dateAddedMin: 'Date Added From', dateAddedMax: 'Date Added To',
-        isVoterFilter: 'Is Voter',
+        isVoterFilter: 'Is Voter', nationalityFilter: 'Nationality', ownershipStatusFilter: 'Ownership Status',
         searchInput: 'Search',
     };
 
@@ -295,7 +302,7 @@ function displayActiveFilterTags() {
         { id: 'statusFilter', type: 'select' }, { id: 'residencyStatusFilter', type: 'select' },
         { id: 'bloodTypeFilter', type: 'select' }, 
         { id: 'dateAddedMin', type: 'input' }, { id: 'dateAddedMax', type: 'input' },
-        { id: 'searchInput', type: 'input' },
+        { id: 'searchInput', type: 'input' }, { id: 'nationalityFilter', type: 'select' }, { id: 'ownershipStatusFilter', type: 'select' },
         // Checkboxes
         { id: 'isHeadFilter', type: 'checkbox' }, { id: 'isStudentFilter', type: 'checkbox' },
         { id: 'isPwdFilter', type: 'checkbox' }, { id: 'isSoloParentFilter', type: 'checkbox' },

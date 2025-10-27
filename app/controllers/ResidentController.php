@@ -42,6 +42,7 @@ class ResidentController {
             'relationships' => $residentModel->getDistinctValues('relationship'),
             'educations' => $residentModel->getDistinctValues('educational_attainment'),
             'occupations' => $residentModel->getDistinctValues('occupation'),
+            'ownership_statuses' => $residentModel->getDistinctValues('ownership_status'), // <-- ADDED THIS LINE
             'isPendingView' => $isPendingView,
             'pending_count' => ($user_role === 'Barangay Admin') ? $residentModel->getPendingCount() : 0,
             'modalMessage' => $_SESSION['modal']['message'] ?? '',
@@ -125,7 +126,6 @@ class ResidentController {
                         $message = 'Resident updated successfully!';
                     }
                     
-                    // Fetch the complete, saved data to send back to the client
                     $savedResident = $residentModel->find($residentId);
 
                     echo json_encode(['status' => 'success', 'message' => $message, 'resident' => $savedResident, 'is_new' => $is_new]);
