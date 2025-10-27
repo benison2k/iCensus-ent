@@ -83,17 +83,6 @@
                         </div>
                         
                         <div class="filter-group">
-                            <label>Attributes</label>
-                            <div class="toggle-switch-group">
-                                <label class="switch">
-                                    <input type="checkbox" id="isVoterFilter">
-                                    <span class="slider"></span>
-                                </label>
-                                <label for="isVoterFilter">Is Voter?</label>
-                            </div>
-                        </div>
-                        
-                        <div class="filter-group">
                             <label>Quick Age Groups</label>
                             <div class="button-group">
                                 <button class="clear-btn demographic-btn" data-min="60">Seniors</button>
@@ -159,6 +148,10 @@
                                         <?php endfor; ?>
                                     </select>
                                 </div>
+                                 <div class="toggle-switch-group">
+                                    <label class="switch"><input type="checkbox" id="isHeadFilter"><span class="slider round"></span></label>
+                                    <label for="isHeadFilter">Is Head of Household?</label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -205,14 +198,6 @@
                                     </select>
                                 </div>
                                 <div class="filter-group">
-                                    <label for="isHeadFilter">Is Head of Household?</label>
-                                    <select id="isHeadFilter">
-                                        <option value="">All</option>
-                                        <option value="Yes">Yes</option>
-                                        <option value="No">No</option>
-                                    </select>
-                                </div>
-                                <div class="filter-group">
                                     <label for="relationshipFilter">Relationship to Head</label>
                                     <select id="relationshipFilter">
                                         <option value="">All</option>
@@ -231,21 +216,13 @@
                             <span class="material-icons">expand_more</span>
                         </div>
                         <div class="accordion-content">
-                            <div class="filter-fieldset">
+                             <div class="filter-fieldset">
                                 <div class="filter-group">
                                     <label for="employmentStatusFilter">Employment Status</label>
                                     <select id="employmentStatusFilter">
                                         <option value="">All</option>
                                         <option value="employed">Employed</option>
                                         <option value="unemployed">Unemployed</option>
-                                    </select>
-                                </div>
-                                <div class="filter-group">
-                                    <label for="isStudentFilter">Is Student?</label>
-                                    <select id="isStudentFilter">
-                                        <option value="">All</option>
-                                        <option value="1">Yes</option>
-                                        <option value="0">No</option>
                                     </select>
                                 </div>
                                 <div class="filter-group">
@@ -266,17 +243,25 @@
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
-                                <div class="filter-group">
+                                <div class="toggle-switch-group">
+                                    <label class="switch"><input type="checkbox" id="isStudentFilter"><span class="slider round"></span></label>
+                                    <label for="isStudentFilter">Is Student?</label>
+                                </div>
+                                 <div class="toggle-switch-group">
+                                    <label class="switch"><input type="checkbox" id="isPwdFilter"><span class="slider round"></span></label>
                                     <label for="isPwdFilter">Is PWD?</label>
-                                    <select id="isPwdFilter"><option value="">All</option><option value="1">Yes</option><option value="0">No</option></select>
                                 </div>
-                                <div class="filter-group">
+                                <div class="toggle-switch-group">
+                                    <label class="switch"><input type="checkbox" id="isSoloParentFilter"><span class="slider round"></span></label>
                                     <label for="isSoloParentFilter">Is Solo Parent?</label>
-                                    <select id="isSoloParentFilter"><option value="">All</option><option value="1">Yes</option><option value="0">No</option></select>
                                 </div>
-                                 <div class="filter-group">
+                                 <div class="toggle-switch-group">
+                                    <label class="switch"><input type="checkbox" id="is4psMemberFilter"><span class="slider round"></span></label>
                                     <label for="is4psMemberFilter">Is 4Ps Member?</label>
-                                    <select id="is4psMemberFilter"><option value="">All</option><option value="1">Yes</option><option value="0">No</option></select>
+                                </div>
+                                 <div class="toggle-switch-group">
+                                    <label class="switch"><input type="checkbox" id="isIndigentFilter"><span class="slider round"></span></label>
+                                    <label for="isIndigentFilter">Is Indigent?</label>
                                 </div>
                             </div>
                         </div>
@@ -318,19 +303,19 @@
                                     </select>
                                 </div>
                                  <div class="filter-group">
-                                    <label for="emergencyContactFilter">Has Emergency Contact?</label>
-                                    <select id="emergencyContactFilter">
-                                        <option value="">All</option>
-                                        <option value="Yes">Yes</option>
-                                        <option value="No">No</option>
-                                    </select>
-                                </div>
-                                 <div class="filter-group">
                                     <label>Date Added</label>
                                     <div class="age-inputs">
                                         <input type="date" id="dateAddedMin" placeholder="From">
                                         <input type="date" id="dateAddedMax" placeholder="To">
                                     </div>
+                                </div>
+                                <div class="toggle-switch-group">
+                                    <label class="switch"><input type="checkbox" id="emergencyContactFilter"><span class="slider round"></span></label>
+                                    <label for="emergencyContactFilter">Has Emergency Contact?</label>
+                                </div>
+                                <div class="toggle-switch-group">
+                                    <label class="switch"><input type="checkbox" id="isVoterFilter"><span class="slider round"></span></label>
+                                    <label for="isVoterFilter">Is Registered Voter?</label>
                                 </div>
                             </div>
                         </div>
@@ -413,6 +398,6 @@
         const isPendingView = <?= $isPendingView ? 'true' : 'false' ?>;
         const userRole = '<?= htmlspecialchars($user['role_name']) ?>';
     </script>
-    <script src="<?= $base_url ?>/assets/js/residents.js"></script>
+    <script type="module" src="<?= $base_url ?>/assets/js/residents.js"></script>
 </body>
 </html>
