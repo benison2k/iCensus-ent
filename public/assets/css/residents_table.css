@@ -1,11 +1,28 @@
 /* =========================
    Residents Table
 ========================= */
+.table-container {
+    margin-top: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border: 1px solid #ddd;
+}
+
+/* This is the key change for attachment */
+.view-tabs-container + .table-container {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-top: none;
+}
+
 .resident-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 1rem;
-    border: 1px solid #ddd;
+    margin-top: 0;
+    box-shadow: none;
+    border-radius: 0;
+    border: none;
 }
 
 .resident-table th,
@@ -124,9 +141,31 @@
 /* =========================
    Dark Mode Overrides
 ========================= */
+body.dark-mode .table-container {
+    border-color: #4a5a6a;
+}
 body.dark-mode .resident-table th { background-color: #3b4a59; }
 body.dark-mode .resident-table tr:hover { background-color: rgba(255, 255, 255, 0.05); }
-body.dark-mode .resident-table { border-color: #4a5a6a; }
 body.dark-mode .resident-table th,
 body.dark-mode .resident-table td { border-color: #4a5a6a; }
 body.dark-mode .sort-icon .sort-text { color: #bbb; }
+
+
+/* Table Controls Header */
+.resident-table .table-controls-header th {
+    background-color: #f8f9fa;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #ddd;
+    border-right: none;
+    border-top: 1px solid #ddd;
+}
+
+#pagination-controls {
+    margin: 0 !important;
+}
+
+body.dark-mode .resident-table .table-controls-header th {
+    background-color: #34495e;
+    border-bottom-color: #4a5a6a;
+    border-top-color: #4a5a6a;
+}
