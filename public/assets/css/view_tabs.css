@@ -40,7 +40,7 @@
 }
 
 .view-tab.active-view {
-    background-color: #ffffff;
+    background-color: #ffffff; /* Changed to white */
     border-color: #dee2e6; /* Match the table border */
     border-bottom: 1px solid #ffffff; /* Hide the line underneath the active tab */
     color: #0d6efd;

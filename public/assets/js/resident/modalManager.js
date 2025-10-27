@@ -34,7 +34,7 @@ async function openModalForEdit(id, state) {
 
         const data = result.resident;
         Object.keys(data).forEach(key => {
-            const el = form[key];
+            const el = form.elements[key]; // Corrected line
             if (el) {
                 if (el.type === 'checkbox') {
                     el.checked = (data[key] == 1);
