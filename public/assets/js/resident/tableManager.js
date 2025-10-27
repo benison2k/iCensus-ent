@@ -35,7 +35,7 @@ function renderTable(state) {
                     <td>${r.gender}</td>
                     <td>${address}</td>
                     <td><span class="status-label status-${safeStatus}">${r.status}</span></td>
-                    <td><button class="moreBtn material-icons" data-id="${r.id}" title="View Resident Info">more_vert</button></td>
+                    <td><button class="moreBtn" data-id="${r.id}" title="View Resident Info"><span class="material-icons">more_vert</span></button></td>
                 </tr>`;
         });
     }
@@ -59,6 +59,9 @@ function updatePagination(state) {
     const totalCountEl = document.getElementById('totalCountEl');
     const prevPageBtn = document.getElementById('prevPageBtn');
     const nextPageBtn = document.getElementById('nextPageBtn');
+
+    // FIX: Check if pagination elements exist before using them
+    if (!pageInfo) return;
 
     const totalPages = Math.ceil(state.filteredResidents.length / state.pageSize) || 1;
     const startItem = state.filteredResidents.length === 0 ? 0 : (state.currentPage - 1) * state.pageSize + 1;
@@ -101,6 +104,7 @@ function updateSortIcons(state) {
 
 function jumpToPage(state) {
     const gotoPageInput = document.getElementById('gotoPage');
+    if (!gotoPageInput) return; // FIX: Add check
     const totalPages = Math.ceil(state.filteredResidents.length / state.pageSize) || 1;
     const page = parseInt(gotoPageInput.value, 10);
     if (page >= 1 && page <= totalPages) {
@@ -122,56 +126,70 @@ function initializeTable(state) {
     const gotoPageInput = document.getElementById('gotoPage');
     const nameSortSelect = document.getElementById('nameSortSelect');
 
-    pageSizeSelect.addEventListener('change', (e) => {
-        state.pageSize = parseInt(e.target.value, 10);
-        state.currentPage = 1;
-        renderTable(state);
-    });
-    prevPageBtn.addEventListener('click', () => { if (state.currentPage > 1) { state.currentPage--; renderTable(state); } });
-    nextPageBtn.addEventListener('click', () => {
-        const totalPages = Math.ceil(state.filteredResidents.length / state.pageSize);
-        if (state.currentPage < totalPages) { state.currentPage++; renderTable(state); }
-    });
-    gotoPageBtn.addEventListener('click', () => jumpToPage(state));
-    gotoPageInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') jumpToPage(state); });
+    // FIX: Add null checks for all optional elements
+    if (pageSizeSelect) {
+        pageSizeSelect.addEventListener('change', (e) => {
+            state.pageSize = parseInt(e.target.value, 10);
+            state.currentPage = 1;
+            renderTable(state);
+        });
+    }
+    if (prevPageBtn) {
+        prevPageBtn.addEventListener('click', () => { if (state.currentPage > 1) { state.currentPage--; renderTable(state); } });
+    }
+    if (nextPageBtn) {
+        nextPageBtn.addEventListener('click', () => {
+            const totalPages = Math.ceil(state.filteredResidents.length / state.pageSize);
+            if (state.currentPage < totalPages) { state.currentPage++; renderTable(state); }
+        });
+    }
+    if (gotoPageBtn) {
+        gotoPageBtn.addEventListener('click', () => jumpToPage(state));
+    }
+    if (gotoPageInput) {
+        gotoPageInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') jumpToPage(state); });
+    }
 
     if (residentsTable) {
-        residentsTable.querySelector('thead').addEventListener('click', (e) => {
-            const header = e.target.closest('.sortable');
-            if (header && !e.target.matches('.sort-select-overlay')) {
-                const sortColumn = header.dataset.sort;
+        const thead = residentsTable.querySelector('thead');
+        if (thead) { // Defensive check for thead
+            thead.addEventListener('click', (e) => {
+                const header = e.target.closest('.sortable');
+                if (header && !e.target.matches('.sort-select-overlay')) {
+                    const sortColumn = header.dataset.sort;
 
-                if (sortColumn === 'last_name') {
-                    if (state.currentSort.column === 'last_name') {
-                        if (state.currentSort.order === 'asc') {
-                            state.currentSort.order = 'desc';
-                        } else {
-                            state.currentSort.column = 'first_name';
-                            state.currentSort.order = 'asc';
-                        }
-                    } else if (state.currentSort.column === 'first_name') {
-                        if (state.currentSort.order === 'asc') {
-                            state.currentSort.order = 'desc';
+                    if (sortColumn === 'last_name') {
+                        if (state.currentSort.column === 'last_name') {
+                            if (state.currentSort.order === 'asc') {
+                                state.currentSort.order = 'desc';
+                            } else {
+                                state.currentSort.column = 'first_name';
+                                state.currentSort.order = 'asc';
+                            }
+                        } else if (state.currentSort.column === 'first_name') {
+                            if (state.currentSort.order === 'asc') {
+                                state.currentSort.order = 'desc';
+                            } else {
+                                state.currentSort.column = 'last_name';
+                                state.currentSort.order = 'asc';
+                            }
                         } else {
                             state.currentSort.column = 'last_name';
                             state.currentSort.order = 'asc';
                         }
                     } else {
-                        state.currentSort.column = 'last_name';
-                        state.currentSort.order = 'asc';
+                        if (state.currentSort.column === sortColumn) {
+                            state.currentSort.order = state.currentSort.order === 'asc' ? 'desc' : 'asc';
+                        } else {
+                            state.currentSort.column = sortColumn;
+                            state.currentSort.order = 'asc';
+                        }
                     }
-                } else {
-                    if (state.currentSort.column === sortColumn) {
-                        state.currentSort.order = state.currentSort.order === 'asc' ? 'desc' : 'asc';
-                    } else {
-                        state.currentSort.column = sortColumn;
-                        state.currentSort.order = 'asc';
-                    }
+                    
+                    renderTable(state);
                 }
-                
-                renderTable(state);
-            }
-        });
+            });
+        }
     }
 
     if (nameSortSelect) {
@@ -183,13 +201,10 @@ function initializeTable(state) {
         });
     }
 
-    // --- The Correct and Final Fix for the Action Buttons ---
     if (tableBody) {
         tableBody.addEventListener('click', (e) => {
-            // Find the closest ancestor which is a .moreBtn
             const moreButton = e.target.closest('.moreBtn');
             if (moreButton) {
-                // If a button was clicked, get its ID and open the modal
                 openModalForEdit(moreButton.dataset.id, state);
             }
         });
