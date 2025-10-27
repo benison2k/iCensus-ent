@@ -1,6 +1,6 @@
 // benison2k/icensus-ent/iCensus-ent-development-branch-MVC-/public/assets/js/residents.js
 
-import { initializeModal, openModalForEdit, openModalForAdd } from './resident/modalManager.js';
+import { initializeModal, openModalForAdd } from './resident/modalManager.js';
 import { initializeForm } from './resident/formHandler.js';
 import { initializeTable, renderTable } from './resident/tableManager.js';
 import { initializeFilters, applyFilters } from './resident/filterManager.js';
@@ -16,7 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
             order: 'asc'
         },
         allResidents: typeof allResidentsData !== 'undefined' ? allResidentsData : [],
-        isPendingView: typeof isPendingView !== 'undefined' ? isPendingView : false
+        isPendingView: typeof isPendingView !== 'undefined' ? isPendingView : false,
+        userRole: typeof userRole !== 'undefined' ? userRole : '' // Pass the user role to the state
     };
 
     // --- INITIALIZATION ---

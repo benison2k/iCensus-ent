@@ -2,7 +2,7 @@
 
 const basePath = '/iCensus-ent/public';
 
-function setFormEditable(editable) {
+function setFormEditable(editable, state) {
     const form = document.getElementById('residentForm');
     const saveBtn = document.getElementById('saveBtn');
     const editBtn = form.querySelector('.editBtn');
@@ -12,7 +12,8 @@ function setFormEditable(editable) {
     saveBtn.style.display = editable ? 'inline-flex' : 'none';
     editBtn.style.display = editable ? 'none' : 'inline-flex';
 
-    if (editable || userRole === 'Encoder') {
+    // This logic now uses the state object
+    if (editable || state.userRole === 'Encoder') {
         deleteBtn.style.display = 'none';
     } else {
         deleteBtn.style.display = 'inline-flex';
@@ -43,7 +44,7 @@ async function openModalForEdit(id, state) {
             }
         });
 
-        setFormEditable(false);
+        setFormEditable(false, state); // Pass state
         modalTitle.textContent = `View Resident Info`;
         hiddenId.value = id;
         modal.style.display = 'block';
@@ -61,7 +62,7 @@ function openModalForAdd(state) {
 
     form.reset();
     hiddenId.value = '';
-    setFormEditable(true);
+    setFormEditable(true, state); // Pass state
     editBtn.style.display = 'none';
     modalTitle.textContent = 'Add New Resident';
     modal.style.display = 'block';
@@ -74,7 +75,7 @@ function initializeModal(state) {
 
     closeModal.addEventListener('click', () => modal.style.display = 'none');
     window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
-    editBtn.addEventListener('click', () => setFormEditable(true));
+    editBtn.addEventListener('click', () => setFormEditable(true, state)); // Pass state
 }
 
 export { initializeModal, openModalForEdit, openModalForAdd };

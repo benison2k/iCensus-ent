@@ -2,12 +2,6 @@
 
 import { openModalForEdit } from './modalManager.js';
 
-function attachEventListenersToRows(state) {
-    document.querySelectorAll('.moreBtn').forEach(btn => {
-        btn.addEventListener('click', (e) => openModalForEdit(e.currentTarget.dataset.id, state));
-    });
-};
-
 function renderTable(state) {
     const tableBody = document.getElementById('residentsTableBody');
 
@@ -57,7 +51,6 @@ function renderTable(state) {
 
     updatePagination(state);
     updateSortIcons(state);
-    attachEventListenersToRows(state);
 };
 
 function updatePagination(state) {
@@ -121,6 +114,7 @@ function jumpToPage(state) {
 
 function initializeTable(state) {
     const residentsTable = document.getElementById('residentsTable');
+    const tableBody = document.getElementById('residentsTableBody');
     const pageSizeSelect = document.getElementById('pageSizeSelect');
     const prevPageBtn = document.getElementById('prevPageBtn');
     const nextPageBtn = document.getElementById('nextPageBtn');
@@ -186,6 +180,18 @@ function initializeTable(state) {
             state.currentSort.column = column;
             state.currentSort.order = order;
             renderTable(state);
+        });
+    }
+
+    // --- The Correct and Final Fix for the Action Buttons ---
+    if (tableBody) {
+        tableBody.addEventListener('click', (e) => {
+            // Find the closest ancestor which is a .moreBtn
+            const moreButton = e.target.closest('.moreBtn');
+            if (moreButton) {
+                // If a button was clicked, get its ID and open the modal
+                openModalForEdit(moreButton.dataset.id, state);
+            }
         });
     }
 }

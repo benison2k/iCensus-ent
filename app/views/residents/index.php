@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/residents_filters.css">
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/page_actions.css">
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/dashboard.css">
+<link rel="stylesheet" href="<?= $base_url ?>/assets/css/view_tabs.css">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body class="<?= $theme === 'dark' ? 'dark-mode' : 'light-mode'; ?>">
@@ -33,40 +34,21 @@
 
         <div style="padding:0 2rem; max-width:1600px; margin:auto; width: 100%;">
 
-        <div class="page-actions-container">
+            <div class="page-actions-container">
                 <button id="addResidentBtn" class="action-button-link">
                     <span class="material-icons">person_add</span> Add Resident
                 </button>
 
-                <?php if ($user['role_name'] === 'Barangay Admin'): ?>
-
-                    <a href="<?= $base_url ?>/residents?view=pending"
-                       class="action-button-link card <?= $isPendingView ? 'active-view' : '' ?>"
-                       style="text-decoration: none; padding: 0.6rem 1rem; min-width: auto; min-height: auto;">
-
-                        <?php if ($pending_count > 0): ?>
-                            <span class="notification-badge"><?= $pending_count ?></span>
-                        <?php endif; ?>
-
-                        <span class="material-icons">rate_review</span> Pending Review
+                <?php if ($user['role_name'] === 'Barangay Admin' && $isPendingView && $pending_count > 0): ?>
+                    <a href="<?= $base_url ?>/residents/approve-all"
+                       class="action-button-link"
+                       style="background-color: #28a745; color: white; margin-left: auto;"
+                       onclick="return confirm('Are you sure you want to approve all <?= $pending_count ?> pending entries?');">
+                        <span class="material-icons">done_all</span> Approve All (<?= $pending_count ?>)
                     </a>
-
-                     <a href="<?= $base_url ?>/residents" class="action-button-link <?= !$isPendingView ? 'active-view' : '' ?>" style="text-decoration: none;">
-                         <span class="material-icons">verified</span> Approved Residents
-                    </a>
-
-                    <?php if ($isPendingView && $pending_count > 0): ?>
-                        <a href="<?= $base_url ?>/residents/approve-all"
-                           class="action-button-link"
-                           style="background-color: #28a745; color: white; margin-left: auto;"
-                           onclick="return confirm('Are you sure you want to approve all <?= $pending_count ?> pending entries?');">
-                            <span class="material-icons">done_all</span> Approve All (<?= $pending_count ?>)
-                        </a>
-                    <?php endif; ?>
-
                 <?php endif; ?>
             </div>
-            
+
             <div class="filter-wrapper" style="<?= $isPendingView ? 'display:none;' : '' ?>">
                 <div class="filter-container">
                     <div class="main-filter-controls">
@@ -244,68 +226,91 @@
                 </div>
             </div>
 
-            <div id="pagination-controls" style="margin: 1rem 0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; <?= $isPendingView ? 'display:none;' : '' ?>">
-                <div style="display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap;">
-                    <div>
-                        <label>Show
-                            <select id="pageSizeSelect" style="padding:0.3rem;">
-                                <option value="10" selected>10</option>
-                                <option value="25">25</option>
-                                <option value="50">50</option>
-                            </select>
-                        entries</label>
+            <div class="table-area-wrapper">
+                <?php if ($user['role_name'] === 'Barangay Admin'): ?>
+                    <div class="view-tabs-container">
+                        <div class="view-tabs">
+                            <a href="<?= $base_url ?>/residents" class="view-tab <?= !$isPendingView ? 'active-view' : '' ?>">
+                                <span class="material-icons">verified</span> Approved Residents
+                            </a>
+                            <a href="<?= $base_url ?>/residents?view=pending" class="view-tab <?= $isPendingView ? 'active-view' : '' ?>">
+                                <?php if ($pending_count > 0): ?>
+                                    <span class="notification-badge"><?= $pending_count ?></span>
+                                <?php endif; ?>
+                                <span class="material-icons">rate_review</span> Pending Review
+                            </a>
+                        </div>
                     </div>
-                    
-                    <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-                        <span>Showing <span id="shownCount">0–0</span> of <span id="totalCountEl">0</span></span>
-                    </div>
+                <?php endif; ?>
 
-                    <div style="margin: 0; font-weight: 500; display:none;" id="filteredResults">
-                         <span style="font-weight: 500;">(Filtered: <span id="filteredCount">0</span>)</span>
-                    </div>
-                </div>
-                
-                <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-                    <button id="prevPageBtn" style="padding:0.3rem 0.5rem;">Prev</button>
-                    <span id="pageInfo">Page 1 of 1</span>
-                    <button id="nextPageBtn" style="padding:0.3rem 0.5rem;">Next</button>
-                    <input type="number" id="gotoPage" min="1" style="width:70px; padding:0.3rem;" placeholder="Page">
-                    <button id="gotoPageBtn" style="padding:0.3rem 0.5rem;">Go</button>
-                </div>
-            </div>
+                <div class="table-container">
+                    <table class="resident-table" id="residentsTable">
+                        <thead>
+                            <?php if (!$isPendingView): ?>
+                            <tr class="table-controls-header">
+                                <th colspan="6">
+                                    <div id="pagination-controls" style="margin: 0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+                                        <div style="display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap;">
+                                            <div>
+                                                <label>Show
+                                                    <select id="pageSizeSelect" style="padding:0.3rem;">
+                                                        <option value="10" selected>10</option>
+                                                        <option value="25">25</option>
+                                                        <option value="50">50</option>
+                                                    </select>
+                                                entries</label>
+                                            </div>
+                                            
+                                            <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                                                <span>Showing <span id="shownCount">0–0</span> of <span id="totalCountEl">0</span></span>
+                                            </div>
 
-            <div class="table-responsive">
-                <table class="resident-table" id="residentsTable">
-                    <thead>
-                        <tr>
-                            <th class="sortable" data-sort="last_name">
-                                <div class="sort-header-content">
-                                    <div class="sort-header-top-line">
-                                        <span>Full Name</span>
-                                        <div class="sort-dropdown-container">
-                                            <span class="material-icons">arrow_drop_down</span>
-                                            <select id="nameSortSelect" class="sort-select-overlay">
-                                                <option value="last_name-asc">Last Name (A-Z)</option>
-                                                <option value="last_name-desc">Last Name (Z-A)</option>
-                                                <option value="first_name-asc">First Name (A-Z)</option>
-                                                <option value="first_name-desc">First Name (Z-A)</option>
-                                            </select>
+                                            <div style="margin: 0; font-weight: 500; display:none;" id="filteredResults">
+                                                <span style="font-weight: 500;">(Filtered: <span id="filteredCount">0</span>)</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                                            <button id="prevPageBtn" style="padding:0.3rem 0.5rem;">Prev</button>
+                                            <span id="pageInfo">Page 1 of 1</span>
+                                            <button id="nextPageBtn" style="padding:0.3rem 0.5rem;">Next</button>
+                                            <input type="number" id="gotoPage" min="1" style="width:70px; padding:0.3rem;" placeholder="Page">
+                                            <button id="gotoPageBtn" style="padding:0.3rem 0.5rem;">Go</button>
                                         </div>
                                     </div>
-                                    <span class="sort-icon"></span>
-                                </div>
-                            </th>
-                            <th class="sortable" data-sort="age">Age <span class="sort-icon"></span></th>
-                            <th>Gender</th>
-                            <th>Address</th>
-                            <th><?= $isPendingView ? 'Date Submitted' : 'Status' ?></th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="residentsTableBody">
-                        <tr><td colspan="6" style="text-align: center;">Loading residents...</td></tr>
-                    </tbody>
-                </table>
+                                </th>
+                            </tr>
+                            <?php endif; ?>
+                            <tr>
+                                <th class="sortable" data-sort="last_name">
+                                    <div class="sort-header-content">
+                                        <div class="sort-header-top-line">
+                                            <span>Full Name</span>
+                                            <div class="sort-dropdown-container">
+                                                <span class="material-icons">arrow_drop_down</span>
+                                                <select id="nameSortSelect" class="sort-select-overlay">
+                                                    <option value="last_name-asc">Last Name (A-Z)</option>
+                                                    <option value="last_name-desc">Last Name (Z-A)</option>
+                                                    <option value="first_name-asc">First Name (A-Z)</option>
+                                                    <option value="first_name-desc">First Name (Z-A)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <span class="sort-icon"></span>
+                                    </div>
+                                </th>
+                                <th class="sortable" data-sort="age">Age <span class="sort-icon"></span></th>
+                                <th>Gender</th>
+                                <th>Address</th>
+                                <th><?= $isPendingView ? 'Date Submitted' : 'Status' ?></th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="residentsTableBody">
+                            <tr><td colspan="6" style="text-align: center;">Loading residents...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
