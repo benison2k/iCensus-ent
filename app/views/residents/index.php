@@ -246,7 +246,6 @@
                 <div class="table-container">
                     <table class="resident-table" id="residentsTable">
                         <thead>
-                            <?php if ($isPendingView): ?>
                             <tr class="table-controls-header">
                                 <th colspan="6">
                                     <div id="pagination-controls" style="margin: 0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
@@ -254,59 +253,29 @@
                                             <div>
                                                 <label>Show
                                                     <select id="pageSizeSelect" style="padding:0.3rem;">
-                                                        <option value="10" <?= $pageSize == 10 ? 'selected' : '' ?>>10</option>
-                                                        <option value="25" <?= $pageSize == 25 ? 'selected' : '' ?>>25</option>
-                                                        <option value="50" <?= $pageSize == 50 ? 'selected' : '' ?>>50</option>
+                                                        <option value="10" <?= ($isPendingView && $pageSize == 10) ? 'selected' : '' ?>>10</option>
+                                                        <option value="25" <?= ($isPendingView && $pageSize == 25) ? 'selected' : '' ?>>25</option>
+                                                        <option value="50" <?= ($isPendingView && $pageSize == 50) ? 'selected' : '' ?>>50</option>
                                                     </select>
                                                 entries</label>
                                             </div>
                                             <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-                                                <span>Showing <span id="shownCount">0–0</span> of <span id="totalCountEl"><?= $totalResidents ?></span></span>
+                                                <span>Showing <span id="shownCount">0–0</span> of <span id="totalCountEl"><?= $isPendingView ? $totalResidents : 0 ?></span></span>
                                             </div>
-                                        </div>
-                                        <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-                                            <a href="?view=pending&page=<?= $currentPage - 1 ?>&pageSize=<?= $pageSize ?>" class="action-button-link" <?= $currentPage <= 1 ? 'style="pointer-events:none; opacity:0.5;"' : '' ?>>Prev</a>
-                                            <span id="pageInfo">Page <?= $currentPage ?> of <?= $totalPages ?></span>
-                                            <a href="?view=pending&page=<?= $currentPage + 1 ?>&pageSize=<?= $pageSize ?>" class="action-button-link" <?= $currentPage >= $totalPages ? 'style="pointer-events:none; opacity:0.5;"' : '' ?>>Next</a>
-                                        </div>
-                                    </div>
-                                </th>
-                            </tr>
-                            <?php else: ?>
-                            <tr class="table-controls-header">
-                                <th colspan="6">
-                                    <div id="pagination-controls" style="margin: 0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
-                                        <div style="display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap;">
-                                            <div>
-                                                <label>Show
-                                                    <select id="pageSizeSelect" style="padding:0.3rem;">
-                                                        <option value="10" selected>10</option>
-                                                        <option value="25">25</option>
-                                                        <option value="50">50</option>
-                                                    </select>
-                                                entries</label>
-                                            </div>
-                                            
-                                            <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-                                                <span>Showing <span id="shownCount">0–0</span> of <span id="totalCountEl">0</span></span>
-                                            </div>
-
                                             <div style="margin: 0; font-weight: 500; display:none;" id="filteredResults">
                                                 <span style="font-weight: 500;">(Filtered: <span id="filteredCount">0</span>)</span>
                                             </div>
                                         </div>
-                                        
                                         <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-                                            <button id="prevPageBtn" style="padding:0.3rem 0.5rem;">Prev</button>
-                                            <span id="pageInfo">Page 1 of 1</span>
-                                            <button id="nextPageBtn" style="padding:0.3rem 0.5rem;">Next</button>
-                                            <input type="number" id="gotoPage" min="1" style="width:70px; padding:0.3rem;" placeholder="Page">
+                                            <button id="prevPageBtn" style="padding:0.3rem 0.5rem;" <?= ($isPendingView && $currentPage <= 1) ? 'disabled' : '' ?>>Prev</button>
+                                            <span id="pageInfo">Page <?= $isPendingView ? $currentPage : 1 ?> of <?= $isPendingView ? $totalPages : 1 ?></span>
+                                            <button id="nextPageBtn" style="padding:0.3rem 0.5rem;" <?= ($isPendingView && $currentPage >= $totalPages) ? 'disabled' : '' ?>>Next</button>
+                                            <input type="number" id="gotoPage" min="1" max="<?= $isPendingView ? $totalPages : 1 ?>" style="width:70px; padding:0.3rem;" placeholder="Page">
                                             <button id="gotoPageBtn" style="padding:0.3rem 0.5rem;">Go</button>
                                         </div>
                                     </div>
                                 </th>
                             </tr>
-                            <?php endif; ?>
                             <tr>
                                 <th class="sortable" data-sort="last_name">
                                     <div class="sort-header-content">
@@ -351,19 +320,45 @@
         const userRole = '<?= htmlspecialchars($user['role_name']) ?>';
     </script>
     <script type="module" src="<?= $base_url ?>/assets/js/residents.js"></script>
+    
     <?php if ($isPendingView): ?>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const pageSizeSelect = document.getElementById('pageSizeSelect');
-            if(pageSizeSelect) {
-                pageSizeSelect.addEventListener('change', function() {
-                    const pageSize = this.value;
-                    const url = new URL(window.location.href);
-                    url.searchParams.set('pageSize', pageSize);
-                    url.searchParams.set('page', 1); // Reset to page 1
-                    window.location.href = url.toString();
-                });
-            }
+            const prevPageBtn = document.getElementById('prevPageBtn');
+            const nextPageBtn = document.getElementById('nextPageBtn');
+            const gotoPageBtn = document.getElementById('gotoPageBtn');
+            const gotoPageInput = document.getElementById('gotoPage');
+            
+            const updateUrlAndNavigate = (key, value) => {
+                const url = new URL(window.location.href);
+                url.searchParams.set(key, value);
+                if (key !== 'page') url.searchParams.set('page', 1);
+                window.location.href = url.toString();
+            };
+
+            pageSizeSelect.addEventListener('change', () => updateUrlAndNavigate('pageSize', pageSizeSelect.value));
+            prevPageBtn.addEventListener('click', () => {
+                const url = new URL(window.location.href);
+                const currentPage = parseInt(url.searchParams.get('page') || '1', 10);
+                if (currentPage > 1) {
+                     updateUrlAndNavigate('page', currentPage - 1);
+                }
+            });
+            nextPageBtn.addEventListener('click', () => {
+                 const url = new URL(window.location.href);
+                 const currentPage = parseInt(url.searchParams.get('page') || '1', 10);
+                 const totalPages = <?= $totalPages ?>;
+                 if(currentPage < totalPages) {
+                    updateUrlAndNavigate('page', currentPage + 1);
+                 }
+            });
+            gotoPageBtn.addEventListener('click', () => {
+                if(gotoPageInput.value) {
+                    updateUrlAndNavigate('page', gotoPageInput.value)
+                }
+            });
+            gotoPageInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') gotoPageBtn.click(); });
         });
     </script>
     <?php endif; ?>
