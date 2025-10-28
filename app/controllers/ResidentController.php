@@ -25,7 +25,12 @@ class ResidentController {
         $isPendingView = ($user_role === 'Barangay Admin' && $viewMode === 'pending');
 
         if ($isPendingView) {
-            $residents = $residentModel->getPending();
+            $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+            $pageSize = isset($_GET['pageSize']) ? (int)$_GET['pageSize'] : 10;
+            $pendingData = $residentModel->getPendingPaginated($page, $pageSize);
+            $residents = $pendingData['residents'];
+            $totalResidents = $pendingData['total'];
+            $totalPages = $pendingData['totalPages'];
         } else {
             $residents = $residentModel->getAll();
         }
@@ -48,6 +53,14 @@ class ResidentController {
             'modalMessage' => $_SESSION['modal']['message'] ?? '',
             'modalType' => $_SESSION['modal']['type'] ?? ''
         ];
+        
+        if ($isPendingView) {
+            $data['totalResidents'] = $totalResidents;
+            $data['totalPages'] = $totalPages;
+            $data['currentPage'] = $page;
+            $data['pageSize'] = $pageSize;
+        }
+        
         unset($_SESSION['modal']);
 
         view('residents/index', $data);

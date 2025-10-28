@@ -83,6 +83,33 @@ class Resident {
         $stmt = $this->pdo->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+    
+    public function getPendingPaginated($page = 1, $pageSize = 10) {
+        $offset = ($page - 1) * $pageSize;
+
+        // Get total count
+        $countStmt = $this->pdo->query("SELECT COUNT(*) FROM residents WHERE approval_status = 'pending'");
+        $total = $countStmt->fetchColumn();
+
+        // Get paginated results
+        $stmt = $this->pdo->prepare("
+            SELECT *, TIMESTAMPDIFF(YEAR, dob, CURDATE()) as age 
+            FROM residents 
+            WHERE approval_status = 'pending' 
+            ORDER BY created_at ASC
+            LIMIT :limit OFFSET :offset
+        ");
+        $stmt->bindValue(':limit', (int) $pageSize, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', (int) $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        $residents = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return [
+            'residents' => $residents,
+            'total' => $total,
+            'totalPages' => ceil($total / $pageSize)
+        ];
+    }
 
     /**
      * NEW: Gets the count of pending residents for notification badges.

@@ -246,7 +246,33 @@
                 <div class="table-container">
                     <table class="resident-table" id="residentsTable">
                         <thead>
-                            <?php if (!$isPendingView): ?>
+                            <?php if ($isPendingView): ?>
+                            <tr class="table-controls-header">
+                                <th colspan="6">
+                                    <div id="pagination-controls" style="margin: 0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+                                        <div style="display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap;">
+                                            <div>
+                                                <label>Show
+                                                    <select id="pageSizeSelect" style="padding:0.3rem;">
+                                                        <option value="10" <?= $pageSize == 10 ? 'selected' : '' ?>>10</option>
+                                                        <option value="25" <?= $pageSize == 25 ? 'selected' : '' ?>>25</option>
+                                                        <option value="50" <?= $pageSize == 50 ? 'selected' : '' ?>>50</option>
+                                                    </select>
+                                                entries</label>
+                                            </div>
+                                            <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                                                <span>Showing <span id="shownCount">0–0</span> of <span id="totalCountEl"><?= $totalResidents ?></span></span>
+                                            </div>
+                                        </div>
+                                        <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                                            <a href="?view=pending&page=<?= $currentPage - 1 ?>&pageSize=<?= $pageSize ?>" class="action-button-link" <?= $currentPage <= 1 ? 'style="pointer-events:none; opacity:0.5;"' : '' ?>>Prev</a>
+                                            <span id="pageInfo">Page <?= $currentPage ?> of <?= $totalPages ?></span>
+                                            <a href="?view=pending&page=<?= $currentPage + 1 ?>&pageSize=<?= $pageSize ?>" class="action-button-link" <?= $currentPage >= $totalPages ? 'style="pointer-events:none; opacity:0.5;"' : '' ?>>Next</a>
+                                        </div>
+                                    </div>
+                                </th>
+                            </tr>
+                            <?php else: ?>
                             <tr class="table-controls-header">
                                 <th colspan="6">
                                     <div id="pagination-controls" style="margin: 0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
@@ -325,5 +351,21 @@
         const userRole = '<?= htmlspecialchars($user['role_name']) ?>';
     </script>
     <script type="module" src="<?= $base_url ?>/assets/js/residents.js"></script>
+    <?php if ($isPendingView): ?>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const pageSizeSelect = document.getElementById('pageSizeSelect');
+            if(pageSizeSelect) {
+                pageSizeSelect.addEventListener('change', function() {
+                    const pageSize = this.value;
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('pageSize', pageSize);
+                    url.searchParams.set('page', 1); // Reset to page 1
+                    window.location.href = url.toString();
+                });
+            }
+        });
+    </script>
+    <?php endif; ?>
 </body>
 </html>
