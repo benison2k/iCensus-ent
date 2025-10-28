@@ -17,7 +17,7 @@
     cursor: pointer;
     border: 1px solid #dee2e6;
     border-bottom: none;
-    background-color: #f8f9fa;
+    background-color: #e9ecef67; /* Made darker */
     border-radius: 6px 6px 0 0; /* Slightly smaller radius */
     margin-right: 4px; /* Reduced margin */
     position: relative;
@@ -36,7 +36,7 @@
 }
 
 .view-tab:hover {
-    background-color: #e9ecef;
+    background-color: #dee2e6; /* Made hover state darker */
 }
 
 .view-tab.active-view {
