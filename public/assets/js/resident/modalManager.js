@@ -12,7 +12,6 @@ function setFormEditable(editable, state) {
     saveBtn.style.display = editable ? 'inline-flex' : 'none';
     editBtn.style.display = editable ? 'none' : 'inline-flex';
 
-    // This logic now uses the state object
     if (editable || state.userRole === 'Encoder') {
         deleteBtn.style.display = 'none';
     } else {
@@ -34,7 +33,7 @@ async function openModalForEdit(id, state) {
 
         const data = result.resident;
         Object.keys(data).forEach(key => {
-            const el = form.elements[key]; // Corrected line
+            const el = form.elements[key];
             if (el) {
                 if (el.type === 'checkbox') {
                     el.checked = (data[key] == 1);
@@ -44,10 +43,11 @@ async function openModalForEdit(id, state) {
             }
         });
 
-        setFormEditable(false, state); // Pass state
+        setFormEditable(false, state);
         modalTitle.textContent = `View Resident Info`;
         hiddenId.value = id;
-        modal.style.display = 'block';
+        // ✅ FIX: Changed to 'flex' to enable centering
+        modal.style.display = 'flex';
     } catch (err) {
         console.error('Failed to fetch resident data:', err);
     }
@@ -62,10 +62,11 @@ function openModalForAdd(state) {
 
     form.reset();
     hiddenId.value = '';
-    setFormEditable(true, state); // Pass state
+    setFormEditable(true, state);
     editBtn.style.display = 'none';
     modalTitle.textContent = 'Add New Resident';
-    modal.style.display = 'block';
+    // ✅ FIX: Changed to 'flex' to enable centering
+    modal.style.display = 'flex';
 };
 
 function initializeModal(state) {
@@ -75,7 +76,7 @@ function initializeModal(state) {
 
     closeModal.addEventListener('click', () => modal.style.display = 'none');
     window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
-    editBtn.addEventListener('click', () => setFormEditable(true, state)); // Pass state
+    editBtn.addEventListener('click', () => setFormEditable(true, state));
 }
 
 export { initializeModal, openModalForEdit, openModalForAdd };
