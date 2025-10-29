@@ -17,11 +17,13 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         allResidents: typeof allResidentsData !== 'undefined' ? allResidentsData : [],
         isPendingView: typeof isPendingView !== 'undefined' ? isPendingView : false,
-        userRole: typeof userRole !== 'undefined' ? userRole : '' // Pass the user role to the state
+        userRole: typeof userRole !== 'undefined' ? userRole : ''
     };
 
     // --- INITIALIZATION ---
-    initializeModal(state);
+    // ✅ FIX: This line was the cause of the auto-opening modal and has been removed.
+    // The modal now initializes itself via the script inside resident_modal2.php.
+    
     initializeForm(state);
     initializeTable(state);
     initializeFilters(state);

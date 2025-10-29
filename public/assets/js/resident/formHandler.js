@@ -3,19 +3,28 @@
 import { renderTable } from './tableManager.js';
 const basePath = '/iCensus-ent/public';
 
+// ✅ NEW: Modern toast notification function
 function showAjaxResult(message, type = 'success') {
-    const ajaxModal = document.getElementById('ajaxResultModal');
-    const ajaxMessage = document.getElementById('ajaxResultMessage');
-    const ajaxModalContent = ajaxModal.querySelector('.modal-content');
+    const toast = document.createElement('div');
+    toast.className = `toast-notification ${type}`;
+    const icon = type === 'success' ? 'check_circle' : 'error';
+    toast.innerHTML = `<span class="material-icons">${icon}</span><p>${message}</p>`;
+    document.body.appendChild(toast);
 
-    ajaxMessage.textContent = message;
-    ajaxModalContent.className = 'modal-content ' + type;
-    ajaxModal.style.display = 'block';
     setTimeout(() => {
-        ajaxModal.style.display = "none";
-        window.location.reload();
-    }, 2000);
+        toast.classList.add('show');
+    }, 100);
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            toast.remove();
+            // Reload the page after the notification has been shown
+            window.location.reload();
+        }, 500);
+    }, 3000);
 }
+
 
 async function handleFormSubmit(form, state) {
     try {
@@ -27,6 +36,7 @@ async function handleFormSubmit(form, state) {
         const result = await response.json();
         if (response.ok && result.status === 'success') {
             document.getElementById('residentModal').style.display = 'none';
+            // Use the new toast notification
             showAjaxResult(result.message || 'Resident saved successfully!', 'success');
         } else {
             alert(result.message || 'An error occurred.');
@@ -59,6 +69,7 @@ function initializeForm(state) {
             const result = await response.json();
             if (result.status === 'success') {
                 document.getElementById('residentModal').style.display = 'none';
+                // Use the new toast notification
                 showAjaxResult(result.message || 'Resident deleted successfully.', 'success');
             } else {
                 alert(result.message || 'Failed to delete resident.');

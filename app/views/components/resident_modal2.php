@@ -1,253 +1,249 @@
-<div id="residentModal" class="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); overflow-y:auto; padding:2rem 1rem; z-index:1000;">
-    <div class="modal-content" style="background:#fff; border-radius:12px; max-width:1400px; width:100%; margin:auto; padding:2rem; box-shadow:0 8px 24px rgba(0,0,0,0.25); display:flex; flex-direction:column; gap:1.5rem; position:relative; transition: background-color 0.4s, color 0.4s;">
+<style>
+/* Modern Modal Styles */
+.modal-modern {
+    display: none; /* This now correctly keeps the modal hidden by default */
+    position: fixed; 
+    z-index: 1000; 
+    left: 0; 
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: hidden;
+    background: rgba(0,0,0,0.6); 
+    backdrop-filter: blur(5px);
+    /* Centering properties are kept, but 'display: flex' is removed from the default state */
+    align-items: center;
+    justify-content: center;
+}
+.modal-modern-content {
+    background: #fff;
+    border-radius: 16px;
+    width: 95%;
+    max-width: 1000px;
+    height: 90vh;
+    max-height: 700px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    animation: fadeIn 0.3s ease-out;
+    overflow: hidden;
+}
+.modal-modern-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e0e0e0;
+    flex-shrink: 0;
+}
+.modal-modern-header h3 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+.modal-modern-body {
+    display: flex;
+    flex-grow: 1;
+    min-height: 0;
+}
+.modal-tabs {
+    flex: 0 0 200px;
+    border-right: 1px solid #e0e0e0;
+    padding: 1.5rem 0;
+}
+.tab-button {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.8rem 1.5rem;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #555;
+    border-right: 3px solid transparent;
+    transition: all 0.2s ease;
+}
+.tab-button:hover { background-color: #f4f6f8; }
+.tab-button.active {
+    background-color: #e3f2fd;
+    color: #0d6efd;
+    font-weight: 600;
+    border-right-color: #0d6efd;
+}
+.tab-content {
+    display: none;
+    padding: 1.5rem 2rem;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+.tab-content.active { display: block; }
+.tab-content h4 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 1.2rem;
+    color: #333;
+}
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem 1.5rem;
+}
+.form-group { display: flex; flex-direction: column; }
+.form-group label { margin-bottom: 0.3rem; font-size: 0.85rem; font-weight: 500; color: #666; }
+.form-group input, .form-group select {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 0.95rem;
+}
+.form-group.full-width { grid-column: 1 / -1; }
+.modal-modern-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e0e0e0;
+    flex-shrink: 0;
+}
+.modal-footer-btn { padding: 0.6rem 1.2rem; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; }
+.btn-edit { background-color: #2196f3; color: #fff; }
+.btn-delete { background-color: #f44336; color: #fff; }
+.btn-save { background-color: #4caf50; color: #fff; }
 
-        <span class="close" style="position:absolute; top:1rem; right:1rem; font-size:2rem; cursor:pointer; color:#555;">
-            <span class="material-icons">close</span>
-        </span>
+/* Dark Mode */
+body.dark-mode .modal-modern-content { background: #2C3E50; }
+body.dark-mode .modal-modern-header, body.dark-mode .modal-tabs, body.dark-mode .modal-modern-footer { border-color: #4a5a6a; }
+body.dark-mode .modal-modern-header h3 { color: #fff; }
+body.dark-mode .tab-button { color: #ccc; }
+body.dark-mode .tab-button:hover { background-color: #34495e; }
+body.dark-mode .tab-button.active { background-color: #1e1e2f; border-right-color: #4da3ff; color: #4da3ff; }
+body.dark-mode .tab-content h4 { color: #fff; }
+body.dark-mode .form-group label { color: #bbb; }
+body.dark-mode .form-group input, body.dark-mode .form-group select { background-color: #1e1e2f; border-color: #555; color: #fff; }
 
-        <h3 id="modalTitle" style="font-size:1.5rem; font-weight:600; margin-bottom:1rem; color:#333;">Resident Info</h3>
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+</style>
 
-        <form id="residentForm" method="POST" action="/iCensus-ent/public/residents/process">
-            <input type="hidden" name="resident_id" id="resident_id">
-
-            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
-
-                <div style="display:flex; flex-direction:column; gap:0.8rem;">
-                    <h4 class="modal-header-text" style="border-bottom:1px solid #ddd; padding-bottom:0.3rem; color:#444;">
-                        <span class="material-icons" style="font-size:18px; vertical-align:middle;">person</span> Personal Info
-                    </h4>
-                    <label>First Name <input type="text" name="first_name" required></label>
-                    <label>Middle Name <input type="text" name="middle_name"></label>
-                    <label>Last Name <input type="text" name="last_name" required></label>
-                    <label>Suffix <input type="text" name="suffix"></label>
-                    <label>Date of Birth <input type="date" name="dob" required></label>
-                    <label>Gender
-                        <select name="gender" required>
-                            <option value="">Select</option> <option value="Male">Male</option> <option value="Female">Female</option>
-                        </select>
-                    </label>
-                    <label>Civil Status
-                        <select name="civil_status">
-                            <option value="">Select</option><option value="Single">Single</option><option value="Married">Married</option><option value="Widowed">Widowed</option><option value="Separated">Separated</option>
-                        </select>
-                    </label>
+<div id="residentModal" class="modal modal-modern">
+    <div class="modal-modern-content">
+        <div class="modal-modern-header">
+            <h3 id="modalTitle">Resident Information</h3>
+            <span class="close" style="font-size:1.8rem; cursor:pointer;"><span class="material-icons">close</span></span>
+        </div>
+        <form id="residentForm" method="POST" action="/iCensus-ent/public/residents/process" style="display: contents;">
+            <div class="modal-modern-body">
+                <div class="modal-tabs">
+                    <button type="button" class="tab-button active" data-tab="personal"><span class="material-icons">person</span> Personal</button>
+                    <button type="button" class="tab-button" data-tab="household"><span class="material-icons">home</span> Household</button>
+                    <button type="button" class="tab-button" data-tab="contact"><span class="material-icons">contact_phone</span> Contact</button>
+                    <button type="button" class="tab-button" data-tab="other"><span class="material-icons">assignment</span> Other Info</button>
                 </div>
 
-                <div style="display:flex; flex-direction:column; gap:0.8rem;">
-                     <h4 class="modal-header-text" style="border-bottom:1px solid #ddd; padding-bottom:0.3rem; color:#444;">
-                        <span class="material-icons" style="font-size:18px; vertical-align:middle;">home</span> Address & Household
-                    </h4>
-                    <label>House No. <input type="number" name="house_no" required></label>
-                    <label>Street <input type="text" name="street" required></label>
-                    <label>Purok <input type="number" name="purok" required></label>
-                    <label>Household No. <input type="text" name="household_no" placeholder="e.g., FAM-001"></label>
-                     <label>Ownership Status
-                        <select name="ownership_status">
-                            <option value="">Select</option><option value="Owned">Owned</option><option value="Rented">Rented</option><option value="Living with Relatives">Living with Relatives</option>
-                        </select>
-                    </label>
-                    <label>Head of Household <input type="text" name="head_of_household"></label>
-                    <label>Relationship to Head <input type="text" name="relationship"></label>
-                </div>
+                <div class="modal-form-area">
+                    <input type="hidden" name="resident_id" id="resident_id">
+                    
+                    <div id="tab-personal" class="tab-content active">
+                        <h4>Personal Details</h4>
+                        <div class="form-grid">
+                            <div class="form-group"><label>First Name</label><input type="text" name="first_name" required></div>
+                            <div class="form-group"><label>Last Name</label><input type="text" name="last_name" required></div>
+                            <div class="form-group"><label>Middle Name</label><input type="text" name="middle_name"></div>
+                            <div class="form-group"><label>Suffix</label><input type="text" name="suffix"></div>
+                            <div class="form-group"><label>Date of Birth</label><input type="date" name="dob" required></div>
+                            <div class="form-group"><label>Gender</label><select name="gender" required><option value="">Select</option><option value="Male">Male</option><option value="Female">Female</option></select></div>
+                            <div class="form-group"><label>Civil Status</label><select name="civil_status"><option value="">Select</option><option value="Single">Single</option><option value="Married">Married</option><option value="Widowed">Widowed</option><option value="Separated">Separated</option></select></div>
+                            <div class="form-group"><label>Nationality</label><input type="text" name="nationality" value="Filipino"></div>
+                        </div>
+                    </div>
+                    
+                    <div id="tab-household" class="tab-content">
+                        <h4>Address & Household</h4>
+                        <div class="form-grid">
+                            <div class="form-group"><label>House No.</label><input type="number" name="house_no" required></div>
+                            <div class="form-group"><label>Purok</label><input type="number" name="purok" required></div>
+                            <div class="form-group full-width"><label>Street</label><input type="text" name="street" required></div>
+                            <div class="form-group"><label>Household No.</label><input type="text" name="household_no" placeholder="e.g., FAM-001"></div>
+                            <div class="form-group"><label>Ownership Status</label><select name="ownership_status"><option value="">Select</option><option value="Owned">Owned</option><option value="Rented">Rented</option><option value="Living with Relatives">Living with Relatives</option></select></div>
+                            <div class="form-group"><label>Head of Household</label><input type="text" name="head_of_household"></div>
+                            <div class="form-group"><label>Relationship to Head</label><input type="text" name="relationship"></div>
+                        </div>
+                    </div>
 
-                <div style="display:flex; flex-direction:column; gap:0.8rem;">
-                    <h4 class="modal-header-text" style="border-bottom:1px solid #ddd; padding-bottom:0.3rem; color:#444;">
-                        <span class="material-icons" style="font-size:18px; vertical-align:middle;">contact_phone</span> Contact & Health
-                    </h4>
-                    <label>Contact Number <input type="text" name="contact_number"></label>
-                    <label>Email <input type="email" name="email"></label>
-                    <label>PhilHealth No. <input type="text" name="philhealth_no"></label>
-                    <label>Blood Type <input type="text" name="blood_type"></label>
-                    <label>Emergency Name <input type="text" name="emergency_name"></label>
-                    <label>Emergency Relation <input type="text" name="emergency_relation"></label>
-                    <label>Emergency Number <input type="text" name="emergency_number"></label>
-                </div>
-                
-                <div style="display:flex; flex-direction:column; gap:0.8rem;">
-                    <h4 class="modal-header-text" style="border-bottom:1px solid #ddd; padding-bottom:0.3rem; color:#444;">
-                        <span class="material-icons" style="font-size:18px; vertical-align:middle;">school</span> Education
-                    </h4>
-                    <label>Educational Attainment
-                        <select name="educational_attainment">
-                            <option value="">Select</option>
-                            <option value="No Formal Education">No Formal Education</option>
-                            <option value="Pre-school">Pre-school</option>
-                            <option value="Elementary Level">Elementary Level</option>
-                            <option value="Elementary Graduate">Elementary Graduate</option>
-                            <option value="High School Level">High School Level</option>
-                            <option value="High School Graduate">High School Graduate</option>
-                            <option value="Vocational Graduate">Vocational Graduate</option>
-                            <option value="College Level">College Level</option>
-                            <option value="College Graduate">College Graduate</option>
-                            <option value="Doctorate Degree">Doctorate Degree</option>
-                        </select>
-                    </label>
-                </div>
+                    <div id="tab-contact" class="tab-content">
+                        <h4>Contact & Health</h4>
+                        <div class="form-grid">
+                            <div class="form-group"><label>Contact Number</label><input type="text" name="contact_number"></div>
+                            <div class="form-group"><label>Email Address</label><input type="email" name="email"></div>
+                            <div class="form-group"><label>PhilHealth No.</label><input type="text" name="philhealth_no"></div>
+                            <div class="form-group"><label>Blood Type</label><input type="text" name="blood_type"></div>
+                            <hr style="grid-column: 1 / -1; border: 0; border-top: 1px solid #e0e0e0; margin: 0.5rem 0;">
+                            <div class="form-group"><label>Emergency Contact Name</label><input type="text" name="emergency_name"></div>
+                            <div class="form-group"><label>Emergency Contact Number</label><input type="text" name="emergency_number"></div>
+                            <div class="form-group full-width"><label>Relation to Emergency Contact</label><input type="text" name="emergency_relation"></div>
+                        </div>
+                    </div>
 
-                <div style="display:flex; flex-direction:column; gap:0.8rem;">
-                    <h4 class="modal-header-text" style="border-bottom:1px solid #ddd; padding-bottom:0.3rem; color:#444;">
-                        <span class="material-icons" style="font-size:18px; vertical-align:middle;">work</span> Occupation
-                    </h4>
-                    <label>Occupation <input type="text" name="occupation"></label>
-                    <label>Nationality <input type="text" name="nationality" value="Filipino"></label>
-                </div>
-
-                <div style="display:flex; flex-direction:column; gap:0.8rem;">
-                    <h4 class="modal-header-text" style="border-bottom:1px solid #ddd; padding-bottom:0.3rem; color:#444;">
-                        <span class="material-icons" style="font-size:18px; vertical-align:middle;">admin_panel_settings</span> Administrative
-                    </h4>
-                    <label>Status
-                        <select name="status">
-                            <option value="Active">Active</option> <option value="Inactive">Inactive</option> <option value="Moved">Moved</option> <option value="Deceased">Deceased</option>
-                        </select>
-                    </label>
-                     <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.8rem;">
-                        <label>Registered Voter
-                            <select name="is_registered_voter">
-                                <option value="0">No</option>
-                                <option value="1">Yes</option>
-                            </select>
-                        </label>
-                        <label>PWD
-                             <select name="is_pwd">
-                                <option value="0">No</option>
-                                <option value="1">Yes</option>
-                            </select>
-                        </label>
-                        <label>Solo Parent
-                             <select name="is_solo_parent">
-                                <option value="0">No</option>
-                                <option value="1">Yes</option>
-                            </select>
-                        </label>
-                        <label>Indigent
-                             <select name="is_indigent">
-                                <option value="0">No</option>
-                                <option value="1">Yes</option>
-                            </select>
-                        </label>
-                        <label>4Ps Member
-                             <select name="is_4ps_member">
-                                <option value="0">No</option>
-                                <option value="1">Yes</option>
-                            </select>
-                        </label>
+                    <div id="tab-other" class="tab-content">
+                        <h4>Administrative & Other Info</h4>
+                        <div class="form-grid">
+                            <div class="form-group"><label>Educational Attainment</label><select name="educational_attainment"><option value="">Select</option><option value="No Formal Education">No Formal Education</option><option value="Pre-school">Pre-school</option><option value="Elementary Level">Elementary Level</option><option value="Elementary Graduate">Elementary Graduate</option><option value="High School Level">High School Level</option><option value="High School Graduate">High School Graduate</option><option value="Vocational Graduate">Vocational Graduate</option><option value="College Level">College Level</option><option value="College Graduate">College Graduate</option><option value="Doctorate Degree">Doctorate Degree</option></select></div>
+                            <div class="form-group"><label>Occupation</label><input type="text" name="occupation"></div>
+                            <div class="form-group"><label>Status</label><select name="status"><option value="Active">Active</option><option value="Inactive">Inactive</option><option value="Moved">Moved</option><option value="Deceased">Deceased</option></select></div>
+                            <div class="form-group"><label>Registered Voter</label><select name="is_registered_voter"><option value="0">No</option><option value="1">Yes</option></select></div>
+                            <div class="form-group"><label>PWD</label><select name="is_pwd"><option value="0">No</option><option value="1">Yes</option></select></div>
+                            <div class="form-group"><label>Solo Parent</label><select name="is_solo_parent"><option value="0">No</option><option value="1">Yes</option></select></div>
+                            <div class="form-group"><label>Indigent</label><select name="is_indigent"><option value="0">No</option><option value="1">Yes</option></select></div>
+                            <div class="form-group"><label>4Ps Member</label><select name="is_4ps_member"><option value="0">No</option><option value="1">Yes</option></select></div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
-                <button type="button" class="editBtn" style="padding:0.5rem 1rem; border-radius:6px; border:none; cursor:pointer; background:#2196f3; color:#fff;"><span class="material-icons">edit</span> Edit</button>
-                <button type="button" class="deleteBtn" style="padding:0.5rem 1rem; border-radius:6px; border:none; cursor:pointer; background:#f44336; color:#fff;"><span class="material-icons">delete</span> Delete</button>
-                <button type="submit" id="saveBtn" style="display:none; padding:0.5rem 1rem; border-radius:6px; border:none; cursor:pointer; background:#4caf50; color:#fff;"><span class="material-icons">save</span> Save</button>
+            <div class="modal-modern-footer">
+                <button type="button" class="modal-footer-btn btn-edit editBtn"><span class="material-icons">edit</span> Edit</button>
+                <button type="button" class="modal-footer-btn btn-delete deleteBtn"><span class="material-icons">delete</span> Delete</button>
+                <button type="submit" id="saveBtn" class="modal-footer-btn btn-save" style="display:none;"><span class="material-icons">save</span> Save</button>
             </div>
-
         </form>
     </div>
 </div>
-<style>
-    /* Simple styling for the form elements inside the modal */
-    #residentModal label { display: flex; flex-direction: column; font-size: 0.9rem; gap: 0.2rem; }
-    #residentModal input, #residentModal select { width:100%; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #ccc; }
-</style>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('residentModal');
     if (!modal) return;
     
     const closeBtn = modal.querySelector('.close');
+    const tabButtons = modal.querySelectorAll('.tab-button');
+    const tabContents = modal.querySelectorAll('.tab-content');
+
+    // Tab switching logic
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            button.classList.add('active');
+            modal.querySelector(`#tab-${button.dataset.tab}`).classList.add('active');
+        });
+    });
+
+    closeBtn.addEventListener('click', () => modal.style.display = 'none');
+    window.addEventListener('click', e => { if(e.target === modal) modal.style.display = 'none'; });
+
+    // Dark mode sync
     const body = document.body;
-    const basePath = '/iCensus-ent/public';
-
-    function openModal() { modal.style.display = 'block'; }
-    function closeModal() { modal.style.display = 'none'; }
-
-    if(closeBtn) {
-        closeBtn.addEventListener('click', closeModal);
-    }
-    
-    window.addEventListener('click', e => { if(e.target === modal) closeModal(); });
-
-    // --- START: NEW VALIDATION & HOUSEHOLD LOGIC (KEPT FOR COMPLETENESS) ---
-    const houseNoInput = modal.querySelector('input[name="house_no"]');
-    const streetInput = modal.querySelector('input[name="street"]');
-    const purokInput = modal.querySelector('input[name="purok"]');
-    const householdDetector = document.getElementById('householdDetector');
-    const householdHeadSelect = document.getElementById('householdHeadSelect');
-    const headOfHouseholdInput = modal.querySelector('input[name="head_of_household"]');
-    const checkHouseholdBtn = document.getElementById('checkHouseholdBtn');
-
-    // This check is important to prevent errors if the button is not on the page
-    if (checkHouseholdBtn) {
-        // Allow only numbers for House No and Purok
-        [houseNoInput, purokInput].forEach(input => {
-            if(input) input.addEventListener('input', function() {
-                this.value = this.value.replace(/\D/g, '');
-            });
-        });
-
-        // Allow only letters and spaces for Street
-        if(streetInput) streetInput.addEventListener('input', function() {
-            this.value = this.value.replace(/[^a-zA-Z\s]/g, '');
-        });
-
-        // The logic for checkHouseholdBtn and householdHeadSelect event listeners are conditionally dependent on elements present in the residents/index.php view
-        // and are thus not fully functional here, but kept for context.
-    }
-    // --- END: NEW LOGIC ---
-
-    function applyDarkModeStyles() {
-        const isDarkMode = body.classList.contains('dark-mode');
-        const content = modal.querySelector('.modal-content');
-        const headers = modal.querySelectorAll('.modal-header-text');
-        const inputs = modal.querySelectorAll('input, select');
-        const labels = modal.querySelectorAll('label');
-        const modalTitle = modal.querySelector('#modalTitle');
-
-        if (isDarkMode) {
-            content.style.backgroundColor = '#2C3E50';
-            content.style.color = '#fff';
-            if(modalTitle) modalTitle.style.color = '#fff';
-            
-            headers.forEach(h => h.style.color = '#fff');
-            
-            inputs.forEach(i => {
-                i.style.backgroundColor = '#1e1e2f';
-                i.style.color = '#fff';
-                i.style.border = '1px solid #555';
-            });
-            
-            labels.forEach(l => l.style.color = '#fff');
-
+    const observer = new MutationObserver(() => {
+        if (body.classList.contains('dark-mode')) {
+            modal.querySelector('.modal-modern-content').classList.add('dark');
         } else {
-            content.style.backgroundColor = '#fff';
-            content.style.color = '#333';
-             if(modalTitle) modalTitle.style.color = '#333';
-
-            headers.forEach(h => h.style.color = '#444');
-
-            inputs.forEach(i => {
-                i.style.backgroundColor = '#fff';
-                i.style.color = '#333';
-                i.style.border = '1px solid #ccc';
-            });
-
-            labels.forEach(l => l.style.color = '#333');
+            modal.querySelector('.modal-modern-content').classList.remove('dark');
         }
-    }
-
-    applyDarkModeStyles();
-
-    const observer = new MutationObserver(mutations => {
-        mutations.forEach(mutation => {
-            if (mutation.attributeName === 'class') {
-                applyDarkModeStyles();
-            }
-        });
     });
-
-    observer.observe(body, {
-        attributes: true
-    });
+    observer.observe(body, { attributes: true, attributeFilter: ['class'] });
 });
 </script>

@@ -10,7 +10,35 @@
 <?php $base_url = '/iCensus-ent/public'; ?>
 <link rel="icon" type="image/png" href="<?= $base_url ?>/assets/img/iCensusLogoOnly2.png">
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/style.css">
-<link rel="stylesheet" href="<?= $base_url ?>/assets/css/modal.css">
+<style>
+    .toast-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background-color: #28a745;
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 2000;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .toast-notification.show {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    .toast-notification.error {
+        background-color: #dc3545;
+    }
+    .toast-notification.info {
+        background-color: #0d6efd;
+    }
+</style>
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/residents_table.css">
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/residents_filters.css">
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/page_actions.css">
@@ -18,20 +46,13 @@
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/view_tabs.css">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
-<body class="<?= $theme === 'dark' ? 'dark-mode' : 'light-mode'; ?>">
+<body class="<?= $theme === 'dark' ? 'dark-mode' : ''; ?>">
 
     <?php include __DIR__ . '/../components/header.php'; ?>
 
     <div class="welcome"><h2>Residents Management</h2></div>
 
     <main class="dashboard dashboard-management">
-        <div id="ajaxResultModal" class="modal" data-show="false">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <p id="ajaxResultMessage"></p>
-            </div>
-        </div>
-
         <div style="padding:0 2rem; max-width:1600px; margin:auto; width: 100%;">
 
             <div class="page-actions-container">
@@ -359,6 +380,28 @@
                 }
             });
             gotoPageInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') gotoPageBtn.click(); });
+        });
+    </script>
+    <?php endif; ?>
+
+    <?php if (!empty($modalMessage)): ?>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification <?= $modalType ?>';
+            toast.innerHTML = `<span class="material-icons"><?= $modalType === 'success' ? 'check_circle' : 'error' ?></span><p><?= addslashes($modalMessage) ?></p>`;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 100);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.remove();
+                }, 500);
+            }, 4000);
         });
     </script>
     <?php endif; ?>
