@@ -21,24 +21,22 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- INITIALIZATION ---
-    // ✅ FIX: This line was the cause of the auto-opening modal and has been removed.
-    // The modal now initializes itself via the script inside resident_modal2.php.
-    
+    initializeModal(state);
     initializeForm(state);
     initializeTable(state);
     initializeFilters(state);
 
     // --- INITIAL RENDER ---
-    if (state.allResidents.length >= 0) {
-        state.filteredResidents = state.allResidents;
-        if (!state.isPendingView) {
+    // ✅ FIX: This block now ONLY runs if it's NOT the pending view.
+    // This stops JavaScript from overwriting the PHP-rendered table with the correct buttons.
+    if (!state.isPendingView) {
+        if (state.allResidents.length >= 0) {
+            state.filteredResidents = state.allResidents;
             applyFilters(state);
         } else {
-            renderTable(state);
+            const tableBody = document.getElementById('residentsTableBody');
+            tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No residents found in this view.</td></tr>';
         }
-    } else {
-        const tableBody = document.getElementById('residentsTableBody');
-        tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No residents found in this view.</td></tr>';
     }
 
     // --- EVENT LISTENERS ---
