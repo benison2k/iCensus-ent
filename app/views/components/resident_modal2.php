@@ -1,7 +1,7 @@
 <style>
 /* Modern Modal Styles */
 .modal-modern {
-    display: none; /* This now correctly keeps the modal hidden by default */
+    display: none;
     position: fixed; 
     z-index: 1000; 
     left: 0; 
@@ -11,7 +11,6 @@
     overflow: hidden;
     background: rgba(0,0,0,0.6); 
     backdrop-filter: blur(5px);
-    /* Centering properties are kept, but 'display: flex' is removed from the default state */
     align-items: center;
     justify-content: center;
 }
@@ -41,6 +40,28 @@
     font-size: 1.4rem;
     font-weight: 600;
 }
+
+/* --- NEW: Progress Bar Styles --- */
+.progress-container {
+    width: 100%;
+    background-color: #e0e0e0;
+    border-radius: 8px;
+    margin: 0.5rem 0 1.5rem 0;
+}
+.progress-bar {
+    width: 0%;
+    height: 20px;
+    background: linear-gradient(90deg, #4caf50, #81c784);
+    text-align: center;
+    line-height: 20px;
+    color: white;
+    font-weight: 600;
+    font-size: 0.8rem;
+    border-radius: 8px;
+    transition: width 0.4s ease-out;
+}
+/* --- END NEW --- */
+
 .modal-modern-body {
     display: flex;
     flex-grow: 1;
@@ -76,7 +97,7 @@
 }
 .tab-content {
     display: none;
-    padding: 1.5rem 2rem;
+    padding: 0 2rem 1.5rem 2rem;
     overflow-y: auto;
     flex-grow: 1;
 }
@@ -94,6 +115,8 @@
 }
 .form-group { display: flex; flex-direction: column; }
 .form-group label { margin-bottom: 0.3rem; font-size: 0.85rem; font-weight: 500; color: #666; }
+/* --- NEW: Style for required asterisk --- */
+.form-group label .required-asterisk { color: #dc3545; font-weight: 700; margin-left: 2px; }
 .form-group input, .form-group select {
     width: 100%;
     padding: 0.6rem 0.8rem;
@@ -144,18 +167,25 @@ body.dark-mode .form-group input, body.dark-mode .form-group select { background
                     <button type="button" class="tab-button" data-tab="other"><span class="material-icons">assignment</span> Other Info</button>
                 </div>
 
-                <div class="modal-form-area">
+                <div class="modal-form-area" style="padding-top: 1.5rem;">
                     <input type="hidden" name="resident_id" id="resident_id">
+
+                    <div style="padding: 0 2rem;">
+                        <div class="progress-container">
+                            <div class="progress-bar" id="formProgressBar">0%</div>
+                        </div>
+                        <p style="font-size: 0.8rem; text-align: right; margin-top: -1rem; margin-bottom: 1rem; color: #666;">Fields marked with <span class="required-asterisk">*</span> are required.</p>
+                    </div>
                     
                     <div id="tab-personal" class="tab-content active">
                         <h4>Personal Details</h4>
                         <div class="form-grid">
-                            <div class="form-group"><label>First Name</label><input type="text" name="first_name" required></div>
-                            <div class="form-group"><label>Last Name</label><input type="text" name="last_name" required></div>
+                            <div class="form-group"><label>First Name<span class="required-asterisk">*</span></label><input type="text" name="first_name" required></div>
+                            <div class="form-group"><label>Last Name<span class="required-asterisk">*</span></label><input type="text" name="last_name" required></div>
                             <div class="form-group"><label>Middle Name</label><input type="text" name="middle_name"></div>
                             <div class="form-group"><label>Suffix</label><input type="text" name="suffix"></div>
-                            <div class="form-group"><label>Date of Birth</label><input type="date" name="dob" required></div>
-                            <div class="form-group"><label>Gender</label><select name="gender" required><option value="">Select</option><option value="Male">Male</option><option value="Female">Female</option></select></div>
+                            <div class="form-group"><label>Date of Birth<span class="required-asterisk">*</span></label><input type="date" name="dob" required></div>
+                            <div class="form-group"><label>Gender<span class="required-asterisk">*</span></label><select name="gender" required><option value="">Select</option><option value="Male">Male</option><option value="Female">Female</option></select></div>
                             <div class="form-group"><label>Civil Status</label><select name="civil_status"><option value="">Select</option><option value="Single">Single</option><option value="Married">Married</option><option value="Widowed">Widowed</option><option value="Separated">Separated</option></select></div>
                             <div class="form-group"><label>Nationality</label><input type="text" name="nationality" value="Filipino"></div>
                         </div>
@@ -164,9 +194,9 @@ body.dark-mode .form-group input, body.dark-mode .form-group select { background
                     <div id="tab-household" class="tab-content">
                         <h4>Address & Household</h4>
                         <div class="form-grid">
-                            <div class="form-group"><label>House No.</label><input type="number" name="house_no" required></div>
-                            <div class="form-group"><label>Purok</label><input type="number" name="purok" required></div>
-                            <div class="form-group full-width"><label>Street</label><input type="text" name="street" required></div>
+                            <div class="form-group"><label>House No.<span class="required-asterisk">*</span></label><input type="number" name="house_no" required></div>
+                            <div class="form-group"><label>Purok<span class="required-asterisk">*</span></label><input type="number" name="purok" required></div>
+                            <div class="form-group full-width"><label>Street<span class="required-asterisk">*</span></label><input type="text" name="street" required></div>
                             <div class="form-group"><label>Household No.</label><input type="text" name="household_no" placeholder="e.g., FAM-001"></div>
                             <div class="form-group"><label>Ownership Status</label><select name="ownership_status"><option value="">Select</option><option value="Owned">Owned</option><option value="Rented">Rented</option><option value="Living with Relatives">Living with Relatives</option></select></div>
                             <div class="form-group"><label>Head of Household</label><input type="text" name="head_of_household"></div>
@@ -222,7 +252,31 @@ document.addEventListener('DOMContentLoaded', function() {
     const tabButtons = modal.querySelectorAll('.tab-button');
     const tabContents = modal.querySelectorAll('.tab-content');
 
-    // Tab switching logic
+    // --- NEW: Progress Bar Logic ---
+    const progressBar = document.getElementById('formProgressBar');
+    const form = document.getElementById('residentForm');
+    const requiredFields = Array.from(form.querySelectorAll('[required]'));
+    const totalRequired = requiredFields.length;
+
+    function updateProgress() {
+        if (!progressBar) return;
+        let completedCount = 0;
+        requiredFields.forEach(field => {
+            if (field.value.trim() !== '') {
+                completedCount++;
+            }
+        });
+        const percentage = totalRequired > 0 ? (completedCount / totalRequired) * 100 : 0;
+        progressBar.style.width = percentage + '%';
+        progressBar.textContent = `${Math.round(percentage)}% (${completedCount} of ${totalRequired} completed)`;
+    }
+
+    // Add event listeners to all required fields to update progress
+    requiredFields.forEach(field => {
+        field.addEventListener('input', updateProgress);
+    });
+    // --- END NEW ---
+
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
             tabButtons.forEach(btn => btn.classList.remove('active'));
@@ -235,7 +289,6 @@ document.addEventListener('DOMContentLoaded', function() {
     closeBtn.addEventListener('click', () => modal.style.display = 'none');
     window.addEventListener('click', e => { if(e.target === modal) modal.style.display = 'none'; });
 
-    // Dark mode sync
     const body = document.body;
     const observer = new MutationObserver(() => {
         if (body.classList.contains('dark-mode')) {
@@ -245,5 +298,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     observer.observe(body, { attributes: true, attributeFilter: ['class'] });
+
+    // Expose the progress update function so it can be called from outside (e.g., when opening the modal)
+    modal.updateProgress = updateProgress;
 });
 </script>
