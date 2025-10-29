@@ -41,7 +41,7 @@
     font-weight: 600;
 }
 
-/* --- NEW: Progress Bar Styles --- */
+/* --- Progress Bar Styles --- */
 .progress-container {
     width: 100%;
     background-color: #e0e0e0;
@@ -60,7 +60,6 @@
     border-radius: 8px;
     transition: width 0.4s ease-out;
 }
-/* --- END NEW --- */
 
 .modal-modern-body {
     display: flex;
@@ -115,7 +114,6 @@
 }
 .form-group { display: flex; flex-direction: column; }
 .form-group label { margin-bottom: 0.3rem; font-size: 0.85rem; font-weight: 500; color: #666; }
-/* --- NEW: Style for required asterisk --- */
 .form-group label .required-asterisk { color: #dc3545; font-weight: 700; margin-left: 2px; }
 .form-group input, .form-group select {
     width: 100%;
@@ -133,13 +131,14 @@
     border-top: 1px solid #e0e0e0;
     flex-shrink: 0;
 }
-.modal-footer-btn { padding: 0.6rem 1.2rem; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; }
+.modal-footer-btn { padding: 0.6rem 1.2rem; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; }
 .btn-edit { background-color: #2196f3; color: #fff; }
 .btn-delete { background-color: #f44336; color: #fff; }
 .btn-save { background-color: #4caf50; color: #fff; }
 
 /* Dark Mode */
 body.dark-mode .modal-modern-content { background: #2C3E50; }
+body.dark-mode .progress-container { background-color: #1e1e2f; }
 body.dark-mode .modal-modern-header, body.dark-mode .modal-tabs, body.dark-mode .modal-modern-footer { border-color: #4a5a6a; }
 body.dark-mode .modal-modern-header h3 { color: #fff; }
 body.dark-mode .tab-button { color: #ccc; }
@@ -235,6 +234,8 @@ body.dark-mode .form-group input, body.dark-mode .form-group select { background
             </div>
 
             <div class="modal-modern-footer">
+                <a id="approveBtn" href="#" class="modal-footer-btn" style="display: none; background-color: #28a745; color: white;"><span class="material-icons">check</span> Approve</a>
+                <a id="declineBtn" href="#" class="modal-footer-btn" style="display: none; background-color: #dc3545; color: white;"><span class="material-icons">close</span> Decline</a>
                 <button type="button" class="modal-footer-btn btn-edit editBtn"><span class="material-icons">edit</span> Edit</button>
                 <button type="button" class="modal-footer-btn btn-delete deleteBtn"><span class="material-icons">delete</span> Delete</button>
                 <button type="submit" id="saveBtn" class="modal-footer-btn btn-save" style="display:none;"><span class="material-icons">save</span> Save</button>
@@ -251,8 +252,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeBtn = modal.querySelector('.close');
     const tabButtons = modal.querySelectorAll('.tab-button');
     const tabContents = modal.querySelectorAll('.tab-content');
-
-    // --- NEW: Progress Bar Logic ---
     const progressBar = document.getElementById('formProgressBar');
     const form = document.getElementById('residentForm');
     const requiredFields = Array.from(form.querySelectorAll('[required]'));
@@ -271,11 +270,9 @@ document.addEventListener('DOMContentLoaded', function() {
         progressBar.textContent = `${Math.round(percentage)}% (${completedCount} of ${totalRequired} completed)`;
     }
 
-    // Add event listeners to all required fields to update progress
     requiredFields.forEach(field => {
         field.addEventListener('input', updateProgress);
     });
-    // --- END NEW ---
 
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
@@ -291,15 +288,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const body = document.body;
     const observer = new MutationObserver(() => {
-        if (body.classList.contains('dark-mode')) {
-            modal.querySelector('.modal-modern-content').classList.add('dark');
+        const isDarkMode = body.classList.contains('dark-mode');
+        const modalContent = modal.querySelector('.modal-modern-content');
+        if(isDarkMode) {
+            modalContent.classList.add('dark');
         } else {
-            modal.querySelector('.modal-modern-content').classList.remove('dark');
+            modalContent.classList.remove('dark');
         }
     });
     observer.observe(body, { attributes: true, attributeFilter: ['class'] });
 
-    // Expose the progress update function so it can be called from outside (e.g., when opening the modal)
     modal.updateProgress = updateProgress;
 });
 </script>

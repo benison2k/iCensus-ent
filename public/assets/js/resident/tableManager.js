@@ -35,7 +35,11 @@ function renderTable(state) {
                     <td>${r.gender}</td>
                     <td>${address}</td>
                     <td><span class="status-label status-${safeStatus}">${r.status}</span></td>
-                    <td><button class="moreBtn" data-id="${r.id}" title="View Resident Info"><span class="material-icons">more_vert</span></button></td>
+                    <td>
+                        <div class="actions-column">
+                            <button class="action-btn btn-view moreBtn" data-id="${r.id}" title="View Details"><span class="material-icons">visibility</span></button>
+                        </div>
+                    </td>
                 </tr>`;
         });
     }
@@ -60,7 +64,6 @@ function updatePagination(state) {
     const prevPageBtn = document.getElementById('prevPageBtn');
     const nextPageBtn = document.getElementById('nextPageBtn');
 
-    // FIX: Check if pagination elements exist before using them
     if (!pageInfo) return;
 
     const totalPages = Math.ceil(state.filteredResidents.length / state.pageSize) || 1;
@@ -104,7 +107,7 @@ function updateSortIcons(state) {
 
 function jumpToPage(state) {
     const gotoPageInput = document.getElementById('gotoPage');
-    if (!gotoPageInput) return; // FIX: Add check
+    if (!gotoPageInput) return;
     const totalPages = Math.ceil(state.filteredResidents.length / state.pageSize) || 1;
     const page = parseInt(gotoPageInput.value, 10);
     if (page >= 1 && page <= totalPages) {
@@ -126,7 +129,6 @@ function initializeTable(state) {
     const gotoPageInput = document.getElementById('gotoPage');
     const nameSortSelect = document.getElementById('nameSortSelect');
 
-    // FIX: Add null checks for all optional elements
     if (pageSizeSelect) {
         pageSizeSelect.addEventListener('change', (e) => {
             state.pageSize = parseInt(e.target.value, 10);
@@ -152,7 +154,7 @@ function initializeTable(state) {
 
     if (residentsTable) {
         const thead = residentsTable.querySelector('thead');
-        if (thead) { // Defensive check for thead
+        if (thead) {
             thead.addEventListener('click', (e) => {
                 const header = e.target.closest('.sortable');
                 if (header && !e.target.matches('.sort-select-overlay')) {

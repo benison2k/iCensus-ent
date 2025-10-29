@@ -24,6 +24,11 @@ async function openModalForEdit(id, state) {
     const modal = document.getElementById('residentModal');
     const modalTitle = document.getElementById('modalTitle');
     const hiddenId = document.getElementById('resident_id');
+    const approveBtn = document.getElementById('approveBtn');
+    const declineBtn = document.getElementById('declineBtn');
+    const editBtn = modal.querySelector('.editBtn');
+    const deleteBtn = modal.querySelector('.deleteBtn');
+
 
     form.reset();
     try {
@@ -46,8 +51,25 @@ async function openModalForEdit(id, state) {
         setFormEditable(false, state);
         modalTitle.textContent = `View Resident Info`;
         hiddenId.value = id;
-        // ✅ FIX: Changed to 'flex' to enable centering
+
+        // Show/hide buttons based on approval status
+        if (data.approval_status === 'pending') {
+            approveBtn.style.display = 'inline-flex';
+            declineBtn.style.display = 'inline-flex';
+            approveBtn.href = `${basePath}/residents/approve?id=${id}`;
+            declineBtn.href = `${basePath}/residents/reject?id=${id}`;
+            editBtn.style.display = 'none';
+            deleteBtn.style.display = 'none';
+        } else {
+            approveBtn.style.display = 'none';
+            declineBtn.style.display = 'none';
+            editBtn.style.display = 'inline-flex';
+        }
+
         modal.style.display = 'flex';
+        if (modal.updateProgress) {
+            modal.updateProgress();
+        }
     } catch (err) {
         console.error('Failed to fetch resident data:', err);
     }
@@ -59,24 +81,41 @@ function openModalForAdd(state) {
     const modalTitle = document.getElementById('modalTitle');
     const hiddenId = document.getElementById('resident_id');
     const editBtn = modal.querySelector('.editBtn');
+    const approveBtn = document.getElementById('approveBtn');
+    const declineBtn = document.getElementById('declineBtn');
+    const deleteBtn = modal.querySelector('.deleteBtn');
 
     form.reset();
     hiddenId.value = '';
     setFormEditable(true, state);
     editBtn.style.display = 'none';
+    approveBtn.style.display = 'none';
+    declineBtn.style.display = 'none';
+    deleteBtn.style.display = 'none';
+
     modalTitle.textContent = 'Add New Resident';
-    // ✅ FIX: Changed to 'flex' to enable centering
     modal.style.display = 'flex';
+    if (modal.updateProgress) {
+        modal.updateProgress();
+    }
 };
 
 function initializeModal(state) {
     const modal = document.getElementById('residentModal');
     const closeModal = modal.querySelector('.close');
     const editBtn = modal.querySelector('.editBtn');
+    const declineBtn = document.getElementById('declineBtn');
 
     closeModal.addEventListener('click', () => modal.style.display = 'none');
     window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
     editBtn.addEventListener('click', () => setFormEditable(true, state));
+    if(declineBtn) {
+        declineBtn.addEventListener('click', (e) => {
+            if (!confirm('Are you sure you want to reject this entry?')) {
+                e.preventDefault();
+            }
+        });
+    }
 }
 
 export { initializeModal, openModalForEdit, openModalForAdd };
