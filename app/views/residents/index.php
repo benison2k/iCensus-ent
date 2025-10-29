@@ -11,32 +11,47 @@
 <link rel="icon" type="image/png" href="<?= $base_url ?>/assets/img/iCensusLogoOnly2.png">
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/style.css">
 <style>
+    /* Toast Notification Styles */
     .toast-notification {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background-color: #28a745;
-        color: white;
-        padding: 1rem 1.5rem;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        z-index: 2000;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        opacity: 0;
-        transform: translateX(100%);
-        transition: opacity 0.5s ease, transform 0.5s ease;
+        position: fixed; top: 20px; right: 20px; background-color: #28a745; color: white;
+        padding: 1rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 2000; display: flex; align-items: center; gap: 1rem; opacity: 0;
+        transform: translateX(100%); transition: opacity 0.5s ease, transform 0.5s ease;
     }
-    .toast-notification.show {
-        opacity: 1;
-        transform: translateX(0);
+    .toast-notification.show { opacity: 1; transform: translateX(0); }
+    .toast-notification.error { background-color: #dc3545; }
+    .toast-notification.info { background-color: #0d6efd; }
+
+    /* --- NEW: Icon Button Styles --- */
+    .actions-column { display: flex; gap: 0.5rem; align-items: center; }
+    .action-btn {
+        padding: 0.5rem; border-radius: 50%; text-decoration: none;
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 38px; height: 38px; border: none; cursor: pointer;
+        transition: background-color 0.2s;
     }
-    .toast-notification.error {
-        background-color: #dc3545;
-    }
-    .toast-notification.info {
-        background-color: #0d6efd;
+    .action-btn .material-icons { font-size: 20px; vertical-align: middle; }
+    
+    /* Light Mode Colors */
+    .btn-approve { background-color: #e8f5e9; color: #2e7d32; }
+    .btn-approve:hover { background-color: #c8e6c9; }
+    .btn-reject { background-color: #ffebee; color: #c62828; }
+    .btn-reject:hover { background-color: #ffcdd2; }
+    .btn-view, .moreBtn { background-color: #e3f2fd; color: #0d6efd; }
+    .btn-view:hover, .moreBtn:hover { background-color: #bbdefb; }
+
+    /* Dark Mode Colors */
+    body.dark-mode .btn-approve { background-color: #1c3b1e; color: #a5d6a7; }
+    body.dark-mode .btn-approve:hover { background-color: #2e7d32; }
+    body.dark-mode .btn-reject { background-color: #3e2723; color: #ef9a9a; }
+    body.dark-mode .btn-reject:hover { background-color: #c62828; }
+    body.dark-mode .btn-view, body.dark-mode .moreBtn { background-color: #1a3a5b; color: #90caf9; }
+    body.dark-mode .btn-view:hover, body.dark-mode .moreBtn:hover { background-color: #0d6efd; }
+
+    /* For the approved residents "..." button */
+    .moreBtn {
+        padding: 0; width: 38px; height: 38px; border-radius: 50%;
+        display: inline-flex; justify-content: center; align-items: center;
     }
 </style>
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/residents_table.css">
@@ -323,7 +338,26 @@
                             </tr>
                         </thead>
                         <tbody id="residentsTableBody">
-                            <tr><td colspan="6" style="text-align: center;">Loading residents...</td></tr>
+                            <?php if ($isPendingView): ?>
+                                <?php foreach ($residents as $r): ?>
+                                    <tr data-id="<?= $r['id'] ?>">
+                                        <td><?= htmlspecialchars($r['first_name'] . ' ' . $r['last_name']) ?></td>
+                                        <td><?= htmlspecialchars($r['age']) ?></td>
+                                        <td><?= htmlspecialchars($r['gender']) ?></td>
+                                        <td><?= htmlspecialchars($r['house_no'] . ' ' . $r['street'] . ', Purok ' . $r['purok']) ?></td>
+                                        <td><?= date('M d, Y h:i A', strtotime($r['created_at'])) ?></td>
+                                        <td>
+                                            <div class="actions-column">
+                                                <a href="<?= $base_url ?>/residents/approve?id=<?= $r['id'] ?>" class="action-btn btn-approve" title="Approve"><span class="material-icons">check</span></a>
+                                                <a href="<?= $base_url ?>/residents/reject?id=<?= $r['id'] ?>" class="action-btn btn-reject" title="Decline" onclick="return confirm('Are you sure you want to reject this entry?');"><span class="material-icons">close</span></a>
+                                                <button class="action-btn btn-view moreBtn" data-id="<?= $r['id'] ?>" title="View Details"><span class="material-icons">visibility</span></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr><td colspan="6" style="text-align: center;">Loading residents...</td></tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
