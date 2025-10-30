@@ -1,6 +1,7 @@
 // benison2k/icensus-ent/iCensus-ent-development-branch-MVC-/public/assets/js/resident/tableManager.js
 
 import { openModalForEdit } from './modalManager.js';
+import { handleDelete } from './formHandler.js';
 
 function renderTable(state) {
     const tableBody = document.getElementById('residentsTableBody');
@@ -37,6 +38,8 @@ function renderTable(state) {
                     <td><span class="status-label status-${safeStatus}">${r.status}</span></td>
                     <td>
                         <div class="actions-column">
+                            <button class="action-btn btn-edit" data-id="${r.id}" title="Edit Details"><span class="material-icons">edit</span></button>
+                            <button class="action-btn btn-delete" data-id="${r.id}" title="Delete Resident"><span class="material-icons">delete</span></button>
                             <button class="action-btn btn-view moreBtn" data-id="${r.id}" title="View Details"><span class="material-icons">visibility</span></button>
                         </div>
                     </td>
@@ -208,6 +211,14 @@ function initializeTable(state) {
             const moreButton = e.target.closest('.moreBtn');
             if (moreButton) {
                 openModalForEdit(moreButton.dataset.id, state);
+            }
+            const editButton = e.target.closest('.btn-edit');
+            if (editButton) {
+                openModalForEdit(editButton.dataset.id, state);
+            }
+            const deleteButton = e.target.closest('.btn-delete');
+            if (deleteButton) {
+                handleDelete(deleteButton.dataset.id);
             }
         });
     }

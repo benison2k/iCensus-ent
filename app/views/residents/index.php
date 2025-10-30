@@ -37,16 +37,21 @@
     .btn-approve:hover { background-color: #c8e6c9; }
     .btn-reject { background-color: #ffebee; color: #c62828; }
     .btn-reject:hover { background-color: #ffcdd2; }
-    .btn-view, .moreBtn { background-color: #e3f2fd; color: #0d6efd; }
-    .btn-view:hover, .moreBtn:hover { background-color: #bbdefb; }
+    .btn-view, .moreBtn, .btn-edit { background-color: #e3f2fd; color: #0d6efd; }
+    .btn-view:hover, .moreBtn:hover, .btn-edit:hover { background-color: #bbdefb; }
+    .btn-delete { background-color: #ffebee; color: #c62828; }
+    .btn-delete:hover { background-color: #ffcdd2; }
+
 
     /* Dark Mode Colors */
     body.dark-mode .btn-approve { background-color: #1c3b1e; color: #a5d6a7; }
     body.dark-mode .btn-approve:hover { background-color: #2e7d32; }
     body.dark-mode .btn-reject { background-color: #3e2723; color: #ef9a9a; }
     body.dark-mode .btn-reject:hover { background-color: #c62828; }
-    body.dark-mode .btn-view, body.dark-mode .moreBtn { background-color: #1a3a5b; color: #90caf9; }
-    body.dark-mode .btn-view:hover, body.dark-mode .moreBtn:hover { background-color: #0d6efd; }
+    body.dark-mode .btn-view, body.dark-mode .moreBtn, body.dark-mode .btn-edit { background-color: #1a3a5b; color: #90caf9; }
+    body.dark-mode .btn-view:hover, body.dark-mode .moreBtn:hover, body.dark-mode .btn-edit:hover { background-color: #0d6efd; }
+    body.dark-mode .btn-delete { background-color: #3e2723; color: #ef9a9a; }
+    body.dark-mode .btn-delete:hover { background-color: #c62828; }
 
     /* For the approved residents "..." button */
     .moreBtn {

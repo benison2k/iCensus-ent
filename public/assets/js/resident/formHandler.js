@@ -46,6 +46,23 @@ async function handleFormSubmit(form, state) {
     }
 }
 
+async function handleDelete(id) {
+    if (!id) return;
+    if (!confirm('Are you sure you want to delete this resident? This action cannot be undone.')) return;
+
+    const response = await fetch(`${basePath}/residents/process`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: new URLSearchParams({ action: 'delete', id: id })
+    });
+    const result = await response.json();
+    if (result.status === 'success') {
+        showAjaxResult(result.message || 'Resident deleted successfully.', 'success');
+    } else {
+        alert(result.message || 'Failed to delete resident.');
+    }
+}
+
 function initializeForm(state) {
     const form = document.getElementById('residentForm');
     const deleteBtn = form.querySelector('.deleteBtn');
@@ -56,26 +73,11 @@ function initializeForm(state) {
     });
 
     if (deleteBtn) {
-        deleteBtn.addEventListener('click', async () => {
+        deleteBtn.addEventListener('click', () => {
             const id = document.getElementById('resident_id').value;
-            if (!id) return;
-            if (!confirm('Are you sure you want to delete this resident? This action cannot be undone.')) return;
-    
-            const response = await fetch(`${basePath}/residents/process`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: new URLSearchParams({ action: 'delete', id: id })
-            });
-            const result = await response.json();
-            if (result.status === 'success') {
-                document.getElementById('residentModal').style.display = 'none';
-                // Use the new toast notification
-                showAjaxResult(result.message || 'Resident deleted successfully.', 'success');
-            } else {
-                alert(result.message || 'Failed to delete resident.');
-            }
+            handleDelete(id);
         });
     }
 }
 
-export { initializeForm };
+export { initializeForm, handleDelete };
