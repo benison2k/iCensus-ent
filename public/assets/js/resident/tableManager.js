@@ -38,9 +38,9 @@ function renderTable(state) {
                     <td><span class="status-label status-${safeStatus}">${r.status}</span></td>
                     <td>
                         <div class="actions-column">
+                            <button class="action-btn btn-view moreBtn" data-id="${r.id}" title="View Details"><span class="material-icons">visibility</span></button>
                             <button class="action-btn btn-edit" data-id="${r.id}" title="Edit Details"><span class="material-icons">edit</span></button>
                             <button class="action-btn btn-delete" data-id="${r.id}" title="Delete Resident"><span class="material-icons">delete</span></button>
-                            <button class="action-btn btn-view moreBtn" data-id="${r.id}" title="View Details"><span class="material-icons">visibility</span></button>
                         </div>
                     </td>
                 </tr>`;
@@ -210,11 +210,11 @@ function initializeTable(state) {
         tableBody.addEventListener('click', (e) => {
             const moreButton = e.target.closest('.moreBtn');
             if (moreButton) {
-                openModalForEdit(moreButton.dataset.id, state);
+                openModalForEdit(moreButton.dataset.id, state, false); // Open in view mode
             }
             const editButton = e.target.closest('.btn-edit');
             if (editButton) {
-                openModalForEdit(editButton.dataset.id, state);
+                openModalForEdit(editButton.dataset.id, state, true); // Open in edit mode
             }
             const deleteButton = e.target.closest('.btn-delete');
             if (deleteButton) {

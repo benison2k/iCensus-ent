@@ -19,7 +19,7 @@ function setFormEditable(editable, state) {
     }
 };
 
-async function openModalForEdit(id, state) {
+async function openModalForEdit(id, state, startInEditMode = false) {
     const form = document.getElementById('residentForm');
     const modal = document.getElementById('residentModal');
     const modalTitle = document.getElementById('modalTitle');
@@ -48,8 +48,8 @@ async function openModalForEdit(id, state) {
             }
         });
 
-        setFormEditable(false, state);
-        modalTitle.textContent = `View Resident Info`;
+        setFormEditable(startInEditMode, state);
+        modalTitle.textContent = startInEditMode ? `Edit Resident Info` : `View Resident Info`;
         hiddenId.value = id;
 
         // Show/hide buttons based on approval status
@@ -63,7 +63,8 @@ async function openModalForEdit(id, state) {
         } else {
             approveBtn.style.display = 'none';
             declineBtn.style.display = 'none';
-            editBtn.style.display = 'inline-flex';
+            // If starting in edit mode, hide the modal's own edit button
+            editBtn.style.display = startInEditMode ? 'none' : 'inline-flex';
         }
 
         modal.style.display = 'flex';
