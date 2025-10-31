@@ -76,7 +76,7 @@
                         <div id="otpRequirement" style="display:none;" class="password-otp-group">
                              <h4>OTP Required</h4>
                             <p style="font-size:0.9rem; margin-bottom: 5px;">OTP sent to your email for security.</p>
-                            <input type="text" name="otp" id="otpPasswordField" placeholder="Enter OTP" required maxlength="6" pattern="\d{6}" inputmode="numeric">
+                            <input type="text" name="otp" id="otpPasswordField" placeholder="Enter OTP" maxlength="6" pattern="\d{6}" inputmode="numeric">
                             <a href="#" id="resendOtpBtnPass" style="display:none;">Resend Code</a>
                             <span id="passCooldownTimer" class="small text-muted" style="margin-top: 5px; display: none;"></span>
                         </div>
@@ -182,121 +182,194 @@
     const BASE_URL = '<?= $base_url ?>';
     const USER_ROLE = '<?= $_SESSION['user']['role_name'] ?>';
     const IS_ADMIN = USER_ROLE === 'System Admin';
-    const COOLDOWN_DURATION = 60; // Must match PHP
+    const COOLDOWN_DURATION = 60;
 
-    // ... (The rest of the JavaScript from the previous response remains the same)
+    // --- AJAX FORM SUBMISSION & MESSAGE MODAL ---
+    const ajaxModal = document.getElementById('ajaxResultModal');
+    const ajaxMessage = document.getElementById('ajaxResultMessage');
+    const ajaxModalContent = ajaxModal.querySelector('.modal-content');
+    const ajaxCloseBtn = ajaxModal.querySelector('.close');
+
+    ajaxCloseBtn.onclick = () => ajaxModal.style.display = "none";
+    window.onclick = (event) => { if (event.target === ajaxModal) ajaxModal.style.display = "none"; };
+
+    function showAjaxResult(message, type = 'success') {
+        ajaxMessage.textContent = message;
+        ajaxModalContent.className = 'modal-content ' + type;
+        ajaxModal.style.display = 'block';
+        setTimeout(() => { ajaxModal.style.display = "none"; }, 4000);
+    }
+
+    async function handleFormSubmit(form, url) {
+        try {
+            const formData = new URLSearchParams(new FormData(form));
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            
+            if (response.ok) {
+                showAjaxResult(result.message, 'success');
+                if (form.id === 'passwordForm') {
+                    resetPasswordForm();
+                }
+                if (form.id === 'emailForm' || form.id === 'usernameForm') {
+                     window.location.reload();
+                }
+            } else {
+                showAjaxResult(result.message || 'An error occurred.', 'error');
+            }
+            return result;
+        } catch (error) {
+            showAjaxResult('A network error occurred. Please try again.', 'error');
+            return {status: 'error', message: 'Network error'};
+        }
+    }
+
+    document.getElementById('usernameForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        handleFormSubmit(this, BASE_URL + '/settings/process');
+    });
+
+    document.getElementById('emailForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        handleFormSubmit(this, BASE_URL + '/settings/process');
+    });
+
+    // --- PASSWORD CHANGE LOGIC ---
+    const currentPassword = document.getElementById('current_password');
+    const verifyBtn = document.getElementById('verifyCurrentBtn');
+    const verifyMessage = document.getElementById('verifyMessage');
+    const newPasswordFields = document.getElementById('newPasswordFields');
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirm_password');
+    const matchIcon = document.getElementById('passwordMatchIcon');
+    const passwordSubmit = document.getElementById('passwordSubmit');
+    const otpRequirement = document.getElementById('otpRequirement');
+    const otpPasswordField = document.getElementById('otpPasswordField');
+    const resendOtpBtnPass = document.getElementById('resendOtpBtnPass');
+    const passCooldownTimer = document.getElementById('passCooldownTimer');
+    const passwordOtpError = document.getElementById('passwordOtpError');
+    const strengthBar = document.getElementById('strength-bar');
+    const strengthText = document.getElementById('strength-text');
+
+    let currentPasswordVerified = false;
+    let otpCooldownInterval = null;
     
-// --- AJAX FORM SUBMISSION & MESSAGE MODAL ---
-const ajaxModal = document.getElementById('ajaxResultModal');
-const ajaxMessage = document.getElementById('ajaxResultMessage');
-const ajaxModalContent = ajaxModal.querySelector('.modal-content');
-const ajaxCloseBtn = ajaxModal.querySelector('.close');
+    // Helper to reset the entire password change section
+    function resetPasswordForm() {
+        document.getElementById('passwordForm').reset();
+        currentPasswordVerified = false;
+        newPasswordFields.style.display = 'none';
+        verifyMessage.textContent = '';
+        passwordSubmit.disabled = true;
+        passwordOtpError.textContent = '';
+        currentPassword.disabled = false;
+        clearInterval(otpCooldownInterval);
+        resendOtpBtnPass.style.display = 'none';
+        passCooldownTimer.style.display = 'none';
+        passCooldownTimer.textContent = '';
+        strengthBar.className = '';
+        strengthText.textContent = '';
+        otpPasswordField.required = false; // **FIX**
+    }
 
-ajaxCloseBtn.onclick = () => ajaxModal.style.display = "none";
-window.onclick = (event) => { if (event.target === ajaxModal) ajaxModal.style.display = "none"; };
-
-function showAjaxResult(message, type = 'success') {
-    ajaxMessage.textContent = message;
-    ajaxModalContent.className = 'modal-content ' + type;
-    ajaxModal.style.display = 'block';
-    setTimeout(() => { ajaxModal.style.display = "none"; }, 4000);
-}
-
-async function handleFormSubmit(form, url) {
+    // STEP 1: Verify Current Password / Send OTP
+    verifyBtn.addEventListener('click', async () => {
+        // ... (rest of the function is unchanged)
+        const current = currentPassword.value.trim();
+    if(current === '') return;
+    
+    verifyBtn.disabled = true;
+    verifyBtn.textContent = 'Checking...';
+    verifyMessage.textContent = '';
+    
     try {
-        const formData = new URLSearchParams(new FormData(form));
-        const response = await fetch(url, {
+        const formData = new URLSearchParams({current_password: current});
+        const response = await fetch(BASE_URL + '/settings/verify-password', {
             method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body: formData
         });
         const result = await response.json();
         
-        if (response.ok) {
-            showAjaxResult(result.message, 'success');
-            // Reset forms after success
-            if (form.id === 'passwordForm') {
-                resetPasswordForm(); // Custom reset function
-            }
-            if (form.id === 'emailForm' || form.id === 'usernameForm') {
-                 window.location.reload();
-            }
+        if(result.status === 'success') {
+            currentPasswordVerified = true;
+            otpRequirement.style.display = 'none';
+            otpPasswordField.required = false; // **FIX**
+            newPasswordFields.style.display = 'block';
+            verifyMessage.textContent = 'Password verified.';
+            verifyMessage.style.color = 'green';
+            currentPassword.disabled = true;
+            
+        } else if (result.status === 'otp_sent') {
+            currentPasswordVerified = true;
+            otpRequirement.style.display = 'block';
+            otpPasswordField.required = true; // **FIX**
+            newPasswordFields.style.display = 'block';
+            verifyMessage.textContent = result.message;
+            verifyMessage.style.color = 'green';
+            currentPassword.disabled = true;
+            startPassCooldown(COOLDOWN_DURATION);
+
         } else {
-            showAjaxResult(result.message || 'An error occurred.', 'error');
+            currentPasswordVerified = false;
+            newPasswordFields.style.display = 'none';
+            verifyMessage.textContent = result.message || 'Incorrect password.';
+            verifyMessage.style.color = 'red';
+            currentPassword.disabled = false;
         }
-        return result;
     } catch (error) {
-        showAjaxResult('A network error occurred. Please try again.', 'error');
-        return {status: 'error', message: 'Network error'};
+        verifyMessage.textContent = 'Network error during verification.';
+        verifyMessage.style.color = 'red';
+        currentPassword.disabled = false;
+    } finally {
+        verifyBtn.disabled = false;
+        verifyBtn.textContent = 'Verify Password';
     }
-}
+    });
 
-// Attach listeners to forms
-document.getElementById('usernameForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    handleFormSubmit(this, BASE_URL + '/settings/process');
-});
+    // STEP 3: Final Password Submission (AJAX)
+    document.getElementById('passwordForm').addEventListener('submit', function(e) {
+        e.preventDefault();
 
-document.getElementById('emailForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    handleFormSubmit(this, BASE_URL + '/settings/process');
-});
+        // Use the browser's built-in validation check
+        if (!this.checkValidity()) {
+            // If the form is invalid, try to find the first invalid field and focus it.
+            const firstInvalid = this.querySelector(':invalid');
+            if (firstInvalid) {
+                firstInvalid.focus();
+            }
+            return;
+        }
+        
+        if (!currentPasswordVerified || password.value !== confirmPassword.value) {
+            passwordOtpError.textContent = 'Please ensure passwords match and current password is verified.';
+            passwordOtpError.style.color = 'red';
+            return;
+        }
 
+        const form = this;
+        passwordSubmit.disabled = true;
+        passwordSubmit.textContent = 'Saving...';
+        passwordOtpError.textContent = '';
+        
+        handleFormSubmit(form, BASE_URL + '/settings/process').then(() => {
+            passwordSubmit.disabled = false;
+            passwordSubmit.innerHTML = '<span class="material-icons">save</span> Save Password';
+        });
+    });
 
-// --- PASSWORD CHANGE LOGIC (STEPPED) ---
-const currentPassword = document.getElementById('current_password');
-const verifyBtn = document.getElementById('verifyCurrentBtn');
-const verifyMessage = document.getElementById('verifyMessage');
-const newPasswordFields = document.getElementById('newPasswordFields');
-const password = document.getElementById('password');
-const confirmPassword = document.getElementById('confirm_password');
-const matchIcon = document.getElementById('passwordMatchIcon');
-const passwordSubmit = document.getElementById('passwordSubmit');
-const otpRequirement = document.getElementById('otpRequirement');
-const otpPasswordField = document.getElementById('otpPasswordField');
-const resendOtpBtnPass = document.getElementById('resendOtpBtnPass');
-const passCooldownTimer = document.getElementById('passCooldownTimer');
-const passwordOtpError = document.getElementById('passwordOtpError');
-const strengthBar = document.getElementById('strength-bar');
-const strengthText = document.getElementById('strength-text');
-
-let currentPasswordVerified = false;
-let otpCooldownInterval = null;
-
-// Initially hide OTP field if not Admin
-if (IS_ADMIN) {
-    otpRequirement.style.display = 'none';
-}
-
-
-// Helper to reset the entire password change section
-function resetPasswordForm() {
-    document.getElementById('passwordForm').reset();
-    currentPasswordVerified = false;
-    newPasswordFields.style.display = 'none';
-    verifyMessage.textContent = '';
-    passwordSubmit.disabled = true;
-    passwordOtpError.textContent = '';
-    currentPassword.disabled = false;
-    clearInterval(otpCooldownInterval);
-    resendOtpBtnPass.style.display = 'none';
-    passCooldownTimer.style.display = 'none';
-    passCooldownTimer.textContent = '';
-    strengthBar.className = '';
-    strengthText.textContent = '';
-    // Ensure OTP requirement is hidden again
-    if (IS_ADMIN) {
-        otpRequirement.style.display = 'none';
-    }
-}
-
-// Cooldown logic for password change
+    // ... (rest of the script is unchanged)
+    // Cooldown logic
 function startPassCooldown(duration) {
     clearInterval(otpCooldownInterval);
     let timeRemaining = duration;
     
     resendOtpBtnPass.style.display = 'none';
     passCooldownTimer.style.display = 'block';
-    passwordOtpError.textContent = ''; // Clear previous error
+    passwordOtpError.textContent = '';
 
     otpCooldownInterval = setInterval(() => {
         let seconds = timeRemaining % 60;
@@ -314,65 +387,6 @@ function startPassCooldown(duration) {
         timeRemaining--;
     }, 1000);
 }
-
-// STEP 1: Verify Current Password / Send OTP
-verifyBtn.addEventListener('click', async () => {
-    const current = currentPassword.value.trim();
-    if(current === '') return;
-    
-    verifyBtn.disabled = true;
-    verifyBtn.textContent = 'Checking...';
-    verifyMessage.textContent = '';
-    
-    try {
-        const formData = new URLSearchParams({current_password: current});
-        // Call the modified verify-password endpoint
-        const response = await fetch(BASE_URL + '/settings/verify-password', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: formData
-        });
-        const result = await response.json();
-        
-        if(result.status === 'success') {
-            // Non-Admin: Proceed directly to new password fields
-            currentPasswordVerified = true;
-            otpRequirement.style.display = 'none';
-            newPasswordFields.style.display = 'block';
-            verifyMessage.textContent = 'Password verified.';
-            verifyMessage.style.color = 'green';
-            currentPassword.disabled = true; // Lock current password field
-            
-        } else if (result.status === 'otp_sent') {
-            // Admin: OTP sent, show OTP field
-            currentPasswordVerified = true;
-            otpRequirement.style.display = 'block';
-            newPasswordFields.style.display = 'block';
-            verifyMessage.textContent = result.message;
-            verifyMessage.style.color = 'green';
-            currentPassword.disabled = true; // Lock current password field
-            
-            // Start cooldown timer
-            startPassCooldown(COOLDOWN_DURATION);
-
-        } else {
-            // Error: Incorrect password or missing admin email
-            currentPasswordVerified = false;
-            newPasswordFields.style.display = 'none';
-            verifyMessage.textContent = result.message || 'Incorrect password.';
-            verifyMessage.style.color = 'red';
-            currentPassword.disabled = false;
-        }
-    } catch (error) {
-        verifyMessage.textContent = 'Network error during verification.';
-        verifyMessage.style.color = 'red';
-        currentPassword.disabled = false;
-    } finally {
-        verifyBtn.disabled = false;
-        verifyBtn.textContent = 'Verify Password';
-    }
-});
-
 
 // Resend OTP for Password Change
 resendOtpBtnPass.addEventListener('click', async (e) => {
@@ -397,7 +411,6 @@ resendOtpBtnPass.addEventListener('click', async (e) => {
         } else {
             passwordOtpError.textContent = result.message;
             passwordOtpError.style.color = 'red';
-            // Re-show button if general error
             resendOtpBtnPass.style.display = 'block'; 
         }
     } catch (error) {
@@ -407,7 +420,7 @@ resendOtpBtnPass.addEventListener('click', async (e) => {
 });
 
 
-// STEP 2: Password Match Validation
+// Password Match Validation
 function checkPasswordMatch() {
     const passwordValid = password.value.length >= 6 && password.value === confirmPassword.value;
     
@@ -459,43 +472,12 @@ password.addEventListener('input', () => {
 });
 confirmPassword.addEventListener('input', checkPasswordMatch);
 
-
-// STEP 3: Final Password Submission (AJAX)
-document.getElementById('passwordForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    if (!currentPasswordVerified || password.value !== confirmPassword.value) {
-        passwordOtpError.textContent = 'Please verify current password and ensure new passwords match.';
-        passwordOtpError.style.color = 'red';
-        return;
-    }
-    
-    // Check OTP field for admin submission
-    if (IS_ADMIN && otpRequirement.style.display !== 'none' && otpPasswordField.value.trim().length !== 6) {
-        passwordOtpError.textContent = 'Please enter the 6-digit OTP.';
-        passwordOtpError.style.color = 'red';
-        return;
-    }
-
-    const form = this;
-    passwordSubmit.disabled = true;
-    passwordSubmit.textContent = 'Saving...';
-    passwordOtpError.textContent = '';
-    
-    // Submit the form which includes: current_password, password, confirm_password, update_password=1, and otp (if visible/admin)
-    handleFormSubmit(form, BASE_URL + '/settings/process').then(() => {
-        passwordSubmit.disabled = false;
-        passwordSubmit.innerHTML = '<span class="material-icons">save</span> Save Password';
-    });
-});
-
-
-// --- 2FA TOGGLE LOGIC (MODIFIED FOR OTP) ---
+// 2FA Toggle Logic
 const twoFaSwitch = document.getElementById('twoFaSwitch');
 const twoFaLabel = document.getElementById('twoFaLabel');
-const emailInput = document.querySelector('#emailForm input[name="email"]').value; // Check current email
+const emailInput = document.querySelector('#emailForm input[name="email"]').value;
 
-// --- 2FA Toggle Modal Constants ---
+// 2FA Toggle Modal Constants
 const otpToggleModal = document.getElementById('otpToggleModal');
 const closeOtpToggleModal = document.getElementById('closeOtpToggleModal');
 const otpToggleForm = document.getElementById('otpToggleForm');
@@ -505,7 +487,6 @@ const resendToggleOtpBtn = document.getElementById('resendToggleOtpBtn');
 const cooldownToggleTimer = document.getElementById('cooldownToggleTimer');
 let toggleTimerInterval = null; 
 
-// --- OTP Toggle Countdown Logic ---
 function startToggleCountdown(duration) {
     clearInterval(toggleTimerInterval);
     let timeRemaining = duration;
@@ -539,11 +520,10 @@ function showOtpToggleModal(message, cooldown = 60) {
     startToggleCountdown(cooldown); 
 }
 
-// Event Listeners for the OTP Toggle Modal
 closeOtpToggleModal.onclick = () => {
     clearInterval(toggleTimerInterval);
     otpToggleModal.style.display = 'none';
-    window.location.reload(); // Safer to reload to clear session state
+    window.location.reload();
 };
 window.addEventListener('click', (event) => {
     if (event.target === otpToggleModal) {
@@ -553,8 +533,6 @@ window.addEventListener('click', (event) => {
     }
 });
 
-
-// Resend OTP for 2FA Toggle
 resendToggleOtpBtn.addEventListener('click', async (e) => {
     e.preventDefault();
     
@@ -581,7 +559,7 @@ resendToggleOtpBtn.addEventListener('click', async (e) => {
         } else {
             otpToggleError.textContent = result.message;
             otpToggleError.style.color = 'red';
-            resendToggleOtpBtn.style.display = 'block'; // Re-enable on error
+            resendToggleOtpBtn.style.display = 'block';
         }
     } catch (error) {
         otpToggleError.textContent = 'Network error while trying to resend.';
@@ -591,7 +569,6 @@ resendToggleOtpBtn.addEventListener('click', async (e) => {
     }
 });
 
-// OTP Verification Submission for 2FA Toggle
 otpToggleForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const verifyBtn = document.getElementById('otpToggleVerifyBtn');
@@ -614,8 +591,6 @@ otpToggleForm.addEventListener('submit', async (e) => {
             clearInterval(toggleTimerInterval);
             showAjaxResult(result.message, 'success');
             otpToggleModal.style.display = 'none';
-            
-            // CRITICAL: Reload the page to update the UI
             setTimeout(() => window.location.reload(), 500);
         } else {
             otpToggleError.textContent = result.message;
@@ -631,21 +606,17 @@ otpToggleForm.addEventListener('submit', async (e) => {
     }
 });
 
-
-// MAIN 2FA TOGGLE HANDLER (Intercepts disable request)
 if (twoFaSwitch) {
     twoFaSwitch.addEventListener('change', async function() {
         const isChecked = this.checked;
         const targetTwoFA = isChecked ? 1 : 0;
         
-        // Check for email BEFORE proceeding to the server
         if (targetTwoFA === 1 && emailInput.length === 0) {
-            this.checked = false; // Revert switch visually
+            this.checked = false;
             showAjaxResult('Cannot enable 2FA: Please save a valid email address first.', 'error');
             return;
         }
 
-        // Disable the toggle temporarily
         this.disabled = true;
 
         const data = new URLSearchParams({ target_two_fa: targetTwoFA });
@@ -662,25 +633,20 @@ if (twoFaSwitch) {
                 showAjaxResult(result.message, 'success');
                 twoFaLabel.textContent = isChecked ? 'Enabled' : 'Disabled';
             } else if (result.status === 'otp_required') {
-                // If 2FA is being disabled, the server will request an OTP.
-                // Reset the toggle visually to ON, then show the modal.
                 this.checked = true; 
                 showOtpToggleModal(result.message, COOLDOWN_DURATION);
             } else if (result.status === 'cooldown') {
                 this.checked = true; 
                 showOtpToggleModal(result.message, result.cooldown_remaining);
             } else {
-                // On error, revert the toggle back to its original state (the current state)
                 this.checked = !isChecked;
                 showAjaxResult(result.message, 'error');
             }
         } catch (error) {
-            // Network error
             this.checked = !isChecked;
             showAjaxResult('A network error occurred. Please try again.', 'error');
             console.error('Error toggling 2FA:', error);
         } finally {
-            // Re-enable the toggle only if the modal wasn't shown (i.e., not a pending disable action)
             if (result.status !== 'otp_required' && result.status !== 'cooldown') {
                 this.disabled = false;
             }
@@ -688,8 +654,6 @@ if (twoFaSwitch) {
     });
 }
 
-
-// Theme toggle logic
 const themeSwitch = document.getElementById('themeSwitch');
 themeSwitch.addEventListener('change', () => {
     const theme = themeSwitch.checked ? 'dark' : 'light';
