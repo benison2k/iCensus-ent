@@ -7,7 +7,8 @@
 <link rel="icon" type="image/png" href="/iCensus-ent/public/assets/img/iCensusLogoOnly2.png">
 <?php $base_url = '/iCensus-ent/public'; ?>
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/style.css">
-<link rel="stylesheet" href="<?= $base_url ?>/assets/css/settings_new.css"> <link rel="stylesheet" href="<?= $base_url ?>/assets/css/modal.css">
+<link rel="stylesheet" href="<?= $base_url ?>/assets/css/settings_new.css">
+<link rel="stylesheet" href="<?= $base_url ?>/assets/css/modal.css">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body class="<?= $theme === 'dark' ? 'dark-mode' : ''; ?>">
@@ -82,6 +83,10 @@
                         <div class="form-group" style="margin-top:1.5rem;">
                             <label for="password">New Password</label>
                             <input type="password" name="password" id="password" placeholder="Enter new password" required>
+                            <div class="strength-meter">
+                                <div id="strength-bar"></div>
+                            </div>
+                            <span id="strength-text" class="strength-text"></span>
                         </div>
                         <div class="form-group">
                             <label for="confirm_password">Confirm Password</label>
@@ -251,6 +256,8 @@ const otpPasswordField = document.getElementById('otpPasswordField');
 const resendOtpBtnPass = document.getElementById('resendOtpBtnPass');
 const passCooldownTimer = document.getElementById('passCooldownTimer');
 const passwordOtpError = document.getElementById('passwordOtpError');
+const strengthBar = document.getElementById('strength-bar');
+const strengthText = document.getElementById('strength-text');
 
 let currentPasswordVerified = false;
 let otpCooldownInterval = null;
@@ -274,6 +281,8 @@ function resetPasswordForm() {
     resendOtpBtnPass.style.display = 'none';
     passCooldownTimer.style.display = 'none';
     passCooldownTimer.textContent = '';
+    strengthBar.className = '';
+    strengthText.textContent = '';
     // Ensure OTP requirement is hidden again
     if (IS_ADMIN) {
         otpRequirement.style.display = 'none';
@@ -416,7 +425,38 @@ function checkPasswordMatch() {
         passwordSubmit.disabled = true;
     }
 }
-password.addEventListener('input', checkPasswordMatch);
+
+// Password Strength
+function checkPasswordStrength() {
+    const pass = password.value;
+    let score = 0;
+    if (pass.length > 8) score++;
+    if (pass.match(/([a-z].*[A-Z])|([A-Z].*[a-z])/)) score++;
+    if (pass.match(/([0-9])/)) score++;
+    if (pass.match(/([!,%,&,@,#,$,^,*,?,_,~])/)) score++;
+
+    if (pass.length === 0) {
+        strengthBar.className = '';
+        strengthText.textContent = '';
+        return;
+    }
+
+    if (score < 2) {
+        strengthBar.className = 'weak';
+        strengthText.textContent = 'Weak';
+    } else if (score < 4) {
+        strengthBar.className = 'medium';
+        strengthText.textContent = 'Medium';
+    } else {
+        strengthBar.className = 'strong';
+        strengthText.textContent = 'Strong';
+    }
+}
+
+password.addEventListener('input', () => {
+    checkPasswordStrength();
+    checkPasswordMatch();
+});
 confirmPassword.addEventListener('input', checkPasswordMatch);
 
 
