@@ -166,3 +166,44 @@ body.dark-mode .settings-content button:hover {
     from { opacity: 0; transform: scale(0.98); }
     to { opacity: 1; transform: scale(1); }
 }
+
+/* Password Strength Indicator */
+.strength-meter {
+    height: 5px;
+    background: #ddd;
+    border-radius: 5px;
+    margin-top: 5px;
+}
+
+.strength-meter div {
+    height: 100%;
+    border-radius: 5px;
+    width: 0;
+    transition: width 0.3s, background-color 0.3s;
+}
+
+.strength-meter .weak {
+    width: 33%;
+    background-color: #dc3545;
+}
+
+.strength-meter .medium {
+    width: 66%;
+    background-color: #ffc107;
+}
+
+.strength-meter .strong {
+    width: 100%;
+    background-color: #28a745;
+}
+
+.strength-text {
+    margin-top: 5px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #6c757d;
+}
+
+body.dark-mode .strength-meter {
+    background: #1e1e2f;
+}
