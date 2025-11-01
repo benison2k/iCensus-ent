@@ -97,6 +97,26 @@ body.dark-mode .info-group h4 {
 .info-item strong {
     font-weight: 600;
 }
+
+/* --- NEW: Button Group for Email Form --- */
+.button-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+#unbindEmailBtn {
+    background-color: #dc3545;
+}
+#unbindEmailBtn:hover {
+    background-color: #c82333;
+}
+body.dark-mode #unbindEmailBtn {
+    background-color: #c82333;
+}
+body.dark-mode #unbindEmailBtn:hover {
+    background-color: #a71d2a;
+}
 </style>
 
 </head>
@@ -135,11 +155,15 @@ body.dark-mode .info-group h4 {
             <h3>Account Information</h3>
             <form id="emailForm" method="POST">
                 <div class="form-group">
-                    <label for="email">Email Address (for 2FA)</label>
+                    <label for="email">Email Address (for 2FA & Password Reset)</label>
                     <input type="email" name="email" id="email" value="<?= htmlspecialchars($user['email'] ?? ''); ?>" placeholder="Enter email address" required>
+                    <small style="margin-top: 5px; color: #6c757d;">Note: 2FA must be disabled to change or unbind your email.</small>
                 </div>
                 <input type="hidden" name="update_email" value="1">
-                <button type="submit"><span class="material-icons">save</span> Save Email</button>
+                <div class="button-group">
+                    <button type="submit"><span class="material-icons">save</span> Save Email</button>
+                    <button type="button" id="unbindEmailBtn"><span class="material-icons">link_off</span> Unbind Email</button>
+                </div>
             </form>
             <hr style="margin: 2rem 0;">
             <form id="usernameForm" method="POST">
@@ -358,8 +382,59 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('emailForm').addEventListener('submit', function(e) {
         e.preventDefault();
+        
+        // --- NEW: Check for 2FA before allowing email *change* ---
+        const twoFaSwitch = document.getElementById('twoFaSwitch');
+        if (twoFaSwitch.checked) {
+             showAjaxResult('You must disable Two-Factor Authentication before changing your email.', 'error');
+             return;
+        }
+        // --- END NEW ---
+
         handleFormSubmit(this, BASE_URL + '/settings/process');
     });
+
+    // --- NEW: Unbind Email Button Logic ---
+    const unbindEmailBtn = document.getElementById('unbindEmailBtn');
+    if (unbindEmailBtn) {
+        unbindEmailBtn.addEventListener('click', function() {
+            const twoFaSwitch = document.getElementById('twoFaSwitch');
+            if (twoFaSwitch.checked) {
+                showAjaxResult('You must disable Two-Factor Authentication before removing your email.', 'error');
+                return;
+            }
+
+            if (confirm('Are you sure you want to remove your email address? This will prevent you from using 2FA or resetting your password via email.')) {
+                const btn = this;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-icons">sync</span> Removing...';
+
+                fetch(BASE_URL + '/settings/process', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: new URLSearchParams({ 'unbind_email': '1' })
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.status === 'success') {
+                        showAjaxResult(result.message, 'success');
+                        setTimeout(() => window.location.reload(), 1500);
+                    } else {
+                        showAjaxResult(result.message || 'An error occurred.', 'error');
+                        btn.disabled = false;
+                        btn.innerHTML = '<span class="material-icons">link_off</span> Unbind Email';
+                    }
+                })
+                .catch(error => {
+                    showAjaxResult('A network error occurred.', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="material-icons">link_off</span> Unbind Email';
+                });
+            }
+        });
+    }
+    // --- END NEW ---
+
 
     // --- PASSWORD CHANGE LOGIC ---
     const passwordForm = document.getElementById('passwordForm');
@@ -564,14 +639,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 2FA TOGGLE LOGIC ---
     const twoFaSwitch = document.getElementById('twoFaSwitch');
     const twoFaLabel = document.getElementById('twoFaLabel');
-    const emailInput = document.querySelector('#emailForm input[name="email"]').value;
+    const emailInput = document.querySelector('#emailForm input[name="email"]'); // Get the input element itself
 
     if (twoFaSwitch) {
+        // --- NEW: Disable switch if email is empty ---
+        if (emailInput.value.trim().length === 0) {
+            twoFaSwitch.disabled = true;
+            twoFaSwitch.parentElement.title = 'Please add and save an email address to enable 2FA.';
+        }
+        // --- END NEW ---
+
         twoFaSwitch.addEventListener('change', async function() {
             const isChecked = this.checked;
             const targetTwoFA = isChecked ? 1 : 0;
             
-            if (targetTwoFA === 1 && emailInput.length === 0) {
+            // Check email again, just in case
+            if (targetTwoFA === 1 && emailInput.value.trim().length === 0) {
                 this.checked = false;
                 showAjaxResult('Cannot enable 2FA: Please save a valid email address first.', 'error');
                 return;
@@ -592,26 +675,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (result.status === 'success') {
                     showAjaxResult(result.message, 'success');
                     twoFaLabel.textContent = isChecked ? 'Enabled' : 'Disabled';
+                    this.disabled = false; // Re-enable on simple success
                 } else if (result.status === 'otp_required') {
                     this.checked = true; 
                     showOtpToggleModal(result.message, COOLDOWN_DURATION);
+                    // Do not re-enable switch, wait for modal flow
                 } else if (result.status === 'cooldown') {
                     this.checked = true; 
                     showOtpToggleModal(result.message, result.cooldown_remaining);
+                    // Do not re-enable switch, wait for modal flow
                 } else {
-                    this.checked = !isChecked;
+                    this.checked = !isChecked; // Revert change on error
                     showAjaxResult(result.message, 'error');
+                    this.disabled = false; // Re-enable on error
                 }
             } catch (error) {
-                this.checked = !isChecked;
+                this.checked = !isChecked; // Revert change on network error
                 showAjaxResult('A network error occurred. Please try again.', 'error');
                 console.error('Error toggling 2FA:', error);
-            } finally {
-                // This line was causing an error because `result` is not in scope here.
-                // Re-enabling the switch is now handled inside the success/error blocks.
-                // if (result.status !== 'otp_required' && result.status !== 'cooldown') {
-                //    this.disabled = false;
-                // }
+                this.disabled = false; // Re-enable on network error
             }
         });
     }
