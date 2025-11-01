@@ -117,6 +117,64 @@ body.dark-mode #unbindEmailBtn {
 body.dark-mode #unbindEmailBtn:hover {
     background-color: #a71d2a;
 }
+
+/* --- NEW: Confirmation Modal Styles --- */
+#unbindEmailModal .modal-content {
+    max-width: 450px;
+    text-align: left; /* Aligns text left */
+}
+#unbindEmailModal h3 {
+    color: #dc3545; /* Red text for warning */
+    text-align: left;
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+}
+#unbindEmailModal p {
+    text-align: left;
+    margin-top: 0.5rem;
+    font-size: 0.95rem;
+    color: #333;
+}
+.modal-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+.modal-actions .btn {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+.modal-actions .btn.confirm {
+    background-color: #dc3545;
+    color: white;
+}
+.modal-actions .btn.cancel {
+    background-color: #f1f1f1;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+/* Dark Mode for new modal */
+body.dark-mode #unbindEmailModal .modal-content {
+    background: #2C3E50;
+    border-left: none; /* Remove the side bar */
+}
+body.dark-mode #unbindEmailModal h3 {
+    color: #f44336;
+}
+body.dark-mode #unbindEmailModal p {
+    color: #eee;
+}
+body.dark-mode .modal-actions .btn.cancel {
+    background-color: #4a5a6a;
+    color: #fff;
+    border: 1px solid #555;
+}
 </style>
 
 </head>
@@ -290,7 +348,17 @@ body.dark-mode #unbindEmailBtn:hover {
 </div>
 </main>
 
-<?php include __DIR__ . '/../components/footer.php'; ?>
+<div id="unbindEmailModal" class="modal" style="display: none; align-items: center; justify-content: center; z-index: 2001;">
+    <div class="modal-content">
+        <span class="close" id="closeUnbindModal">&times;</span>
+        <h3>Are you sure?</h3>
+        <p>This action will permanently remove your email address from the account. You will lose the ability to use Two-Factor Authentication (2FA) and password reset via email.</p>
+        <div class="modal-actions">
+            <button id="cancelUnbindBtn" class="btn cancel">Cancel</button>
+            <button id="confirmUnbindBtn" class="btn confirm">Confirm Unbind</button>
+        </div>
+    </div>
+</div>
 
 
 <div id="otpToggleModal" class="modal" style="display: none;">
@@ -311,6 +379,9 @@ body.dark-mode #unbindEmailBtn:hover {
         <span id="cooldownToggleTimer" class="small text-muted" style="margin-top: 5px; display: none; text-align: center;"></span>
     </div>
 </div>
+
+<?php include __DIR__ . '/../components/footer.php'; ?>
+
 <script>
 // --- GLOBAL VARS ---
 const BASE_URL = '<?= $base_url ?>';
@@ -394,8 +465,13 @@ document.addEventListener('DOMContentLoaded', () => {
         handleFormSubmit(this, BASE_URL + '/settings/process');
     });
 
-    // --- NEW: Unbind Email Button Logic ---
+    // --- MODIFIED: Unbind Email Button Logic ---
     const unbindEmailBtn = document.getElementById('unbindEmailBtn');
+    const unbindEmailModal = document.getElementById('unbindEmailModal');
+    const confirmUnbindBtn = document.getElementById('confirmUnbindBtn');
+    const cancelUnbindBtn = document.getElementById('cancelUnbindBtn');
+    const closeUnbindModal = document.getElementById('closeUnbindModal');
+
     if (unbindEmailBtn) {
         unbindEmailBtn.addEventListener('click', function() {
             const twoFaSwitch = document.getElementById('twoFaSwitch');
@@ -403,37 +479,61 @@ document.addEventListener('DOMContentLoaded', () => {
                 showAjaxResult('You must disable Two-Factor Authentication before removing your email.', 'error');
                 return;
             }
-
-            if (confirm('Are you sure you want to remove your email address? This will prevent you from using 2FA or resetting your password via email.')) {
-                const btn = this;
-                btn.disabled = true;
-                btn.innerHTML = '<span class="material-icons">sync</span> Removing...';
-
-                fetch(BASE_URL + '/settings/process', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                    body: new URLSearchParams({ 'unbind_email': '1' })
-                })
-                .then(response => response.json())
-                .then(result => {
-                    if (result.status === 'success') {
-                        showAjaxResult(result.message, 'success');
-                        setTimeout(() => window.location.reload(), 1500);
-                    } else {
-                        showAjaxResult(result.message || 'An error occurred.', 'error');
-                        btn.disabled = false;
-                        btn.innerHTML = '<span class="material-icons">link_off</span> Unbind Email';
-                    }
-                })
-                .catch(error => {
-                    showAjaxResult('A network error occurred.', 'error');
-                    btn.disabled = false;
-                    btn.innerHTML = '<span class="material-icons">link_off</span> Unbind Email';
-                });
+            
+            // Show the confirmation modal instead of confirm()
+            if (unbindEmailModal) {
+                unbindEmailModal.style.display = 'flex'; // Use flex for centering
             }
         });
     }
-    // --- END NEW ---
+
+    // Close modal listeners
+    if (cancelUnbindBtn) {
+        cancelUnbindBtn.onclick = () => { unbindEmailModal.style.display = 'none'; };
+    }
+    if (closeUnbindModal) {
+        closeUnbindModal.onclick = () => { unbindEmailModal.style.display = 'none'; };
+    }
+    window.addEventListener('click', (event) => {
+        if (event.target === unbindEmailModal) {
+            unbindEmailModal.style.display = 'none';
+        }
+    });
+
+    // Handle the actual confirmation
+    if (confirmUnbindBtn) {
+        confirmUnbindBtn.addEventListener('click', function() {
+            const btn = this;
+            btn.disabled = true;
+            btn.textContent = 'Removing...';
+            if (unbindEmailModal) {
+                unbindEmailModal.style.display = 'none'; // Hide modal
+            }
+
+            fetch(BASE_URL + '/settings/process', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: new URLSearchParams({ 'unbind_email': '1' })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.status === 'success') {
+                    showAjaxResult(result.message, 'success');
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showAjaxResult(result.message || 'An error occurred.', 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Confirm Unbind';
+                }
+            })
+            .catch(error => {
+                showAjaxResult('A network error occurred.', 'error');
+                btn.disabled = false;
+                btn.textContent = 'Confirm Unbind';
+            });
+        });
+    }
+    // --- END MODIFIED ---
 
 
     // --- PASSWORD CHANGE LOGIC ---
