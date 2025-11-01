@@ -251,6 +251,15 @@ class Auth {
         $stmt->execute([$userId]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($user) {
+            
+            // --- NEW: Failsafe to ensure 2FA is off if email is null ---
+            if (is_null($user['email']) && $user['two_fa'] == 1) {
+                $this->updateTwoFA($userId, 0); // Directly call method to disable it
+                $user['two_fa'] = 0; // Update local copy
+                log_action('WARNING', '2FA_FAILSAFE', "2FA disabled for user ID #{$userId} because email was NULL.");
+            }
+            // --- END NEW ---
+
             // Update session if user is currently logged in, otherwise just return data
             if (isset($_SESSION['user']['id']) && $_SESSION['user']['id'] == $userId) {
                 $_SESSION['user']['username'] = $user['username'];
