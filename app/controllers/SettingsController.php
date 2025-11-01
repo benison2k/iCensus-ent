@@ -44,11 +44,38 @@ class SettingsController {
         
         try {
             $message = 'Settings saved.';
+
+            // --- NEW: Unbind Email Logic ---
+            if (isset($_POST['unbind_email'])) {
+                if ($_SESSION['user']['two_fa'] == 1) {
+                    http_response_code(403);
+                    echo json_encode(['status' => 'error', 'message' => 'You must disable Two-Factor Authentication before removing your email.']);
+                    exit;
+                }
+                
+                $currentEmail = $_SESSION['user']['email'] ?? 'none';
+                $stmt = $db->getPdo()->prepare("UPDATE users SET email = NULL WHERE id = ?");
+                $stmt->execute([$userId]);
+                $auth->refreshUserSession($userId);
+                log_action('INFO', 'SETTINGS_UPDATE', "User removed their email address. (Was: '{$currentEmail}')");
+                
+                echo json_encode(['status' => 'success', 'message' => 'Email address removed successfully.']);
+                exit; // Stop further execution
+            }
+            // --- END: Unbind Email Logic ---
             
             // --- Update Email Logic ---
             if (isset($_POST['update_email'])) {
                 $newEmail = trim($_POST['email']);
                 if ($oldEmail !== $newEmail) {
+                    // --- SECURITY CHECK: Cannot change email if 2FA is on ---
+                    if ($_SESSION['user']['two_fa'] == 1) {
+                        http_response_code(403);
+                        echo json_encode(['status' => 'error', 'message' => 'You must disable Two-Factor Authentication before changing your email.']);
+                        exit;
+                    }
+                    // --- END CHECK ---
+
                     $stmt = $db->getPdo()->prepare("UPDATE users SET email=? WHERE id=?");
                     $stmt->execute([$newEmail, $userId]);
                     $auth->refreshUserSession($userId);
@@ -311,7 +338,10 @@ class SettingsController {
         
         // SCENARIO 3: NO CHANGE OR INVALID REQUEST
         $action = $targetTwoFA ? '2FA_ENABLED' : '2FA_DISABLED';
-        log_action('INFO', $action, "User toggled 2FA status to: " . ($targetTwoFA ? 'Enabled' : 'Disabled'));
+        // Check if there was an actual change
+        if ($targetTwoFA != $currentTwoFA) {
+            log_action('INFO', $action, "User toggled 2FA status to: " . ($targetTwoFA ? 'Enabled' : 'Disabled'));
+        }
         echo json_encode(['status' => 'success', 'message' => 'Two-Factor Authentication preference updated.']);
         exit;
     }
