@@ -209,6 +209,14 @@ switch ($route) {
     case 'settings/resendPasswordChangeOtp': 
         (new SettingsController())->resendPasswordChangeOtp();
         break;
+    // --- NEW UNBIND ROUTES ---
+    case 'settings/request-unbind-otp':
+        (new SettingsController())->requestUnbindEmailOtp();
+        break;
+    case 'settings/confirm-unbind-email':
+        (new SettingsController())->confirmUnbindEmail();
+        break;
+    // --- END NEW ---
 
     // --- System Admin Routes ---
     case 'sysadmin/dashboard':

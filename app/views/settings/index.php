@@ -49,24 +49,24 @@ body.dark-mode .password-otp-group {
 }
 
 /* Styles for 2FA Toggle Modal */
-#otpToggleModal .modal-content {
+#otpToggleModal .modal-content, #otpUnbindModal .modal-content {
     max-width: 400px;
 }
 
-#otpToggleInput {
+#otpToggleInput, #otpUnbindInput {
     text-align: center;
     font-size: 1.5rem;
     font-weight: 700;
     letter-spacing: 5px;
 }
-#resendToggleOtpBtn {
+#resendToggleOtpBtn, #resendUnbindOtpBtn {
     font-size: 0.85rem;
     cursor: pointer;
     text-decoration: underline !important;
     color: #0d6efd !important;
     margin-top: 10px;
 }
-#otpToggleError {
+#otpToggleError, #otpUnbindError {
     margin-top: 10px;
 }
 
@@ -118,68 +118,13 @@ body.dark-mode #unbindEmailBtn:hover {
     background-color: #a71d2a;
 }
 
-/* --- NEW: Confirmation Modal Styles --- */
-#unbindEmailModal .modal-content {
-    max-width: 450px;
-    text-align: left; /* Aligns text left */
-}
-#unbindEmailModal h3 {
-    color: #dc3545; /* Red text for warning */
-    text-align: left;
-    font-size: 1.4rem;
-    margin-bottom: 0.5rem;
-}
-#unbindEmailModal p {
-    text-align: left;
-    margin-top: 0.5rem;
-    font-size: 0.95rem;
-    color: #333;
-}
-.modal-actions {
-    margin-top: 1.5rem;
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
-}
-.modal-actions .btn {
-    padding: 0.6rem 1.2rem;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 500;
-    font-size: 0.9rem;
-}
-.modal-actions .btn.confirm {
-    background-color: #dc3545;
-    color: white;
-}
-.modal-actions .btn.cancel {
-    background-color: #f1f1f1;
-    color: #333;
-    border: 1px solid #ddd;
-}
+/* --- REMOVED: Old Confirmation Modal Styles --- */
 
-/* Dark Mode for new modal */
-body.dark-mode #unbindEmailModal .modal-content {
-    background: #2C3E50;
-    border-left: none; /* Remove the side bar */
-}
-body.dark-mode #unbindEmailModal h3 {
-    color: #f44336;
-}
-body.dark-mode #unbindEmailModal p {
-    color: #eee;
-}
-body.dark-mode .modal-actions .btn.cancel {
-    background-color: #4a5a6a;
-    color: #fff;
-    border: 1px solid #555;
-}
 </style>
 
 </head>
 <body class="<?= $theme==='dark'?'dark-mode':'light-mode'; ?>">
-    
+
 <?php include __DIR__ . '/../components/header.php'; ?>
 
 <div class="welcome"><h2>Settings</h2></div>
@@ -348,15 +293,22 @@ body.dark-mode .modal-actions .btn.cancel {
 </div>
 </main>
 
-<div id="unbindEmailModal" class="modal" style="display: none; align-items: center; justify-content: center; z-index: 2001;">
-    <div class="modal-content">
-        <span class="close" id="closeUnbindModal">&times;</span>
-        <h3>Are you sure?</h3>
-        <p>This action will permanently remove your email address from the account. You will lose the ability to use Two-Factor Authentication (2FA) and password reset via email.</p>
-        <div class="modal-actions">
-            <button id="cancelUnbindBtn" class="btn cancel">Cancel</button>
-            <button id="confirmUnbindBtn" class="btn confirm">Confirm Unbind</button>
-        </div>
+<div id="otpUnbindModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 400px; padding: 30px;">
+        <span class="close" id="closeOtpUnbindModal">&times;</span>
+        <h3 style="margin-top: 0; text-align: center;">Confirm Email Removal</h3>
+        <p class="text-muted" style="text-align: center;">Enter the 6-digit code sent to your email to confirm you want to unbind your email.</p>
+        
+        <form id="otpUnbindForm" action="<?= $base_url ?>/settings/confirm-unbind-email" method="POST" style="margin-top: 1.5rem;">
+            <div class="input-wrapper mb-3" style="display: flex; justify-content: center;">
+                <input type="text" name="otp" id="otpUnbindInput" class="form-control" placeholder="______" required autofocus maxlength="6" pattern="\d{6}" inputmode="numeric">
+            </div>
+            <div class="error-text" id="otpUnbindError" style="margin-bottom: 1rem;"></div>
+            <button type="submit" class="btn btn-primary w-100 mb-3" id="otpUnbindVerifyBtn" style="background-color: #dc3545;">Confirm Unbind</button>
+        </form>
+        
+        <a href="#" id="resendUnbindOtpBtn" class="small text-decoration-none" style="display: block; text-align: center;">Resend Code</a>
+        <span id="cooldownUnbindTimer" class="small text-muted" style="margin-top: 5px; display: none; text-align: center;"></span>
     </div>
 </div>
 
@@ -467,70 +419,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- MODIFIED: Unbind Email Button Logic ---
     const unbindEmailBtn = document.getElementById('unbindEmailBtn');
-    const unbindEmailModal = document.getElementById('unbindEmailModal');
-    const confirmUnbindBtn = document.getElementById('confirmUnbindBtn');
-    const cancelUnbindBtn = document.getElementById('cancelUnbindBtn');
-    const closeUnbindModal = document.getElementById('closeUnbindModal');
 
     if (unbindEmailBtn) {
-        unbindEmailBtn.addEventListener('click', function() {
+        unbindEmailBtn.addEventListener('click', async function() {
+            const btn = this;
+            btn.disabled = true;
+
             const twoFaSwitch = document.getElementById('twoFaSwitch');
             if (twoFaSwitch.checked) {
                 showAjaxResult('You must disable Two-Factor Authentication before removing your email.', 'error');
+                btn.disabled = false;
                 return;
             }
             
-            // Show the confirmation modal instead of confirm()
-            if (unbindEmailModal) {
-                unbindEmailModal.style.display = 'flex'; // Use flex for centering
-            }
-        });
-    }
+            try {
+                // Request an OTP
+                const response = await fetch(BASE_URL + '/settings/request-unbind-otp', { method: 'POST' });
+                const result = await response.json();
 
-    // Close modal listeners
-    if (cancelUnbindBtn) {
-        cancelUnbindBtn.onclick = () => { unbindEmailModal.style.display = 'none'; };
-    }
-    if (closeUnbindModal) {
-        closeUnbindModal.onclick = () => { unbindEmailModal.style.display = 'none'; };
-    }
-    window.addEventListener('click', (event) => {
-        if (event.target === unbindEmailModal) {
-            unbindEmailModal.style.display = 'none';
-        }
-    });
-
-    // Handle the actual confirmation
-    if (confirmUnbindBtn) {
-        confirmUnbindBtn.addEventListener('click', function() {
-            const btn = this;
-            btn.disabled = true;
-            btn.textContent = 'Removing...';
-            if (unbindEmailModal) {
-                unbindEmailModal.style.display = 'none'; // Hide modal
-            }
-
-            fetch(BASE_URL + '/settings/process', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: new URLSearchParams({ 'unbind_email': '1' })
-            })
-            .then(response => response.json())
-            .then(result => {
                 if (result.status === 'success') {
-                    showAjaxResult(result.message, 'success');
-                    setTimeout(() => window.location.reload(), 1500);
+                    showOtpUnbindModal(result.message, COOLDOWN_DURATION);
+                } else if (result.status === 'cooldown') {
+                    showOtpUnbindModal(result.message, result.cooldown_remaining);
                 } else {
                     showAjaxResult(result.message || 'An error occurred.', 'error');
-                    btn.disabled = false;
-                    btn.textContent = 'Confirm Unbind';
                 }
-            })
-            .catch(error => {
-                showAjaxResult('A network error occurred.', 'error');
+            } catch (error) {
+                 showAjaxResult('A network error occurred.', 'error');
+            } finally {
                 btn.disabled = false;
-                btn.textContent = 'Confirm Unbind';
-            });
+            }
         });
     }
     // --- END MODIFIED ---
@@ -924,6 +842,131 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             verifyBtn.disabled = false;
             verifyBtn.textContent = 'Confirm Disable';
+        }
+    });
+
+    // --- NEW: UNBIND EMAIL OTP MODAL ---
+    const otpUnbindModal = document.getElementById('otpUnbindModal');
+    const closeOtpUnbindModal = document.getElementById('closeOtpUnbindModal');
+    const otpUnbindForm = document.getElementById('otpUnbindForm');
+    const otpUnbindInput = document.getElementById('otpUnbindInput');
+    const otpUnbindError = document.getElementById('otpUnbindError');
+    const resendUnbindOtpBtn = document.getElementById('resendUnbindOtpBtn');
+    const cooldownUnbindTimer = document.getElementById('cooldownUnbindTimer');
+    let unbindTimerInterval = null; 
+
+    function startUnbindCountdown(duration) {
+        clearInterval(unbindTimerInterval);
+        let timeRemaining = duration;
+        
+        resendUnbindOtpBtn.style.display = 'none';
+        cooldownUnbindTimer.style.display = 'block';
+
+        unbindTimerInterval = setInterval(() => {
+            let seconds = timeRemaining % 60;
+            let display = seconds < 10 ? "0" + seconds : seconds;
+            
+            cooldownUnbindTimer.textContent = `Resend available in ${display}s`;
+            
+            if (timeRemaining <= 0) {
+                clearInterval(unbindTimerInterval);
+                resendUnbindOtpBtn.style.display = 'block';
+                cooldownUnbindTimer.style.display = 'none';
+                otpUnbindError.textContent = 'The cooldown has expired. You may resend the code.';
+                otpUnbindError.style.color = '#0d6efd';
+            }
+            timeRemaining--;
+        }, 1000);
+    }
+
+    function showOtpUnbindModal(message, cooldown = 60) {
+        otpUnbindError.textContent = message;
+        otpUnbindError.style.color = '#0d6efd';
+        otpUnbindInput.value = '';
+        otpUnbindModal.style.display = 'flex';
+        otpUnbindInput.focus();
+        startUnbindCountdown(cooldown);
+    }
+    
+    closeOtpUnbindModal.onclick = () => {
+        clearInterval(unbindTimerInterval);
+        otpUnbindModal.style.display = 'none';
+    };
+    window.addEventListener('click', (event) => {
+        if (event.target === otpUnbindModal) {
+            clearInterval(unbindTimerInterval);
+            otpUnbindModal.style.display = 'none';
+        }
+    });
+
+    resendUnbindOtpBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        
+        otpUnbindError.textContent = 'Sending...';
+        otpUnbindError.style.color = 'orange';
+        resendUnbindOtpBtn.style.display = 'none';
+        
+        try {
+            const response = await fetch(BASE_URL + '/settings/request-unbind-otp', {
+                method: 'POST'
+            });
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                otpUnbindError.textContent = 'A new code has been sent. Check your email.';
+                otpUnbindError.style.color = 'green';
+                startUnbindCountdown(COOLDOWN_DURATION); 
+            } else if (result.status === 'cooldown') {
+                otpUnbindError.textContent = result.message;
+                otpUnbindError.style.color = 'red';
+                startUnbindCountdown(result.cooldown_remaining); 
+            } else {
+                otpUnbindError.textContent = result.message;
+                otpUnbindError.style.color = 'red';
+                resendUnbindOtpBtn.style.display = 'block';
+            }
+        } catch (error) {
+            otpUnbindError.textContent = 'Network error while trying to resend.';
+            otpUnbindError.style.color = 'red';
+            resendUnbindOtpBtn.style.display = 'block';
+            console.error(error);
+        }
+    });
+    
+    otpUnbindForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const verifyBtn = document.getElementById('otpUnbindVerifyBtn');
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = 'Verifying...';
+        otpUnbindError.textContent = '';
+        
+        try {
+            const formData = new URLSearchParams(new FormData(otpUnbindForm));
+            
+            const response = await fetch(otpUnbindForm.action, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                clearInterval(unbindTimerInterval);
+                showAjaxResult(result.message, 'success');
+                otpUnbindModal.style.display = 'none';
+                setTimeout(() => window.location.reload(), 1500); // Reload to show unbound email
+            } else {
+                otpUnbindError.textContent = result.message;
+                otpUnbindError.style.color = 'red';
+            }
+        } catch (error) {
+            otpUnbindError.textContent = 'Network error during verification.';
+            otpUnbindError.style.color = 'red';
+            console.error(error);
+        } finally {
+            verifyBtn.disabled = false;
+            verifyBtn.textContent = 'Confirm Unbind';
         }
     });
     
