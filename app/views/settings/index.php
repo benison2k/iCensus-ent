@@ -178,8 +178,8 @@ body.dark-mode .modal-actions .btn.cancel {
 </style>
 
 </head>
-<body class="<?= $theme==='dark'?'dark-mode':''; ?>">
-
+<body class="<?= $theme==='dark'?'dark-mode':'light-mode'; ?>">
+    
 <?php include __DIR__ . '/../components/header.php'; ?>
 
 <div class="welcome"><h2>Settings</h2></div>
