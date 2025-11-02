@@ -45,24 +45,8 @@ class SettingsController {
         try {
             $message = 'Settings saved.';
 
-            // --- NEW: Unbind Email Logic ---
-            if (isset($_POST['unbind_email'])) {
-                if ($_SESSION['user']['two_fa'] == 1) {
-                    http_response_code(403);
-                    echo json_encode(['status' => 'error', 'message' => 'You must disable Two-Factor Authentication before removing your email.']);
-                    exit;
-                }
-                
-                $currentEmail = $_SESSION['user']['email'] ?? 'none';
-                $stmt = $db->getPdo()->prepare("UPDATE users SET email = NULL WHERE id = ?");
-                $stmt->execute([$userId]);
-                $auth->refreshUserSession($userId);
-                log_action('INFO', 'SETTINGS_UPDATE', "User removed their email address. (Was: '{$currentEmail}')");
-                
-                echo json_encode(['status' => 'success', 'message' => 'Email address removed successfully.']);
-                exit; // Stop further execution
-            }
-            // --- END: Unbind Email Logic ---
+            // --- REMOVED: Unbind Email Logic ---
+            // This is now handled by confirmUnbindEmail()
             
             // --- Update Email Logic ---
             if (isset($_POST['update_email'])) {
@@ -149,6 +133,104 @@ class SettingsController {
 
         exit;
     }
+
+    /**
+     * NEW: Handles request to unbind email, sends OTP.
+     */
+    public function requestUnbindEmailOtp() {
+        $this->checkAuth();
+        header('Content-Type: application/json');
+        
+        if ($_SESSION['user']['two_fa'] == 1) {
+            http_response_code(403);
+            echo json_encode(['status' => 'error', 'message' => 'You must disable Two-Factor Authentication before removing your email.']);
+            exit;
+        }
+
+        $cooldown_duration = 60; // 60 seconds
+        $last_sent_key = 'unbind_otp_last_sent';
+        $last_sent_time = $_SESSION[$last_sent_key] ?? 0;
+        $time_since_last_sent = time() - $last_sent_time;
+
+        if ($time_since_last_sent < $cooldown_duration) {
+            $remaining_time = $cooldown_duration - $time_since_last_sent;
+            echo json_encode([
+                'status' => 'cooldown',
+                'message' => "Please wait {$remaining_time} seconds before requesting a new code.",
+                'cooldown_remaining' => $remaining_time
+            ]);
+            exit;
+        }
+        
+        $config = require __DIR__ . '/../../config/database.php';
+        $db = new Database($config);
+        $GLOBALS['db'] = $db;
+        $auth = new Auth($db);
+        
+        $userId = $_SESSION['user']['id'];
+        $email = $_SESSION['user']['email'] ?? '';
+
+        if (!empty($email)) {
+            $otp_sent = $auth->generateAndSendOtp($userId, $email);
+            
+            if ($otp_sent) {
+                $_SESSION[$last_sent_key] = time();
+                $_SESSION['unbind_otp_pending'] = true;
+                $message = 'A One-Time Password has been sent to your email to confirm email removal.'; 
+                $status = 'success';
+            } else {
+                $message = 'Failed to send OTP. Check system logs.';
+                $status = 'error';
+            }
+        } else {
+            $message = 'Error: No email to unbind.';
+            $status = 'error';
+        }
+        
+        echo json_encode(['status' => $status, 'message' => $message]);
+        exit;
+    }
+
+    /**
+     * NEW: Verifies OTP and completes email unbinding.
+     */
+    public function confirmUnbindEmail() {
+        $this->checkAuth();
+        header('Content-Type: application/json');
+
+        if (!isset($_SESSION['unbind_otp_pending']) || !$_SESSION['unbind_otp_pending']) {
+            echo json_encode(['status' => 'error', 'message' => 'Invalid session. Please request a new OTP.']);
+            exit;
+        }
+        
+        $config = require __DIR__ . '/../../config/database.php';
+        $db = new Database($config);
+        $GLOBALS['db'] = $db;
+        $auth = new Auth($db);
+
+        $userId = $_SESSION['user']['id'];
+        $submittedOtp = trim($_POST['otp'] ?? '');
+
+        $result = $auth->verifyOtpForToggle($userId, $submittedOtp);
+
+        if ($result['success']) {
+            $currentEmail = $_SESSION['user']['email'] ?? 'none';
+            $stmt = $db->getPdo()->prepare("UPDATE users SET email = NULL WHERE id = ?");
+            $stmt->execute([$userId]);
+            $auth->refreshUserSession($userId);
+            log_action('INFO', 'SETTINGS_UPDATE', "User removed their email address via OTP. (Was: '{$currentEmail}')");
+            
+            unset($_SESSION['unbind_otp_pending']);
+            unset($_SESSION['unbind_otp_last_sent']);
+            
+            echo json_encode(['status' => 'success', 'message' => 'Email address removed successfully.']);
+            exit;
+        } else {
+            echo json_encode(['status' => 'error', 'message' => $result['message']]);
+            exit;
+        }
+    }
+
 
     /**
      * MODIFIED: This now acts as STEP 1 for password change.
