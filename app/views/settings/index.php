@@ -117,9 +117,6 @@ body.dark-mode #unbindEmailBtn {
 body.dark-mode #unbindEmailBtn:hover {
     background-color: #a71d2a;
 }
-
-/* --- REMOVED: Old Confirmation Modal Styles --- */
-
 </style>
 
 </head>
@@ -156,19 +153,7 @@ body.dark-mode #unbindEmailBtn:hover {
     <div class="settings-content">
         <div id="tab-account" class="tab-pane active">
             <h3>Account Information</h3>
-            <form id="emailForm" method="POST">
-                <div class="form-group">
-                    <label for="email">Email Address (for 2FA & Password Reset)</label>
-                    <input type="email" name="email" id="email" value="<?= htmlspecialchars($user['email'] ?? ''); ?>" placeholder="Enter email address" required>
-                    <small style="margin-top: 5px; color: #6c757d;">Note: 2FA must be disabled to change or unbind your email.</small>
-                </div>
-                <input type="hidden" name="update_email" value="1">
-                <div class="button-group">
-                    <button type="submit"><span class="material-icons">save</span> Save Email</button>
-                    <button type="button" id="unbindEmailBtn"><span class="material-icons">link_off</span> Unbind Email</button>
-                </div>
-            </form>
-            <hr style="margin: 2rem 0;">
+            
             <form id="usernameForm" method="POST">
                 <div class="form-group">
                     <label for="username">Username</label>
@@ -235,6 +220,22 @@ body.dark-mode #unbindEmailBtn:hover {
                     </div>
                 </form>
             </div>
+            
+            <hr style="margin: 2rem 0;">
+            <h4 style="font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem;">Email & Recovery</h4>
+            <form id="emailForm" method="POST">
+                <div class="form-group">
+                    <label for="email">Email Address (for 2FA & Password Reset)</label>
+                    <input type="email" name="email" id="email" value="<?= htmlspecialchars($user['email'] ?? ''); ?>" placeholder="Enter email address" required>
+                    <small style="margin-top: 5px; color: #6c757d;">Note: 2FA must be disabled to change or unbind your email.</small>
+                </div>
+                <input type="hidden" name="update_email" value="1">
+                <div class="button-group">
+                    <button type="submit"><span class="material-icons">save</span> Save Email</button>
+                    <button type="button" id="unbindEmailBtn"><span class="material-icons">link_off</span> Unbind Email</button>
+                </div>
+            </form>
+
         </div>
 
         <div id="tab-preferences" class="tab-pane">
@@ -844,7 +845,7 @@ document.addEventListener('DOMContentLoaded', () => {
             verifyBtn.textContent = 'Confirm Disable';
         }
     });
-
+    
     // --- NEW: UNBIND EMAIL OTP MODAL ---
     const otpUnbindModal = document.getElementById('otpUnbindModal');
     const closeOtpUnbindModal = document.getElementById('closeOtpUnbindModal');
