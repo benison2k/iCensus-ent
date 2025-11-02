@@ -170,6 +170,7 @@ body.dark-mode .form-group input, body.dark-mode .form-group select { background
                     <input type="hidden" name="resident_id" id="resident_id">
 
                     <div style="padding: 0 2rem;">
+                        <p class="progress-label">Required Information Completeness:</p>
                         <div class="progress-container">
                             <div class="progress-bar" id="formProgressBar">0%</div>
                         </div>
