@@ -8,7 +8,8 @@ export function initSecurityTab(helpers) {
         emailForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             const twoFaSwitch = document.getElementById('twoFaSwitch');
-            if (twoFaSwitch.checked) {
+            // This check remains valid, as 2FA could be enabled
+            if (twoFaSwitch && twoFaSwitch.checked) { 
                 showAjaxResult('You must disable Two-Factor Authentication before changing your email.', 'error');
                 return;
             }
@@ -19,7 +20,8 @@ export function initSecurityTab(helpers) {
             await handleGenericSubmit(this, BASE_URL + '/settings/email', showAjaxResult);
             
             btn.disabled = false;
-            setTimeout(() => window.location.reload(), 1500); // Reload to reflect new email
+            // Reload the page to show/hide the 2FA section if email was added/removed
+            setTimeout(() => window.location.reload(), 1500); 
         });
     }
 
@@ -35,6 +37,7 @@ export function initSecurityTab(helpers) {
 
 // --- Password Sub-Module ---
 function initPasswordForm(helpers) {
+    // (This entire function remains unchanged from the previous version)
     const { showAjaxResult, BASE_URL, COOLDOWN_DURATION } = helpers;
 
     const passwordForm = document.getElementById('passwordForm');
@@ -73,7 +76,7 @@ function initPasswordForm(helpers) {
         passCooldownTimer.textContent = '';
         strengthBar.className = '';
         strengthText.textContent = '';
-        otpPasswordField.required = false;
+        if (otpPasswordField) otpPasswordField.required = false; // Check if it exists
     }
 
     verifyBtn.addEventListener('click', async () => {
@@ -104,7 +107,7 @@ function initPasswordForm(helpers) {
                 startPassCooldown(COOLDOWN_DURATION);
             } else {
                 otpRequirement.style.display = 'none';
-                otpPasswordField.required = false;
+                if (otpPasswordField) otpPasswordField.required = false; // Check if it exists
             }
         } else {
             verifyMessage.textContent = result.message || 'Incorrect password.';
@@ -140,36 +143,37 @@ function initPasswordForm(helpers) {
         }, 1000);
     }
     
-    resendOtpBtnPass.addEventListener('click', async (e) => {
-        e.preventDefault();
-        passwordOtpError.textContent = 'Sending...';
-        passwordOtpError.style.color = '#0d6efd';
-        
-        try {
-            const response = await fetch(BASE_URL + '/settings/resendPasswordChangeOtp', { method: 'POST' });
-            const result = await response.json();
+    if (resendOtpBtnPass) { // Check if it exists
+        resendOtpBtnPass.addEventListener('click', async (e) => {
+            e.preventDefault();
+            passwordOtpError.textContent = 'Sending...';
+            passwordOtpError.style.color = '#0d6efd';
             
-            if (result.status === 'success') {
-                passwordOtpError.textContent = result.message;
-                passwordOtpError.style.color = 'green';
-                startPassCooldown(COOLDOWN_DURATION);
-            } else if (result.status === 'cooldown') {
-                passwordOtpError.textContent = result.message;
+            try {
+                const response = await fetch(BASE_URL + '/settings/resendPasswordChangeOtp', { method: 'POST' });
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    passwordOtpError.textContent = result.message;
+                    passwordOtpError.style.color = 'green';
+                    startPassCooldown(COOLDOWN_DURATION);
+                } else if (result.status === 'cooldown') {
+                    passwordOtpError.textContent = result.message;
+                    passwordOtpError.style.color = 'red';
+                    startPassCooldown(result.cooldown_remaining);
+                } else {
+                    passwordOtpError.textContent = result.message;
+                    passwordOtpError.style.color = 'red';
+                    resendOtpBtnPass.style.display = 'block';
+                }
+            } catch (error) {
+                passwordOtpError.textContent = 'Network error while trying to resend.';
                 passwordOtpError.style.color = 'red';
-                startPassCooldown(result.cooldown_remaining);
-            } else {
-                passwordOtpError.textContent = result.message;
-                passwordOtpError.style.color = 'red';
-                resendOtpBtnPass.style.display = 'block';
             }
-        } catch (error) {
-            passwordOtpError.textContent = 'Network error while trying to resend.';
-            passwordOtpError.style.color = 'red';
-        }
-    });
+        });
+    }
 
     function checkPasswordStrength() {
-        // (logic is the same as your original file)
         const pass = password.value;
         let score = 0;
         if (pass.length > 8) score++;
@@ -183,7 +187,6 @@ function initPasswordForm(helpers) {
     }
 
     function checkPasswordMatch() {
-        // (logic is the same as your original file)
         const passwordValid = password.value.length >= 6 && password.value === confirmPassword.value;
         if (password.value === '' || confirmPassword.value === '') {
             matchIcon.innerHTML = ''; passwordSubmit.disabled = true; return;
@@ -233,17 +236,20 @@ function init2FAToggle(helpers) {
     const twoFaLabel = document.getElementById('twoFaLabel');
     const emailInput = document.getElementById('email');
 
-    if (!twoFaSwitch) return;
+    // This section is conditional in PHP, so it might not exist.
+    if (!twoFaSwitch) return; 
 
-    if (emailInput.value.trim().length === 0) {
-        twoFaSwitch.disabled = true;
-        twoFaSwitch.parentElement.title = 'Please add and save an email address to enable 2FA.';
-    }
+    // **REMOVED** The check to disable the switch is no longer needed
+    // as the PHP view handles this rendering logic.
+    // if (emailInput.value.trim().length === 0) {
+    //     ...
+    // }
 
     twoFaSwitch.addEventListener('change', async function() {
         const isChecked = this.checked;
         const targetTwoFA = isChecked ? 1 : 0;
         
+        // This check is still good as a client-side safeguard
         if (targetTwoFA === 1 && emailInput.value.trim().length === 0) {
             this.checked = false;
             showAjaxResult('Cannot enable 2FA: Please save a valid email address first.', 'error');
@@ -296,6 +302,7 @@ function init2FAToggle(helpers) {
 
 // --- Unbind Email Sub-Module ---
 function initUnbindEmail(helpers) {
+    // (This entire function remains unchanged from the previous version)
     const { showAjaxResult, BASE_URL, COOLDOWN_DURATION } = helpers;
 
     const unbindEmailBtn = document.getElementById('unbindEmailBtn');
@@ -306,7 +313,7 @@ function initUnbindEmail(helpers) {
         btn.disabled = true;
 
         const twoFaSwitch = document.getElementById('twoFaSwitch');
-        if (twoFaSwitch.checked) {
+        if (twoFaSwitch && twoFaSwitch.checked) { // Check if switch exists and is checked
             showAjaxResult('You must disable Two-Factor Authentication before removing your email.', 'error');
             btn.disabled = false;
             return;
@@ -344,9 +351,11 @@ function initUnbindEmail(helpers) {
 // --- Generic OTP Modal Handler ---
 let otpCooldownInterval = null;
 function initOtpModal(modalId, helpers, message, cooldown) {
+    // (This entire function remains unchanged from the previous version)
     const { showAjaxResult, BASE_URL, COOLDOWN_DURATION, resendUrl, resendBody, onSuccessReload, onCloseReload } = helpers;
     
     const modal = document.getElementById(modalId);
+    if (!modal) return; // Add check in case modal doesn't exist
     const form = modal.querySelector('form');
     const input = modal.querySelector('input[name="otp"]');
     const errorEl = modal.querySelector('.error-text');
@@ -378,7 +387,6 @@ function initOtpModal(modalId, helpers, message, cooldown) {
         }, 1000);
     }
 
-    // Show the modal
     errorEl.textContent = message;
     errorEl.style.color = '#0d6efd';
     input.value = '';
@@ -386,7 +394,6 @@ function initOtpModal(modalId, helpers, message, cooldown) {
     input.focus();
     startCountdown(cooldown);
 
-    // --- Attach event listeners (only once) ---
     if (!modal.dataset.initialized) {
         modal.dataset.initialized = 'true';
         
