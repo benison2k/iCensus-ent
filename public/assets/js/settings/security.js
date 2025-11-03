@@ -8,7 +8,6 @@ export function initSecurityTab(helpers) {
         emailForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             const twoFaSwitch = document.getElementById('twoFaSwitch');
-            // This check remains valid, as 2FA could be enabled
             if (twoFaSwitch && twoFaSwitch.checked) { 
                 showAjaxResult('You must disable Two-Factor Authentication before changing your email.', 'error');
                 return;
@@ -17,11 +16,37 @@ export function initSecurityTab(helpers) {
             const btn = this.querySelector('button[type="submit"]');
             btn.disabled = true;
 
-            await handleGenericSubmit(this, BASE_URL + '/settings/email', showAjaxResult);
-            
-            btn.disabled = false;
-            // Reload the page to show/hide the 2FA section if email was added/removed
-            setTimeout(() => window.location.reload(), 1500); 
+            // --- REFACTORED SUBMIT LOGIC ---
+            try {
+                const formData = new URLSearchParams(new FormData(this));
+                const response = await fetch(BASE_URL + '/settings/email', { // This now points to requestBindEmailOtp
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                
+                if (response.ok) {
+                    if (result.status === 'success') {
+                        // This means the email was the same, no change
+                        showAjaxResult(result.message, 'success');
+                    } else if (result.status === 'otp_required') {
+                        // NEW: Trigger the bind modal
+                        initOtpModal('otpBindModal', {
+                            ...helpers,
+                            resendUrl: BASE_URL + '/settings/resend-bind-otp',
+                            resendBody: new URLSearchParams(), // No body needed, email is in session
+                            onSuccessReload: true // Reload on success to update email value
+                        }, result.message, COOLDOWN_DURATION);
+                    }
+                } else {
+                    showAjaxResult(result.message || 'An error occurred.', 'error');
+                }
+            } catch (error) {
+                showAjaxResult('A network error occurred. Please try again.', 'error');
+            } finally {
+                btn.disabled = false;
+            }
+            // --- END REFACTORED SUBMIT LOGIC ---
         });
     }
 
@@ -37,7 +62,6 @@ export function initSecurityTab(helpers) {
 
 // --- Password Sub-Module ---
 function initPasswordForm(helpers) {
-    // (This entire function remains unchanged from the previous version)
     const { showAjaxResult, BASE_URL, COOLDOWN_DURATION } = helpers;
 
     const passwordForm = document.getElementById('passwordForm');
@@ -71,12 +95,12 @@ function initPasswordForm(helpers) {
         passwordOtpError.textContent = '';
         currentPassword.disabled = false;
         clearInterval(otpCooldownInterval);
-        resendOtpBtnPass.style.display = 'none';
-        passCooldownTimer.style.display = 'none';
-        passCooldownTimer.textContent = '';
+        if (resendOtpBtnPass) resendOtpBtnPass.style.display = 'none'; 
+        if (passCooldownTimer) passCooldownTimer.style.display = 'none'; 
+        if (passCooldownTimer) passCooldownTimer.textContent = ''; 
         strengthBar.className = '';
         strengthText.textContent = '';
-        if (otpPasswordField) otpPasswordField.required = false; // Check if it exists
+        if (otpPasswordField) otpPasswordField.required = false; 
     }
 
     verifyBtn.addEventListener('click', async () => {
@@ -107,7 +131,7 @@ function initPasswordForm(helpers) {
                 startPassCooldown(COOLDOWN_DURATION);
             } else {
                 otpRequirement.style.display = 'none';
-                if (otpPasswordField) otpPasswordField.required = false; // Check if it exists
+                if (otpPasswordField) otpPasswordField.required = false; 
             }
         } else {
             verifyMessage.textContent = result.message || 'Incorrect password.';
@@ -143,7 +167,7 @@ function initPasswordForm(helpers) {
         }, 1000);
     }
     
-    if (resendOtpBtnPass) { // Check if it exists
+    if (resendOtpBtnPass) { 
         resendOtpBtnPass.addEventListener('click', async (e) => {
             e.preventDefault();
             passwordOtpError.textContent = 'Sending...';
@@ -236,20 +260,12 @@ function init2FAToggle(helpers) {
     const twoFaLabel = document.getElementById('twoFaLabel');
     const emailInput = document.getElementById('email');
 
-    // This section is conditional in PHP, so it might not exist.
     if (!twoFaSwitch) return; 
-
-    // **REMOVED** The check to disable the switch is no longer needed
-    // as the PHP view handles this rendering logic.
-    // if (emailInput.value.trim().length === 0) {
-    //     ...
-    // }
 
     twoFaSwitch.addEventListener('change', async function() {
         const isChecked = this.checked;
         const targetTwoFA = isChecked ? 1 : 0;
         
-        // This check is still good as a client-side safeguard
         if (targetTwoFA === 1 && emailInput.value.trim().length === 0) {
             this.checked = false;
             showAjaxResult('Cannot enable 2FA: Please save a valid email address first.', 'error');
@@ -302,7 +318,6 @@ function init2FAToggle(helpers) {
 
 // --- Unbind Email Sub-Module ---
 function initUnbindEmail(helpers) {
-    // (This entire function remains unchanged from the previous version)
     const { showAjaxResult, BASE_URL, COOLDOWN_DURATION } = helpers;
 
     const unbindEmailBtn = document.getElementById('unbindEmailBtn');
@@ -313,7 +328,7 @@ function initUnbindEmail(helpers) {
         btn.disabled = true;
 
         const twoFaSwitch = document.getElementById('twoFaSwitch');
-        if (twoFaSwitch && twoFaSwitch.checked) { // Check if switch exists and is checked
+        if (twoFaSwitch && twoFaSwitch.checked) { 
             showAjaxResult('You must disable Two-Factor Authentication before removing your email.', 'error');
             btn.disabled = false;
             return;
@@ -351,11 +366,10 @@ function initUnbindEmail(helpers) {
 // --- Generic OTP Modal Handler ---
 let otpCooldownInterval = null;
 function initOtpModal(modalId, helpers, message, cooldown) {
-    // (This entire function remains unchanged from the previous version)
     const { showAjaxResult, BASE_URL, COOLDOWN_DURATION, resendUrl, resendBody, onSuccessReload, onCloseReload } = helpers;
     
     const modal = document.getElementById(modalId);
-    if (!modal) return; // Add check in case modal doesn't exist
+    if (!modal) return;
     const form = modal.querySelector('form');
     const input = modal.querySelector('input[name="otp"]');
     const errorEl = modal.querySelector('.error-text');
