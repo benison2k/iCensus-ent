@@ -64,7 +64,6 @@ switch ($route) {
         (new AuthController())->logout();
         break;
         
-    // --- ADDED PASSWORD RESET ROUTES ---
     case 'password/forgot':
         (new AuthController())->forgotPassword();
         break;
@@ -72,7 +71,6 @@ switch ($route) {
     case 'password/reset':
         (new AuthController())->resetPassword();
         break;
-    // --- END ADDED ---
 
     // --- Dashboard Routes ---
     case 'dashboard':
@@ -127,40 +125,17 @@ switch ($route) {
             (new ChartController())->preview();
         }
         break;
-
-    case 'charts/preview':
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            (new ChartController())->preview();
-        }
-        break;
     case 'charts/data':
         (new ChartController())->getData();
         break;
     case 'charts/user-charts':
         (new ChartController())->getUserCharts();
         break;
-
     case 'charts/delete':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         (new ChartController())->delete();
         }
-        break;
-    case 'charts/get':
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-        (new ChartController())->get();
-        }
-        break;
-    case 'charts/preview':
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        (new ChartController())->preview();
-        }
-        break;
-    case 'charts/data':
-        (new ChartController())->getData();
-        break;
-    case 'charts/user-charts':
-        (new ChartController())->getUserCharts();
-        break;    
+        break;  
 
     // --- Analytics Routes ---
     case 'analytics':
@@ -187,13 +162,22 @@ switch ($route) {
         (new AnalyticsController())->data();
         break;
 
-    // --- Settings Routes ---
+    // --- REFACTORED Settings Routes ---
     case 'settings':
         (new SettingsController())->index();
         break;
-    case 'settings/process':
-        (new SettingsController())->process();
+    case 'settings/username': // NEW
+        (new SettingsController())->updateUsername();
         break;
+    case 'settings/email': // NEW
+        (new SettingsController())->updateEmail();
+        break;
+    case 'settings/password': // NEW
+        (new SettingsController())->updatePassword();
+        break;
+    // case 'settings/process': // OLD - REMOVED
+    //     (new SettingsController())->process();
+    //     break;
     case 'settings/theme':
         (new SettingsController())->updateTheme();
         break;
@@ -209,14 +193,13 @@ switch ($route) {
     case 'settings/resendPasswordChangeOtp': 
         (new SettingsController())->resendPasswordChangeOtp();
         break;
-    // --- NEW UNBIND ROUTES ---
     case 'settings/request-unbind-otp':
         (new SettingsController())->requestUnbindEmailOtp();
         break;
     case 'settings/confirm-unbind-email':
         (new SettingsController())->confirmUnbindEmail();
         break;
-    // --- END NEW ---
+    // --- END Settings Routes ---
 
     // --- System Admin Routes ---
     case 'sysadmin/dashboard':
