@@ -50,12 +50,20 @@
         </div>
         <input type="hidden" name="update_email" value="1">
         <div class="button-group">
-            <button type="submit"><span class="material-icons">save</span> Save Email</button>
-            <button type="button" id="unbindEmailBtn"><span class="material-icons">link_off</span> Unbind Email</button>
+            <button type="submit" data-original-text="Save Email">
+                <span class="btn-icon material-icons">save</span>
+                <span class="btn-text">Save Email</span>
+                <span class="btn-spinner material-icons spinner" style="display: none;">loop</span>
+            </button>
+            <button type="button" id="unbindEmailBtn" data-original-text="Unbind Email">
+                <span class="btn-icon material-icons">link_off</span>
+                <span class="btn-text">Unbind Email</span>
+                <span class="btn-spinner material-icons spinner" style="display: none;">loop</span>
+            </button>
         </div>
     </form>
 
-    <?php if (!empty($user['email'])): ?>
+    <?php if (!empty($user['email'])): // <-- PHP condition added here ?>
         <hr style="margin: 2rem 0;">
         <div class="form-group">
             <label for="twoFaSwitch">Two-Factor Authentication</label>
@@ -72,7 +80,7 @@
                 </div>
             </form>
         </div>
-    <?php endif; ?>
+    <?php endif; // <-- End of PHP condition ?>
 </div>
 
 <div id="otpUnbindModal" class="modal" style="display: none;">
