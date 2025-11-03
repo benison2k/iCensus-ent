@@ -1,5 +1,6 @@
 <div id="tab-security" class="tab-pane">
     <h3>Security Settings</h3>
+    
     <form id="passwordForm" method="POST">
         <div class="form-group">
             <label for="current_password">Current Password</label>
@@ -38,23 +39,7 @@
             </button>
         </div>
     </form>
-    <hr style="margin: 2rem 0;">
-    <div class="form-group">
-        <label for="twoFaSwitch">Two-Factor Authentication</label>
-        <p style="font-size:0.9rem; color:#555; margin-bottom: 1rem;">
-            Enable 2FA via email for an extra layer of security on login.
-        </p>
-        <form id="twoFaForm">
-            <div style="display:flex; align-items:center; gap:1rem;">
-                <label class="switch">
-                    <input type="checkbox" id="twoFaSwitch" <?= $user['two_fa'] == 1 ? 'checked' : ''; ?>>
-                    <span class="slider round"></span>
-                </label>
-                <span id="twoFaLabel"><?= $user['two_fa'] == 1 ? 'Enabled' : 'Disabled'; ?></span>
-            </div>
-        </form>
-    </div>
-    
+
     <hr style="margin: 2rem 0;">
     <h4 style="font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem;">Email & Recovery</h4>
     <form id="emailForm" method="POST">
@@ -69,6 +54,26 @@
             <button type="button" id="unbindEmailBtn"><span class="material-icons">link_off</span> Unbind Email</button>
         </div>
     </form>
+
+    <?php if (!empty($user['email'])): // <-- PHP condition added here ?>
+        <hr style="margin: 2rem 0;">
+        <div class="form-group">
+            <label for="twoFaSwitch">Two-Factor Authentication</label>
+            <p style="font-size:0.9rem; color:#555; margin-bottom: 1rem;">
+                Enable 2FA via email for an extra layer of security on login.
+            </p>
+            <form id="twoFaForm">
+                <div style="display:flex; align-items:center; gap:1rem;">
+                    <label class="switch">
+                        <input type="checkbox" id="twoFaSwitch" <?= $user['two_fa'] == 1 ? 'checked' : ''; ?>>
+                        <span class="slider round"></span>
+                    </label>
+                    <span id="twoFaLabel"><?= $user['two_fa'] == 1 ? 'Enabled' : 'Disabled'; ?></span>
+                </div>
+            </form>
+        </div>
+    <?php endif; // <-- End of PHP condition ?>
+
 </div>
 
 <div id="otpUnbindModal" class="modal" style="display: none;">
