@@ -7,7 +7,6 @@ require_once __DIR__ . '/../core/Database.php';
 
 // Helper function to load view files
 function view($path, $data = []) {
-    // --- FIX: Ensure $data is always an array ---
     if (!is_array($data)) {
         $data = [];
     }
@@ -109,7 +108,6 @@ switch ($route) {
             (new ChartController())->save();
         }
         break;
-
     case 'charts/update':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             (new ChartController())->update();
@@ -156,8 +154,6 @@ switch ($route) {
     case 'analytics/filtered-residents':
         (new AnalyticsController())->getFilteredResidents();
         break;
-    
-    // --- LEGACY ANALYTICS ROUTE (can be removed later) ---
     case 'analytics/data':
         (new AnalyticsController())->data();
         break;
@@ -166,18 +162,21 @@ switch ($route) {
     case 'settings':
         (new SettingsController())->index();
         break;
-    case 'settings/username': // NEW
+    case 'settings/username': 
         (new SettingsController())->updateUsername();
         break;
-    case 'settings/email': // NEW
-        (new SettingsController())->updateEmail();
+    case 'settings/email': // UPDATED: Now requests OTP
+        (new SettingsController())->requestBindEmailOtp();
         break;
-    case 'settings/password': // NEW
+    case 'settings/confirm-bind-email': // NEW: Confirms OTP
+        (new SettingsController())->confirmBindEmail();
+        break;
+    case 'settings/resend-bind-otp': // NEW: Resends OTP
+        (new SettingsController())->resendBindEmailOtp();
+        break;
+    case 'settings/password': 
         (new SettingsController())->updatePassword();
         break;
-    // case 'settings/process': // OLD - REMOVED
-    //     (new SettingsController())->process();
-    //     break;
     case 'settings/theme':
         (new SettingsController())->updateTheme();
         break;

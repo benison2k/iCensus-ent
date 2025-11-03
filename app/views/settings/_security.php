@@ -50,8 +50,16 @@
         </div>
         <input type="hidden" name="update_email" value="1">
         <div class="button-group">
-            <button type="submit"><span class="material-icons">save</span> Save Email</button>
-            <button type="button" id="unbindEmailBtn"><span class="material-icons">link_off</span> Unbind Email</button>
+            <button type="submit" data-original-text="Save Email">
+                <span class="btn-icon material-icons">save</span>
+                <span class="btn-text">Save Email</span>
+                <span class="btn-spinner material-icons spinner" style="display: none;">loop</span>
+            </button>
+            <button type="button" id="unbindEmailBtn" data-original-text="Unbind Email">
+                <span class="btn-icon material-icons">link_off</span>
+                <span class="btn-text">Unbind Email</span>
+                <span class="btn-spinner material-icons spinner" style="display: none;">loop</span>
+            </button>
         </div>
     </form>
 
@@ -73,7 +81,6 @@
             </form>
         </div>
     <?php endif; // <-- End of PHP condition ?>
-
 </div>
 
 <div id="otpUnbindModal" class="modal" style="display: none;">
@@ -111,5 +118,24 @@
         
         <a href="#" id="resendToggleOtpBtn" class="small text-decoration-none" style="display: block; text-align: center;">Resend Code</a>
         <span id="cooldownToggleTimer" class="small text-muted" style="margin-top: 5px; display: none; text-align: center;"></span>
+    </div>
+</div>
+
+<div id="otpBindModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 400px; padding: 30px;">
+        <span class="close" id="closeOtpBindModal">&times;</span>
+        <h3 style="margin-top: 0; text-align: center;">Confirm New Email</h3>
+        <p class="text-muted" style="text-align: center;">Enter the 6-digit code sent to your <strong>new</strong> email address to confirm the change.</p>
+        
+        <form id="otpBindForm" action="<?= $base_url ?>/settings/confirm-bind-email" method="POST" style="margin-top: 1.5rem;">
+            <div class="input-wrapper mb-3" style="display: flex; justify-content: center;">
+                <input type="text" name="otp" id="otpBindInput" class="form-control" placeholder="______" required autofocus maxlength="6" pattern="\d{6}" inputmode="numeric">
+            </div>
+            <div class="error-text" id="otpBindError" style="margin-bottom: 1rem;"></div>
+            <button type="submit" class="btn btn-primary w-100 mb-3" id="otpBindVerifyBtn">Confirm Email</button>
+        </form>
+        
+        <a href="#" id="resendBindOtpBtn" class="small text-decoration-none" style="display: block; text-align: center;">Resend Code</a>
+        <span id="cooldownBindTimer" class="small text-muted" style="margin-top: 5px; display: none; text-align: center;"></span>
     </div>
 </div>

@@ -2,6 +2,8 @@
 // app/controllers/SettingsController.php
 require_once __DIR__ . '/../../core/Auth.php';
 require_once __DIR__ . '/../../core/functions.php';
+// NEW: Include Email class directly to send OTP to an un-verified email
+require_once __DIR__ . '/../../core/Email.php';
 
 class SettingsController {
 
@@ -10,7 +12,6 @@ class SettingsController {
 
     private function checkAuthAndInit() {
         if (!isset($_SESSION['user'])) {
-            // For AJAX requests, return JSON. For page loads, redirect.
             if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
                 header('Content-Type: application/json');
                 http_response_code(401);
@@ -21,7 +22,6 @@ class SettingsController {
             exit;
         }
         
-        // Initialize DB and Auth for other methods to use
         $config = require __DIR__ . '/../../config/database.php';
         $this->db = new Database($config);
         $GLOBALS['db'] = $this->db; // For global log_action
@@ -43,8 +43,6 @@ class SettingsController {
         view('settings/index', $data);
     }
 
-    // --- NEW: Specific action methods to replace process() ---
-
     public function updateUsername() {
         $this->checkAuthAndInit();
         header('Content-Type: application/json');
@@ -63,7 +61,11 @@ class SettingsController {
         exit;
     }
 
-    public function updateEmail() {
+    /**
+     * RENAMED & REFACTORED: Was updateEmail().
+     * Now validates and sends an OTP to the *new* email address.
+     */
+    public function requestBindEmailOtp() {
         $this->checkAuthAndInit();
         header('Content-Type: application/json');
 
@@ -71,20 +73,135 @@ class SettingsController {
         $oldEmail = $_SESSION['user']['email'] ?? '';
         $newEmail = trim($_POST['email']);
         
-        if ($oldEmail !== $newEmail) {
-            if ($_SESSION['user']['two_fa'] == 1) {
-                http_response_code(403);
-                echo json_encode(['status' => 'error', 'message' => 'You must disable Two-Factor Authentication before changing your email.']);
-                exit;
-            }
+        // 1. Check if email is the same
+        if ($oldEmail === $newEmail) {
+            echo json_encode(['status' => 'success', 'message' => 'Email is the same, no changes made.']);
+            exit;
+        }
+
+        // 2. Check 2FA status
+        if ($_SESSION['user']['two_fa'] == 1) {
+            http_response_code(403);
+            echo json_encode(['status' => 'error', 'message' => 'You must disable Two-Factor Authentication before changing your email.']);
+            exit;
+        }
+
+        // 3. Check Cooldown
+        $cooldown_duration = 60;
+        $last_sent_key = 'bind_otp_last_sent';
+        $last_sent_time = $_SESSION[$last_sent_key] ?? 0;
+        $time_since_last_sent = time() - $last_sent_time;
+
+        if ($time_since_last_sent < $cooldown_duration) {
+            $remaining_time = $cooldown_duration - $time_since_last_sent;
+            echo json_encode(['status' => 'cooldown', 'message' => "Please wait {$remaining_time} seconds.", 'cooldown_remaining' => $remaining_time]);
+            exit;
+        }
+
+        // 4. Generate and Send OTP
+        $otp = random_int(100000, 999999);
+        $emailService = new Email();
+        $sent = $emailService->sendOtp($newEmail, $otp); // Send to the NEW email
+
+        if ($sent) {
+            // 5. Store OTP hash and new email in session for verification
+            $_SESSION['bind_otp_hash'] = password_hash((string)$otp, PASSWORD_DEFAULT);
+            $_SESSION['bind_otp_expires'] = time() + 300; // 5 minutes
+            $_SESSION['bind_otp_new_email'] = $newEmail;
+            $_SESSION[$last_sent_key] = time();
+
+            log_action('INFO', 'EMAIL_BIND_OTP_SENT', "OTP sent to new email '{$newEmail}' for user ID #{$userId}.");
+            echo json_encode(['status' => 'otp_required', 'message' => 'An OTP has been sent to your new email address.']);
+        } else {
+            log_action('ERROR', 'EMAIL_BIND_OTP_FAIL', "Failed to send OTP to '{$newEmail}' for user ID #{$userId}.");
+            echo json_encode(['status' => 'error', 'message' => 'Failed to send OTP to the new email. Check system logs.']);
+        }
+        exit;
+    }
+
+    /**
+     * NEW: Confirms the OTP and saves the new email.
+     */
+    public function confirmBindEmail() {
+        $this->checkAuthAndInit();
+        header('Content-Type: application/json');
+
+        $userId = $_SESSION['user']['id'];
+        $submittedOtp = trim($_POST['otp'] ?? '');
+
+        // 1. Check session
+        if (!isset($_SESSION['bind_otp_hash'], $_SESSION['bind_otp_expires'], $_SESSION['bind_otp_new_email'])) {
+            echo json_encode(['status' => 'error', 'message' => 'Invalid session. Please try saving your email again.']);
+            exit;
+        }
+
+        // 2. Check expiry
+        if (time() > $_SESSION['bind_otp_expires']) {
+            echo json_encode(['status' => 'error', 'message' => 'OTP has expired. Please request a new one.']);
+            exit;
+        }
+
+        // 3. Verify OTP
+        if (password_verify($submittedOtp, $_SESSION['bind_otp_hash'])) {
+            // 4. Success: Update email in DB
+            $newEmail = $_SESSION['bind_otp_new_email'];
+            $oldEmail = $_SESSION['user']['email'] ?? 'none';
             
             $stmt = $this->db->getPdo()->prepare("UPDATE users SET email=? WHERE id=?");
             $stmt->execute([$newEmail, $userId]);
+            
             $this->auth->refreshUserSession($userId);
-            log_action('INFO', 'SETTINGS_UPDATE', "User updated their email address from '{$oldEmail}' to '{$newEmail}'.");
+            log_action('INFO', 'EMAIL_BIND_SUCCESS', "User #{$userId} confirmed new email '{$newEmail}' (was '{$oldEmail}').");
+
+            // 5. Clear session variables
+            unset($_SESSION['bind_otp_hash'], $_SESSION['bind_otp_expires'], $_SESSION['bind_otp_new_email'], $_SESSION['bind_otp_last_sent']);
+
             echo json_encode(['status' => 'success', 'message' => 'Email updated successfully.']);
         } else {
-            echo json_encode(['status' => 'success', 'message' => 'Email is the same, no changes made.']);
+            echo json_encode(['status' => 'error', 'message' => 'Invalid OTP code.']);
+        }
+        exit;
+    }
+
+    /**
+     * NEW: Resends the email binding OTP.
+     */
+    public function resendBindEmailOtp() {
+        $this->checkAuthAndInit();
+        header('Content-Type: application/json');
+
+        // 1. Check session
+        if (!isset($_SESSION['bind_otp_new_email'])) {
+            echo json_encode(['status' => 'error', 'message' => 'Invalid session. Please try saving your email again.']);
+            exit;
+        }
+
+        // 2. Check Cooldown
+        $cooldown_duration = 60;
+        $last_sent_key = 'bind_otp_last_sent';
+        $last_sent_time = $_SESSION[$last_sent_key] ?? 0;
+        $time_since_last_sent = time() - $last_sent_time;
+
+        if ($time_since_last_sent < $cooldown_duration) {
+            $remaining_time = $cooldown_duration - $time_since_last_sent;
+            echo json_encode(['status' => 'cooldown', 'message' => "Please wait {$remaining_time} seconds.", 'cooldown_remaining' => $remaining_time]);
+            exit;
+        }
+
+        // 3. Generate and Send new OTP
+        $newEmail = $_SESSION['bind_otp_new_email'];
+        $otp = random_int(100000, 999999);
+        $emailService = new Email();
+        $sent = $emailService->sendOtp($newEmail, $otp);
+
+        if ($sent) {
+            // 4. Update session variables
+            $_SESSION['bind_otp_hash'] = password_hash((string)$otp, PASSWORD_DEFAULT);
+            $_SESSION['bind_otp_expires'] = time() + 300; // 5 minutes
+            $_SESSION[$last_sent_key] = time();
+            echo json_encode(['status' => 'success', 'message' => 'A new code has been sent.']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Failed to resend OTP.']);
         }
         exit;
     }
@@ -129,10 +246,6 @@ class SettingsController {
         exit;
     }
 
-    // --- All other methods remain the same ---
-    // (verifyPassword, toggleTwoFA, verifyTwoFAToggleOtp, resendPasswordChangeOtp, 
-    // requestUnbindEmailOtp, confirmUnbindEmail, updateTheme)
-    
     public function verifyPassword() {
         $this->checkAuthAndInit();
         header('Content-Type: application/json');

@@ -1,3 +1,38 @@
+// --- NEW Helper function to toggle button loading state ---
+/**
+ * Toggles the loading state of a button.
+ * @param {HTMLButtonElement} button The button element
+ * @param {boolean} isLoading Whether to show the loading state
+ * @param {string} [loadingText="Sending..."] Optional text to show while loading
+ */
+function setButtonLoading(button, isLoading, loadingText = "Sending...") {
+    if (!button) return;
+    
+    const btnIcon = button.querySelector('.btn-icon');
+    const btnText = button.querySelector('.btn-text');
+    const btnSpinner = button.querySelector('.btn-spinner');
+
+    // Store original text if it's not already stored
+    if (isLoading && !button.dataset.originalText) {
+         if (btnText) button.dataset.originalText = btnText.textContent;
+    }
+
+    button.disabled = isLoading;
+
+    if (isLoading) {
+        if (btnIcon) btnIcon.style.display = 'none';
+        if (btnSpinner) btnSpinner.style.display = 'inline-block';
+        if (btnText) btnText.textContent = loadingText;
+    } else {
+        if (btnIcon) btnIcon.style.display = 'inline-block';
+        if (btnSpinner) btnSpinner.style.display = 'none';
+        if (btnText && button.dataset.originalText) {
+            btnText.textContent = button.dataset.originalText;
+        }
+    }
+}
+
+
 // Handles all logic for the Security tab
 export function initSecurityTab(helpers) {
     const { showAjaxResult, BASE_URL, COOLDOWN_DURATION } = helpers;
@@ -8,18 +43,48 @@ export function initSecurityTab(helpers) {
         emailForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             const twoFaSwitch = document.getElementById('twoFaSwitch');
-            if (twoFaSwitch.checked) {
+            if (twoFaSwitch && twoFaSwitch.checked) { 
                 showAjaxResult('You must disable Two-Factor Authentication before changing your email.', 'error');
                 return;
             }
             
             const btn = this.querySelector('button[type="submit"]');
-            btn.disabled = true;
+            setButtonLoading(btn, true, 'Sending OTP...'); // <-- UPDATED
 
-            await handleGenericSubmit(this, BASE_URL + '/settings/email', showAjaxResult);
-            
-            btn.disabled = false;
-            setTimeout(() => window.location.reload(), 1500); // Reload to reflect new email
+            let otpModalOpened = false; // Flag
+            try {
+                const formData = new URLSearchParams(new FormData(this));
+                const response = await fetch(BASE_URL + '/settings/email', { // This now points to requestBindEmailOtp
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                
+                if (response.ok) {
+                    if (result.status === 'success') {
+                        // This means the email was the same, no change
+                        showAjaxResult(result.message, 'success');
+                    } else if (result.status === 'otp_required') {
+                        otpModalOpened = true; // Set flag
+                        // Trigger the NEW bind modal
+                        initOtpModal('otpBindModal', {
+                            ...helpers,
+                            resendUrl: BASE_URL + '/settings/resend-bind-otp',
+                            resendBody: new URLSearchParams(), // No body needed, email is in session
+                            onSuccessReload: true, // Reload on success to update email value
+                            onCloseCallback: () => setButtonLoading(btn, false) // <-- NEW: Reset button on modal close
+                        }, result.message, COOLDOWN_DURATION);
+                    }
+                } else {
+                    showAjaxResult(result.message || 'An error occurred.', 'error');
+                }
+            } catch (error) {
+                showAjaxResult('A network error occurred. Please try again.', 'error');
+            } finally {
+                if (!otpModalOpened) { // <-- UPDATED: Only re-enable if modal isn't opening
+                    setButtonLoading(btn, false);
+                }
+            }
         });
     }
 
@@ -68,12 +133,12 @@ function initPasswordForm(helpers) {
         passwordOtpError.textContent = '';
         currentPassword.disabled = false;
         clearInterval(otpCooldownInterval);
-        resendOtpBtnPass.style.display = 'none';
-        passCooldownTimer.style.display = 'none';
-        passCooldownTimer.textContent = '';
+        if (resendOtpBtnPass) resendOtpBtnPass.style.display = 'none'; 
+        if (passCooldownTimer) passCooldownTimer.style.display = 'none'; 
+        if (passCooldownTimer) passCooldownTimer.textContent = ''; 
         strengthBar.className = '';
         strengthText.textContent = '';
-        otpPasswordField.required = false;
+        if (otpPasswordField) otpPasswordField.required = false; 
     }
 
     verifyBtn.addEventListener('click', async () => {
@@ -104,7 +169,7 @@ function initPasswordForm(helpers) {
                 startPassCooldown(COOLDOWN_DURATION);
             } else {
                 otpRequirement.style.display = 'none';
-                otpPasswordField.required = false;
+                if (otpPasswordField) otpPasswordField.required = false; 
             }
         } else {
             verifyMessage.textContent = result.message || 'Incorrect password.';
@@ -140,36 +205,37 @@ function initPasswordForm(helpers) {
         }, 1000);
     }
     
-    resendOtpBtnPass.addEventListener('click', async (e) => {
-        e.preventDefault();
-        passwordOtpError.textContent = 'Sending...';
-        passwordOtpError.style.color = '#0d6efd';
-        
-        try {
-            const response = await fetch(BASE_URL + '/settings/resendPasswordChangeOtp', { method: 'POST' });
-            const result = await response.json();
+    if (resendOtpBtnPass) { 
+        resendOtpBtnPass.addEventListener('click', async (e) => {
+            e.preventDefault();
+            passwordOtpError.textContent = 'Sending...';
+            passwordOtpError.style.color = '#0d6efd';
             
-            if (result.status === 'success') {
-                passwordOtpError.textContent = result.message;
-                passwordOtpError.style.color = 'green';
-                startPassCooldown(COOLDOWN_DURATION);
-            } else if (result.status === 'cooldown') {
-                passwordOtpError.textContent = result.message;
+            try {
+                const response = await fetch(BASE_URL + '/settings/resendPasswordChangeOtp', { method: 'POST' });
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    passwordOtpError.textContent = result.message;
+                    passwordOtpError.style.color = 'green';
+                    startPassCooldown(COOLDOWN_DURATION);
+                } else if (result.status === 'cooldown') {
+                    passwordOtpError.textContent = result.message;
+                    passwordOtpError.style.color = 'red';
+                    startPassCooldown(result.cooldown_remaining);
+                } else {
+                    passwordOtpError.textContent = result.message;
+                    passwordOtpError.style.color = 'red';
+                    resendOtpBtnPass.style.display = 'block';
+                }
+            } catch (error) {
+                passwordOtpError.textContent = 'Network error while trying to resend.';
                 passwordOtpError.style.color = 'red';
-                startPassCooldown(result.cooldown_remaining);
-            } else {
-                passwordOtpError.textContent = result.message;
-                passwordOtpError.style.color = 'red';
-                resendOtpBtnPass.style.display = 'block';
             }
-        } catch (error) {
-            passwordOtpError.textContent = 'Network error while trying to resend.';
-            passwordOtpError.style.color = 'red';
-        }
-    });
+        });
+    }
 
     function checkPasswordStrength() {
-        // (logic is the same as your original file)
         const pass = password.value;
         let score = 0;
         if (pass.length > 8) score++;
@@ -183,7 +249,6 @@ function initPasswordForm(helpers) {
     }
 
     function checkPasswordMatch() {
-        // (logic is the same as your original file)
         const passwordValid = password.value.length >= 6 && password.value === confirmPassword.value;
         if (password.value === '' || confirmPassword.value === '') {
             matchIcon.innerHTML = ''; passwordSubmit.disabled = true; return;
@@ -233,12 +298,7 @@ function init2FAToggle(helpers) {
     const twoFaLabel = document.getElementById('twoFaLabel');
     const emailInput = document.getElementById('email');
 
-    if (!twoFaSwitch) return;
-
-    if (emailInput.value.trim().length === 0) {
-        twoFaSwitch.disabled = true;
-        twoFaSwitch.parentElement.title = 'Please add and save an email address to enable 2FA.';
-    }
+    if (!twoFaSwitch) return; 
 
     twoFaSwitch.addEventListener('change', async function() {
         const isChecked = this.checked;
@@ -303,40 +363,38 @@ function initUnbindEmail(helpers) {
 
     unbindEmailBtn.addEventListener('click', async function() {
         const btn = this;
-        btn.disabled = true;
+        setButtonLoading(btn, true, 'Sending OTP...'); // <-- UPDATED
 
         const twoFaSwitch = document.getElementById('twoFaSwitch');
-        if (twoFaSwitch.checked) {
+        if (twoFaSwitch && twoFaSwitch.checked) { 
             showAjaxResult('You must disable Two-Factor Authentication before removing your email.', 'error');
-            btn.disabled = false;
+            setButtonLoading(btn, false); // <-- UPDATED
             return;
         }
         
+        let otpModalOpened = false; // Flag
         try {
             const response = await fetch(BASE_URL + '/settings/request-unbind-otp', { method: 'POST' });
             const result = await response.json();
 
-            if (result.status === 'success') {
+            if (result.status === 'success' || result.status === 'cooldown') {
+                otpModalOpened = true; // Set flag
                 initOtpModal('otpUnbindModal', {
                     ...helpers,
                     resendUrl: BASE_URL + '/settings/request-unbind-otp',
                     resendBody: new URLSearchParams(),
-                    onSuccessReload: true
-                }, result.message, COOLDOWN_DURATION);
-            } else if (result.status === 'cooldown') {
-                initOtpModal('otpUnbindModal', {
-                    ...helpers,
-                    resendUrl: BASE_URL + '/settings/request-unbind-otp',
-                    resendBody: new URLSearchParams(),
-                    onSuccessReload: true
-                }, result.message, result.cooldown_remaining);
+                    onSuccessReload: true,
+                    onCloseCallback: () => setButtonLoading(btn, false) // <-- NEW: Reset button on modal close
+                }, result.message, result.cooldown_remaining || COOLDOWN_DURATION);
             } else {
                 showAjaxResult(result.message || 'An error occurred.', 'error');
             }
         } catch (error) {
              showAjaxResult('A network error occurred.', 'error');
         } finally {
-            btn.disabled = false;
+            if (!otpModalOpened) { // <-- UPDATED
+                setButtonLoading(btn, false);
+            }
         }
     });
 }
@@ -344,9 +402,15 @@ function initUnbindEmail(helpers) {
 // --- Generic OTP Modal Handler ---
 let otpCooldownInterval = null;
 function initOtpModal(modalId, helpers, message, cooldown) {
-    const { showAjaxResult, BASE_URL, COOLDOWN_DURATION, resendUrl, resendBody, onSuccessReload, onCloseReload } = helpers;
+    const { 
+        showAjaxResult, BASE_URL, COOLDOWN_DURATION, 
+        resendUrl, resendBody, 
+        onSuccessReload, onCloseReload,
+        onCloseCallback // <-- NEW: Get the callback
+    } = helpers;
     
     const modal = document.getElementById(modalId);
+    if (!modal) return;
     const form = modal.querySelector('form');
     const input = modal.querySelector('input[name="otp"]');
     const errorEl = modal.querySelector('.error-text');
@@ -378,7 +442,6 @@ function initOtpModal(modalId, helpers, message, cooldown) {
         }, 1000);
     }
 
-    // Show the modal
     errorEl.textContent = message;
     errorEl.style.color = '#0d6efd';
     input.value = '';
@@ -386,13 +449,13 @@ function initOtpModal(modalId, helpers, message, cooldown) {
     input.focus();
     startCountdown(cooldown);
 
-    // --- Attach event listeners (only once) ---
     if (!modal.dataset.initialized) {
         modal.dataset.initialized = 'true';
         
         closeBtn.onclick = () => {
             clearInterval(otpCooldownInterval);
             modal.style.display = 'none';
+            if (onCloseCallback) onCloseCallback(); // <-- UPDATED: Run callback
             if (onCloseReload) window.location.reload();
         };
         
