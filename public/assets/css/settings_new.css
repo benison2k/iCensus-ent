@@ -207,3 +207,38 @@ body.dark-mode .settings-content button:hover {
 body.dark-mode .strength-meter {
     background: #1e1e2f;
 }
+/* --- START OTP 6-BOX INPUT STYLES --- */
+.otp-container {
+    display: flex;
+    justify-content: center;
+    gap: 6px; /* Reduced gap */
+    margin: 20px 0;
+}
+.otp-input {
+    width: 38px;  /* Reduced width */
+    height: 48px; /* Reduced height */
+    font-size: 1.3rem; /* Reduced font size */
+    font-weight: 600;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #fff;
+    color: #333;
+    -moz-appearance: textfield; 
+}
+.otp-input:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
+    outline: none;
+}
+body.dark-mode .otp-input {
+    background-color: #1e1e2f;
+    border-color: #555;
+    color: #fff;
+}
+.otp-input::-webkit-outer-spin-button,
+.otp-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+/* --- END OTP 6-BOX INPUT STYLES --- */

@@ -127,10 +127,17 @@
         <h3 style="margin-top: 0; text-align: center;">Confirm New Email</h3>
         <p class="text-muted" style="text-align: center;">Enter the 6-digit code sent to your <strong>new</strong> email address to confirm the change.</p>
         
-        <form id="otpBindForm" action="<?= $base_url ?>/settings/confirm-bind-email" method="POST" style="margin-top: 1.5rem;">
-            <div class="input-wrapper mb-3" style="display: flex; justify-content: center;">
-                <input type="text" name="otp" id="otpBindInput" class="form-control" placeholder="______" required autofocus maxlength="6" pattern="\d{6}" inputmode="numeric">
+        <form id="otpBindForm" action="<?= $base_url ?>/settings/confirm-bind-email" method="POST" style="margin-top: 1.5rem; margin-bottom: 1rem;">
+            
+            <div class="otp-container" id="otpBindContainer">
+                <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
             </div>
+            <input type="hidden" name="otp" id="otpBindInput" required>
             <div class="error-text" id="otpBindError" style="margin-bottom: 1rem;"></div>
             <button type="submit" class="btn btn-primary w-100 mb-3" id="otpBindVerifyBtn">Confirm Email</button>
         </form>
