@@ -36,29 +36,37 @@ $usernameValue = $data['usernameValue'] ?? '';
     margin-bottom: 25px;
 }
 
-#otpForm .input-wrapper {
-    /* Center the input */
+/* --- START OTP 6-BOX INPUT STYLES (REPLACED) --- */
+.otp-container {
     display: flex;
     justify-content: center;
+    gap: 6px; /* Reduced gap */
+    margin: 20px 0;
 }
-
-#otpInput {
-    /* Styling to make the OTP input look specialized */
+.otp-input {
+    width: 38px;  /* Reduced width */
+    height: 48px; /* Reduced height */
+    font-size: 1.3rem; /* Reduced font size */
+    font-weight: 600;
     text-align: center;
-    font-size: 2rem;
-    font-weight: 700;
-    letter-spacing: 5px;
-    padding: 10px 5px;
-    max-width: 250px;
-    border: 2px solid #ccc;
-    border-radius: 10px;
-    transition: border-color 0.3s;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #fff;
+    color: #333;
+    -moz-appearance: textfield; 
 }
-
-#otpInput:focus {
+.otp-input:focus {
     border-color: var(--gradient-start);
     box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.25);
+    outline: none;
 }
+.otp-input::-webkit-outer-spin-button,
+.otp-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+/* --- END OTP 6-BOX INPUT STYLES --- */
+
 
 #otpVerifyBtn {
     background: linear-gradient(135deg, #0d6efd, #6c63ff);
@@ -99,7 +107,7 @@ body.dark-mode #otpModal p.text-muted {
     color: #bbbbbb;
 }
 
-body.dark-mode #otpInput {
+body.dark-mode .otp-input {
     background: #1e1e2f;
     color: #ffffff;
     border-color: #555;
@@ -165,10 +173,17 @@ body.dark-mode #resendOtpBtn {
         <h3 style="margin-top: 0;">Two-Factor Authentication</h3>
         <p class="text-muted">A 6-digit code has been sent to your registered email.</p>
         
-        <form id="otpForm" action="<?= $base_url ?>/verify-otp" method="POST" style="margin-top: 1.5rem;">
-            <div class="input-wrapper mb-3">
-                <input type="text" name="otp" id="otpInput" class="form-control" placeholder="______" required autofocus maxlength="6" pattern="\d{6}" inputmode="numeric">
+        <form id="otpForm" action="<?= $base_url ?>/verify-otp" method="POST" style="margin-top: 1.5rem; margin-bottom: 1rem;">
+            
+            <div class="otp-container" id="otpLoginContainer">
+                <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
             </div>
+            <input type="hidden" name="otp" id="otpInput" required>
             <div class="error-text" id="otpError" style="margin-bottom: 1rem;"></div>
             <button type="submit" class="btn btn-primary w-100 mb-3" id="otpVerifyBtn">Verify Code</button>
         </form>
@@ -184,7 +199,7 @@ body.dark-mode #resendOtpBtn {
     const loginError = document.getElementById('loginError');
     const otpModal = document.getElementById('otpModal');
     const otpForm = document.getElementById('otpForm');
-    const otpInput = document.getElementById('otpInput');
+    const otpInput = document.getElementById('otpInput'); // This is now the HIDDEN input
     const otpError = document.getElementById('otpError');
     const resendOtpBtn = document.getElementById('resendOtpBtn');
     const cooldownTimer = document.getElementById('cooldownTimer');
@@ -193,6 +208,49 @@ body.dark-mode #resendOtpBtn {
     
     let timerInterval = null;
     const COOLDOWN_DURATION = 60; 
+
+    // --- START OTP 6-BOX LOGIC ---
+    const otpContainer = document.getElementById('otpLoginContainer'); // <-- Adapted ID
+    if (otpContainer) {
+        const otpInputs = otpContainer.querySelectorAll('.otp-input');
+        const hiddenOtpInput = document.getElementById('otpInput'); // <-- This is our hidden input
+
+        otpInputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                const value = e.target.value;
+                
+                // Handle paste
+                if (value.length > 1) {
+                    value.split('').forEach((char, i) => {
+                        if (index + i < otpInputs.length) {
+                            otpInputs[index + i].value = char;
+                        }
+                    });
+                    const lastPastedIndex = Math.min(index + value.length - 1, otpInputs.length - 1);
+                    otpInputs[lastPastedIndex].focus();
+                } 
+                // Handle single digit
+                else if (value.length === 1 && index < otpInputs.length - 1) {
+                    otpInputs[index + 1].focus();
+                }
+                
+                // Combine all values into the hidden input for form submission
+                hiddenOtpInput.value = Array.from(otpInputs).map(inp => inp.value).join('');
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === "Backspace" && input.value === "" && index > 0) {
+                    otpInputs[index - 1].focus();
+                }
+                // Also update hidden input on backspace
+                setTimeout(() => {
+                        hiddenOtpInput.value = Array.from(otpInputs).map(inp => inp.value).join('');
+                }, 0);
+            });
+        });
+    }
+    // --- END OTP 6-BOX LOGIC ---
+
 
     // --- Countdown Logic ---
     function startCountdown(duration) {
@@ -224,9 +282,12 @@ body.dark-mode #resendOtpBtn {
     
     function showModal(error = '') {
         otpError.textContent = error;
-        otpInput.value = '';
+        // Clear all 6 boxes
+        const otpInputs = otpContainer.querySelectorAll('.otp-input');
+        otpInputs.forEach(input => input.value = '');
+        otpInput.value = ''; // Clear hidden input
         otpModal.style.display = 'flex';
-        otpInput.focus();
+        if (otpInputs.length > 0) otpInputs[0].focus(); // Focus first box
         
         // When modal is shown, start the countdown immediately
         startCountdown(COOLDOWN_DURATION); 

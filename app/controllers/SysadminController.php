@@ -49,30 +49,27 @@ class SysadminController {
         $db = new Database($config);
         $userModel = new User($db);
 
-        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-        $pageSize = isset($_GET['pageSize']) ? (int)$_GET['pageSize'] : 10;
-
-        $userData = $userModel->getPaginatedManageableUsers($page, $pageSize);
+        // --- MODIFICATION START ---
+        // Fetch ALL manageable users for client-side rendering, just like the residents page.
+        $userData = $userModel->getManageableUsers();
 
         $data = [
             'user' => $_SESSION['user'],
             'theme' => $_SESSION['user']['theme'] ?? 'light',
-            'all_users' => $userData['users'],
-            'totalUsers' => $userData['total'],
-            'totalPages' => $userData['totalPages'],
-            'currentPage' => $page,
-            'pageSize' => $pageSize,
+            'all_users' => $userData, // Pass the full list
             'assignable_roles' => $userModel->getAssignableRoles(),
             'modalMessage' => $_SESSION['modal']['message'] ?? '',
             'modalType' => $_SESSION['modal']['type'] ?? ''
         ];
+        // --- MODIFICATION END ---
+        
         unset($_SESSION['modal']);
 
         view('sysadmin/manage_users', $data);
     }
 
     public function processUser() {
-        $this->requireSysadmin();
+        $this.requireSysadmin();
         
         $config = require __DIR__ . '/../../config/database.php';
         $db = new Database($config);
@@ -80,6 +77,7 @@ class SysadminController {
         $userModel = new User($db);
         
         $action = $_REQUEST['action'] ?? 'save';
+        $is_ajax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
 
         try {
             if ($action === 'save') {
@@ -90,13 +88,13 @@ class SysadminController {
                 }
 
                 $user_id = $userModel->save($_POST);
+                $new_data = $userModel->find($user_id); // Get the saved data
                 
                 if ($is_new_user) {
                     log_action('INFO', 'USER_CREATE', "New user account '" . htmlspecialchars($_POST['username']) . "' (ID#{$user_id}) was created.");
+                    $message = 'User created successfully.';
                 } else {
-                    $new_data = $userModel->find($_POST['user_id']);
                     unset($old_data['password'], $new_data['password']);
-
                     $changes = array_diff_assoc($new_data, $old_data);
                     $log_details = "Updated user account for '" . htmlspecialchars($new_data['username']) . "'.";
 
@@ -113,9 +111,15 @@ class SysadminController {
                         $log_details .= " No data fields were changed.";
                     }
                     log_action('INFO', 'USER_UPDATE', $log_details);
+                    $message = 'User updated successfully.';
                 }
-
-                $_SESSION['modal'] = ['message' => 'User saved successfully.', 'type' => 'success'];
+                
+                if ($is_ajax) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['status' => 'success', 'message' => $message, 'user' => $new_data, 'is_new' => $is_new_user]);
+                    exit;
+                }
+                $_SESSION['modal'] = ['message' => $message, 'type' => 'success'];
 
             } elseif ($action === 'delete') {
                 $user_id_to_delete = $_POST['user_id'];
@@ -125,8 +129,7 @@ class SysadminController {
                     $log_message = "User account '" . htmlspecialchars($user_to_delete['username']) . "' (ID#{$user_id_to_delete}) was deleted.";
                     log_action('INFO', 'USER_DELETE', $log_message);
                     
-                    // --- AJAX Response ---
-                    if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+                    if ($is_ajax) {
                         header('Content-Type: application/json');
                         echo json_encode(['status' => 'success', 'message' => 'User deleted successfully.']);
                         exit;
@@ -138,6 +141,12 @@ class SysadminController {
             }
         } catch (Exception $e) {
             log_action('ERROR', 'USER_MANAGE_ERROR', 'Error processing user: ' . $e->getMessage());
+            if ($is_ajax) {
+                header('Content-Type: application/json');
+                http_response_code(500);
+                echo json_encode(['status' => 'error', 'message' => 'An error occurred: ' . $e->getMessage()]);
+                exit;
+            }
             $_SESSION['modal'] = ['message' => 'An error occurred: ' . $e->getMessage(), 'type' => 'error'];
         }
         
@@ -146,7 +155,7 @@ class SysadminController {
     }
 
     public function getUser() {
-        $this->requireSysadmin();
+        $this.requireSysadmin();
         header('Content-Type: application/json');
 
         $config = require __DIR__ . '/../../config/database.php';
@@ -159,7 +168,7 @@ class SysadminController {
     }    
 
     public function dbTools() {
-        $this->requireSysadmin();
+        $this.requireSysadmin();
     
         $data = [
             'user' => $_SESSION['user'],
@@ -173,7 +182,7 @@ class SysadminController {
     }
     
     public function processDbTools() {
-        $this->requireSysadmin();
+        $this.requireSysadmin();
         
         $config = require __DIR__ . '/../../config/database.php';
         $db = new Database($config);
@@ -221,7 +230,7 @@ class SysadminController {
     }
 
     public function systemLogs() {
-        $this->requireSysadmin();
+        $this.requireSysadmin();
     
         $config = require __DIR__ . '/../../config/database.php';
         $db = new Database($config);
@@ -280,7 +289,7 @@ class SysadminController {
     }
 
     public function markLogAsSeen() {
-        $this->requireSysadmin();
+        $this.requireSysadmin();
         header('Content-Type: application/json');
 
         $logId = $_POST['id'] ?? null;
@@ -297,7 +306,7 @@ class SysadminController {
     }
 
     public function markAllLogsAsSeen() {
-        $this->requireSysadmin();
+        $this.requireSysadmin();
         header('Content-Type: application/json');
         
         $config = require __DIR__ . '/../../config/database.php';
