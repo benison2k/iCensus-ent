@@ -449,6 +449,52 @@ function initOtpModal(modalId, helpers, message, cooldown) {
     input.focus();
     startCountdown(cooldown);
 
+    // --- START OTP 6-BOX LOGIC ---
+    // Check if this modal is the one we are fixing (otpBindModal)
+    if (modalId === 'otpBindModal') {
+        const otpContainer = document.getElementById('otpBindContainer');
+        const otpInputs = otpContainer.querySelectorAll('.otp-input');
+        const hiddenOtpInput = document.getElementById('otpBindInput'); // This is our hidden input
+
+        // Focus the first box
+        if(otpInputs.length > 0) otpInputs[0].focus();
+
+        otpInputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                const value = e.target.value;
+                
+                // Handle paste
+                if (value.length > 1) {
+                    value.split('').forEach((char, i) => {
+                        if (index + i < otpInputs.length) {
+                            otpInputs[index + i].value = char;
+                        }
+                    });
+                    const lastPastedIndex = Math.min(index + value.length - 1, otpInputs.length - 1);
+                    otpInputs[lastPastedIndex].focus();
+                } 
+                // Handle single digit
+                else if (value.length === 1 && index < otpInputs.length - 1) {
+                    otpInputs[index + 1].focus();
+                }
+                
+                // Combine all values into the hidden input for form submission
+                hiddenOtpInput.value = Array.from(otpInputs).map(inp => inp.value).join('');
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === "Backspace" && input.value === "" && index > 0) {
+                    otpInputs[index - 1].focus();
+                }
+                // Also update hidden input on backspace
+                setTimeout(() => {
+                        hiddenOtpInput.value = Array.from(otpInputs).map(inp => inp.value).join('');
+                }, 0);
+            });
+        });
+    }
+    // --- END OTP 6-BOX LOGIC ---
+
     if (!modal.dataset.initialized) {
         modal.dataset.initialized = 'true';
         
