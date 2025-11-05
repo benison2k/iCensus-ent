@@ -1,3 +1,5 @@
+/* public/assets/css/login.css */
+
 /* General Styles */
 body, html {
     margin: 0;
@@ -240,4 +242,103 @@ body, html {
         width: 300px;
         height: 300px;
     }
+}
+
+/* --- OTP MODAL STYLES (MOVED FROM INLINE) --- */
+#otpModal .modal-content {
+    max-width: 400px;
+    padding: 30px;
+    border-radius: 15px;
+    background: #ffffff;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+#otpModal h3 {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--text-dark);
+}
+
+#otpModal p.text-muted {
+    font-size: 0.95rem;
+    margin-bottom: 25px;
+}
+
+/* --- OTP 6-BOX INPUT STYLES --- */
+.otp-container {
+    display: flex;
+    justify-content: center;
+    gap: 6px; /* Reduced gap */
+    margin: 20px 0;
+}
+.otp-input {
+    width: 38px;  /* Reduced width */
+    height: 48px; /* Reduced height */
+    font-size: 1.3rem; /* Reduced font size */
+    font-weight: 600;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #fff;
+    color: #333;
+    -moz-appearance: textfield; 
+}
+.otp-input:focus {
+    border-color: var(--gradient-start);
+    box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.25);
+    outline: none;
+}
+.otp-input::-webkit-outer-spin-button,
+.otp-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+#otpVerifyBtn {
+    background: linear-gradient(135deg, #0d6efd, #6c63ff);
+    color: #fff;
+    font-weight: 600;
+    margin-top: 15px !important;
+}
+
+#resendOtpBtn {
+    display: block;
+    margin-top: 15px;
+    font-size: 0.85rem;
+    color: #6c757d !important;
+    transition: color 0.2s;
+    text-decoration: underline !important;
+}
+
+#resendOtpBtn:hover {
+    color: #0d6efd !important;
+}
+
+#cooldownTimer {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #0d6efd !important; /* Blue for the active countdown */
+}
+
+/* Dark Mode Overrides */
+body.dark-mode #otpModal .modal-content {
+    background: #2C3E50;
+}
+
+body.dark-mode #otpModal h3 {
+    color: #ffffff;
+}
+
+body.dark-mode #otpModal p.text-muted {
+    color: #bbbbbb;
+}
+
+body.dark-mode .otp-input {
+    background: #1e1e2f;
+    color: #ffffff;
+    border-color: #555;
+}
+
+body.dark-mode #resendOtpBtn {
+    color: #9fa8da !important;
 }
