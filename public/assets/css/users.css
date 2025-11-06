@@ -63,6 +63,7 @@ body.dark-mode .user-table tbody tr:hover {
 .role-barangayadmin { background-color: #2e7d32; }
 .role-encoder { background-color: #0277bd; }
 
+/* Styles from old user.css, now deprecated by .action-btn */
 .action-btn {
     border: none;
     background: transparent;
@@ -73,8 +74,33 @@ body.dark-mode .user-table tbody tr:hover {
 }
 .action-btn:hover { background-color: rgba(0,0,0,0.1); }
 .action-btn .material-icons { font-size: 1.2rem; vertical-align: middle; }
-.editBtn .material-icons { color: #1976d2; }
-.deleteBtn .material-icons { color: #c62828; }
+
+/* --- STYLES MOVED FROM MANAGE_USERS.PHP --- */
+
+/* Styles for new icon buttons, copied from residents page */
+.actions-column { display: flex; gap: 0.5rem; align-items: center; }
+.action-btn {
+    padding: 0.5rem; border-radius: 50%; text-decoration: none;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 38px; height: 38px; border: none; cursor: pointer;
+    transition: background-color 0.2s;
+}
+.action-btn .material-icons { font-size: 20px; vertical-align: middle; }
+
+/* Light Mode Colors */
+.btn-edit { background-color: #e3f2fd; color: #0d6efd; }
+.btn-edit:hover { background-color: #bbdefb; }
+.btn-delete { background-color: #ffebee; color: #c62828; }
+.btn-delete:hover { background-color: #ffcdd2; }
+
+/* Dark Mode Colors */
+body.dark-mode .btn-edit { background-color: #1a3a5b; color: #90caf9; }
+body.dark-mode .btn-edit:hover { background-color: #0d6efd; }
+body.dark-mode .btn-delete { background-color: #3e2723; color: #ef9a9a; }
+body.dark-mode .btn-delete:hover { background-color: #c62828; }
+
+/* --- END MOVED STYLES --- */
+
 
 body.dark-mode .user-table { border-color: #4a5a6a; }
 body.dark-mode .user-table th { background-color: #3b4a59; }

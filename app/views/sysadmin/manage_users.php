@@ -14,30 +14,6 @@
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/users.css">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-<style>
-    /* Styles for new icon buttons, copied from residents page */
-    .actions-column { display: flex; gap: 0.5rem; align-items: center; }
-    .action-btn {
-        padding: 0.5rem; border-radius: 50%; text-decoration: none;
-        display: inline-flex; align-items: center; justify-content: center;
-        width: 38px; height: 38px; border: none; cursor: pointer;
-        transition: background-color 0.2s;
-    }
-    .action-btn .material-icons { font-size: 20px; vertical-align: middle; }
-    
-    /* Light Mode Colors */
-    .btn-edit { background-color: #e3f2fd; color: #0d6efd; }
-    .btn-edit:hover { background-color: #bbdefb; }
-    .btn-delete { background-color: #ffebee; color: #c62828; }
-    .btn-delete:hover { background-color: #ffcdd2; }
-
-    /* Dark Mode Colors */
-    body.dark-mode .btn-edit { background-color: #1a3a5b; color: #90caf9; }
-    body.dark-mode .btn-edit:hover { background-color: #0d6efd; }
-    body.dark-mode .btn-delete { background-color: #3e2723; color: #ef9a9a; }
-    body.dark-mode .btn-delete:hover { background-color: #c62828; }
-</style>
-
 </head>
 <body class="<?= $theme==='dark'?'dark-mode':''; ?>">
 
@@ -159,7 +135,10 @@
     <p id="toastMessage"></p>
 </div>
 <style>
-    /* Toast Notification Styles */
+    /* Toast Notification Styles: 
+      These should also be moved to a central CSS file, 
+      like page_actions.css or a new toast.css
+    */
     .toast-notification {
         position: fixed; top: 20px; right: 20px; background-color: #28a745; color: white;
         padding: 1rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -177,6 +156,7 @@
     const userRole = '<?= htmlspecialchars($user['role_name']) ?>';
     const assignableRoles = <?= json_encode($assignable_roles); ?>;
 </script>
+
 <script src="<?= $base_url ?>/assets/js/users.js"></script>
 
 </body>
