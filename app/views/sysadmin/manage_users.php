@@ -13,9 +13,8 @@
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/residents_filters.css"> 
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/users.css">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
 </head>
-<body class="<?= $theme==='dark'?'dark-mode':''; ?>">
+<body class="<?= $theme==='dark'?'dark-mode':'light-mode'; ?>">
 
 <?php include __DIR__ . '/../components/header.php'; ?>
 
@@ -134,21 +133,6 @@
     <span class="material-icons" id="toastIcon">check_circle</span>
     <p id="toastMessage"></p>
 </div>
-<style>
-    /* Toast Notification Styles: 
-      These should also be moved to a central CSS file, 
-      like page_actions.css or a new toast.css
-    */
-    .toast-notification {
-        position: fixed; top: 20px; right: 20px; background-color: #28a745; color: white;
-        padding: 1rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        z-index: 2000; display: flex; align-items: center; gap: 1rem; opacity: 0;
-        transform: translateX(100%); transition: opacity 0.5s ease, transform 0.5s ease;
-    }
-    .toast-notification.show { opacity: 1; transform: translateX(0); }
-    .toast-notification.error { background-color: #dc3545; }
-    .toast-notification.info { background-color: #0d6efd; }
-</style>
 
 <script>
     // Pass all user data to the new JavaScript file
