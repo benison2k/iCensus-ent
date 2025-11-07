@@ -49,19 +49,16 @@ class SysadminController {
         $db = new Database($config);
         $userModel = new User($db);
 
-        // --- MODIFICATION START ---
-        // Fetch ALL manageable users for client-side rendering, just like the residents page.
         $userData = $userModel->getManageableUsers();
 
         $data = [
             'user' => $_SESSION['user'],
             'theme' => $_SESSION['user']['theme'] ?? 'light',
-            'all_users' => $userData, // Pass the full list
+            'all_users' => $userData,
             'assignable_roles' => $userModel->getAssignableRoles(),
             'modalMessage' => $_SESSION['modal']['message'] ?? '',
             'modalType' => $_SESSION['modal']['type'] ?? ''
         ];
-        // --- MODIFICATION END ---
         
         unset($_SESSION['modal']);
 
@@ -69,7 +66,8 @@ class SysadminController {
     }
 
     public function processUser() {
-        $this->requireSysadmin(); // ✅ FIX: Was $this.
+        // ✅ FIX: Was $this.requireSysadmin();
+        $this->requireSysadmin();
         
         $config = require __DIR__ . '/../../config/database.php';
         $db = new Database($config);
@@ -88,7 +86,7 @@ class SysadminController {
                 }
 
                 $user_id = $userModel->save($_POST);
-                $new_data = $userModel->find($user_id); // Get the saved data
+                $new_data = $userModel->find($user_id);
                 
                 if ($is_new_user) {
                     log_action('INFO', 'USER_CREATE', "New user account '" . htmlspecialchars($_POST['username']) . "' (ID#{$user_id}) was created.");
@@ -155,7 +153,8 @@ class SysadminController {
     }
 
     public function getUser() {
-        $this->requireSysadmin(); // ✅ FIX: Was $this.
+        // ✅ FIX: Was $this.requireSysadmin();
+        $this->requireSysadmin();
         header('Content-Type: application/json');
 
         $config = require __DIR__ . '/../../config/database.php';
@@ -168,7 +167,8 @@ class SysadminController {
     }    
 
     public function dbTools() {
-        $this->requireSysadmin(); // ✅ FIX: Was $this.
+        // ✅ FIX: Was $this.requireSysadmin();
+        $this->requireSysadmin();
     
         $data = [
             'user' => $_SESSION['user'],
@@ -182,7 +182,8 @@ class SysadminController {
     }
     
     public function processDbTools() {
-        $this->requireSysadmin(); // ✅ FIX: Was $this.
+        // ✅ FIX: Was $this.requireSysadmin();
+        $this->requireSysadmin();
         
         $config = require __DIR__ . '/../../config/database.php';
         $db = new Database($config);
@@ -230,14 +231,14 @@ class SysadminController {
     }
 
     public function systemLogs() {
-        $this->requireSysadmin(); // ✅ FIX: Was $this.
+        // ✅ FIX: Was $this.requireSysadmin();
+        $this->requireSysadmin();
     
         $config = require __DIR__ . '/../../config/database.php';
         $db = new Database($config);
         $logModel = new Log($db);
         $userModel = new User($db);
     
-        // Get all filter, sort, and pagination parameters from the request
         $filter = $_GET['filter'] ?? 'all';
         $pageSize = $_GET['pageSize'] ?? 10;
         $sort_by = $_GET['sort_by'] ?? 'timestamp';
