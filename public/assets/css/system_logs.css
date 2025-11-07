@@ -1,0 +1,123 @@
+/* public/assets/css/system_logs.css */
+
+.log-table th, .log-table td { 
+    vertical-align: middle; 
+}
+
+.log-badge {
+    padding: 0.2rem 0.6rem; 
+    border-radius: 5px; 
+    font-weight: 500; 
+    color: #fff;
+    text-align: center; 
+    font-size: 0.8rem; 
+    text-transform: uppercase;
+    display: inline-block; 
+    min-width: 70px;
+}
+
+/* Log Levels */
+.log-level-info { background-color: #1e88e5; }
+.log-level-warning { background-color: #f57c00; }
+.log-level-error { background-color: #d32f2f; }
+
+/* Role Badges */
+.role-systemadmin { background-color: #c62828; }
+.role-barangayadmin { background-color: #2e7d32; }
+.role-encoder { background-color: #0277bd; }
+.role-system { background-color: #616161; }
+
+.user-management-container { 
+    max-width: 1400px; 
+}
+
+/* Sorting Links */
+.sort-link { 
+    text-decoration: none; 
+    color: inherit; 
+    display: flex; 
+    align-items: center; 
+    gap: 0.3rem;
+}
+.sort-link .material-icons { 
+    font-size: 1.1rem; 
+    vertical-align: middle; 
+}
+body.dark-mode .sort-link { 
+    color: #fff; 
+}
+
+/* Table Layout */
+.log-table th:first-child,
+.log-table td:first-child { 
+    width: 200px; 
+}
+.log-table th:first-child .sort-link { 
+    white-space: nowrap; 
+}
+
+/* New Log Indicator */
+.new-log { 
+    background-color: #f1f8e9 !important; 
+    cursor: pointer; 
+}
+body.dark-mode .new-log { 
+    background-color: #2c3b2d !important; 
+}
+
+.button-group { 
+    display: flex; 
+    gap: 0.5rem; 
+}
+
+/* Table Header Controls */
+.unified-header th {
+    vertical-align: middle;
+}
+.unified-header .header-controls-container {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 1.5rem;
+}
+.page-nav-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.page-nav-group button, .page-nav-group a > button {
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: #fff;
+    cursor: pointer;
+}
+.page-nav-group button:disabled { 
+    opacity: 0.5; 
+    cursor: not-allowed; 
+}
+.page-nav-group input {
+    width: 70px;
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+#pageSizeSelect { 
+    padding: 0.5rem; 
+    border-radius: 6px; 
+    border: 1px solid #ccc; 
+}
+
+/* Dark Mode for Pagination */
+body.dark-mode .page-nav-group button, 
+body.dark-mode .page-nav-group a > button,
+body.dark-mode .page-nav-group input, 
+body.dark-mode #pageSizeSelect {
+    background-color: #2C3E50;
+    border-color: #4a5a6a;
+    color: #fff;
+}
+body.dark-mode .page-nav-group button:disabled { 
+    background-color: #2C3E50; 
+    opacity: 0.4; 
+}

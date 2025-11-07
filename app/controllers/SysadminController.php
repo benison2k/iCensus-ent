@@ -69,7 +69,7 @@ class SysadminController {
     }
 
     public function processUser() {
-        $this.requireSysadmin();
+        $this->requireSysadmin(); // ✅ FIX: Was $this.
         
         $config = require __DIR__ . '/../../config/database.php';
         $db = new Database($config);
@@ -155,7 +155,7 @@ class SysadminController {
     }
 
     public function getUser() {
-        $this.requireSysadmin();
+        $this->requireSysadmin(); // ✅ FIX: Was $this.
         header('Content-Type: application/json');
 
         $config = require __DIR__ . '/../../config/database.php';
@@ -168,7 +168,7 @@ class SysadminController {
     }    
 
     public function dbTools() {
-        $this.requireSysadmin();
+        $this->requireSysadmin(); // ✅ FIX: Was $this.
     
         $data = [
             'user' => $_SESSION['user'],
@@ -182,7 +182,7 @@ class SysadminController {
     }
     
     public function processDbTools() {
-        $this.requireSysadmin();
+        $this->requireSysadmin(); // ✅ FIX: Was $this.
         
         $config = require __DIR__ . '/../../config/database.php';
         $db = new Database($config);
@@ -230,7 +230,7 @@ class SysadminController {
     }
 
     public function systemLogs() {
-        $this.requireSysadmin();
+        $this->requireSysadmin(); // ✅ FIX: Was $this.
     
         $config = require __DIR__ . '/../../config/database.php';
         $db = new Database($config);
@@ -289,7 +289,7 @@ class SysadminController {
     }
 
     public function markLogAsSeen() {
-        $this.requireSysadmin();
+        $this->requireSysadmin();
         header('Content-Type: application/json');
 
         $logId = $_POST['id'] ?? null;
@@ -306,7 +306,7 @@ class SysadminController {
     }
 
     public function markAllLogsAsSeen() {
-        $this.requireSysadmin();
+        $this->requireSysadmin();
         header('Content-Type: application/json');
         
         $config = require __DIR__ . '/../../config/database.php';
