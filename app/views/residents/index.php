@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/page_actions.css">
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/dashboard.css">
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/view_tabs.css">
+<link rel="stylesheet" href="<?= $base_url ?>/assets/css/resident_modal.css">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body class="<?= $theme === 'dark' ? 'dark-mode' : 'light-mode'; ?>">
@@ -330,6 +331,8 @@
     <?php if ($isPendingView): ?>
     <script src="<?= $base_url ?>/assets/js/pending_view.js" defer></script>
     <?php endif; ?>
+
+    <script src="<?= $base_url ?>/assets/js/resident_modal.js" defer></script>
 
     <?php if (!empty($modalMessage)): ?>
     <script>
