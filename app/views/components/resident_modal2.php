@@ -17,9 +17,11 @@
                     <input type="hidden" name="resident_id" id="resident_id">
 
                     <div style="padding: 0 2rem;">
-                        <p class="progress-label">Required Information Completeness:</p>
+                        
+                        <p class="progress-label" id="formProgressLabel">Required Information Completeness:</p>
+                        
                         <div class="progress-container">
-                            <div class="progress-bar" id="formProgressBar">0%</div>
+                            <div class="progress-bar" id="formProgressBar"></div>
                         </div>
                         <p style="font-size: 0.8rem; text-align: right; margin-top: -1rem; margin-bottom: 1rem; color: #666;">Fields marked with <span class="required-asterisk">*</span> are required.</p>
                     </div>

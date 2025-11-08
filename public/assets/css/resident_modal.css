@@ -42,25 +42,33 @@
     font-weight: 600;
 }
 
-/* --- Progress Bar Styles --- */
+/* --- ✅ MODIFIED: Progress Bar Styles --- */
+.progress-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #555;
+    margin-bottom: 0.5rem; /* Add space above the bar */
+}
+
 .progress-container {
     width: 100%;
     background-color: #e0e0e0;
     border-radius: 8px;
-    margin: 0.5rem 0 1.5rem 0;
+    margin: 0 0 1.5rem 0; /* Adjusted margin */
+    height: 8px; /* <-- Made slimmer */
+    overflow: hidden; /* <-- Added overflow hidden */
 }
+
 .progress-bar {
     width: 0%;
-    height: 20px;
+    height: 8px; /* <-- Made slimmer */
     background: linear-gradient(90deg, #4caf50, #81c784);
-    text-align: center;
-    line-height: 20px;
-    color: white;
-    font-weight: 600;
-    font-size: 0.8rem;
     border-radius: 8px;
     transition: width 0.4s ease-out;
+    /* <-- Removed all text-align, line-height, color, font-size, etc. */
 }
+/* --- End Modification --- */
+
 
 .modal-modern-body {
     display: flex;
@@ -140,6 +148,8 @@
 /* Dark Mode */
 body.dark-mode .modal-modern-content { background: #2C3E50; }
 body.dark-mode .progress-container { background-color: #1e1e2f; }
+/* ✅ NEW: Added dark mode style for the label */
+body.dark-mode .progress-label { color: #bbb; }
 body.dark-mode .modal-modern-header, body.dark-mode .modal-tabs, body.dark-mode .modal-modern-footer { border-color: #4a5a6a; }
 body.dark-mode .modal-modern-header h3 { color: #fff; }
 body.dark-mode .tab-button { color: #ccc; }

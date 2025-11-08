@@ -12,6 +12,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const requiredFields = Array.from(form.querySelectorAll('[required]'));
     const totalRequired = requiredFields.length;
 
+    // ✅ NEW: Get the progress label element
+    const progressLabel = document.getElementById('formProgressLabel');
+
     function updateProgress() {
         if (!progressBar) return;
         let completedCount = 0;
@@ -21,8 +24,17 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         const percentage = totalRequired > 0 ? (completedCount / totalRequired) * 100 : 0;
+        
+        // ✅ MODIFICATION: Update the bar's width
         progressBar.style.width = percentage + '%';
-        progressBar.textContent = `${Math.round(percentage)}% (${completedCount} of ${totalRequired} completed)`;
+
+        // ✅ MODIFICATION: Update the label's text
+        if (progressLabel) {
+            progressLabel.textContent = `Completeness: ${Math.round(percentage)}% (${completedCount} of ${totalRequired} required fields)`;
+        }
+        
+        // ✅ REMOVED: The old line that put text inside the bar
+        // progressBar.textContent = `${Math.round(percentage)}% ...`;
     }
 
     requiredFields.forEach(field => {
