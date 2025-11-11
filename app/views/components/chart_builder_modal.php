@@ -2,47 +2,6 @@
 // /app/views/components/chart_builder_modal.php
 ?>
 
-<style>
-    .chart-builder-modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); padding-top: 50px; }
-    .chart-builder-content { background-color: #fefefe; margin: auto; padding: 25px; border-radius: 12px; width: 90%; max-width: 1100px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-    
-    /* --- MODIFIED FOR RIGHT-SIDE LAYOUT --- */
-    .chart-builder-main-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: 25px; } /* Makes right column wider */
-    .chart-builder-form-container { border-right: 1px solid #eee; padding-right: 25px; }
-    #chartPreview { width: 100%; height: 350px; margin-top: 1rem; position: relative; }
-    .chart-placeholder, .chart-error { display: flex; align-items: center; justify-content: center; height: 100%; background: #f8f9fa; color: #6c757d; border-radius: 8px; text-align: center; padding: 1rem; }
-    .kpi-preview-content { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; }
-    .kpi-preview-value { font-size: 3.5rem; font-weight: 700; color: #3949ab; }
-    /* --- END MODIFICATIONS --- */
-
-    .chart-builder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-    .chart-builder-group { display: flex; flex-direction: column; }
-    .chart-builder-group label { font-weight: 600; font-size: 0.9rem; margin-bottom: 5px; color: #333; }
-    .chart-builder-group input, .chart-builder-group select { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
-    .filter-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; align-items: center; margin-bottom: 10px; }
-    .btn-remove-filter { cursor: pointer; color: #d9534f; background: transparent; border: none; font-size: 1.5rem; }
-    .template-section { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
-    .template-section h4 { margin-top: 0; }
-    .btn-template { background-color: #e7f1ff; border: 1px solid #b3d1ff; color: #0056b3; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; margin-right: 8px; margin-bottom: 8px; }
-    .btn-template:hover { background-color: #d0e3ff; }
-
-    /* --- DARK MODE STYLES --- */
-    body.dark-mode .chart-builder-content { background-color: #2C3E50; color: #fff; }
-    body.dark-mode .chart-builder-form-container { border-right-color: #4a5a6a; }
-    body.dark-mode .chart-builder-group label, body.dark-mode h2, body.dark-mode h4 { color: #fff; }
-    body.dark-mode .chart-builder-group input, body.dark-mode .chart-builder-group select {
-        background-color: #1e1e2f;
-        color: #fff;
-        border-color: #555;
-    }
-    body.dark-mode .chart-placeholder { background-color: #1e1e2f; color: #aaa; }
-    body.dark-mode .kpi-preview-value { color: #9fa8da; }
-    body.dark-mode .template-section { border-bottom-color: #4a5a6a; }
-    body.dark-mode .btn-template { background-color: #37474f; border-color: #546e7a; color: #eceff1; }
-    body.dark-mode .btn-template:hover { background-color: #455a64; }
-    body.dark-mode hr { border-color: #4a5a6a; }
-</style>
-
 <div id="chartBuilderModal" class="chart-builder-modal">
     <div class="chart-builder-content">
         <span class="close-btn" style="float: right; font-size: 28px; cursor: pointer;">&times;</span>
