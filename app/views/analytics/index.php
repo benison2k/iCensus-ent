@@ -11,6 +11,9 @@
     <link rel="stylesheet" href="<?= $base_url ?>/assets/css/analytics1.css">
     <link rel="stylesheet" href="<?= $base_url ?>/assets/css/report-modal.css">
     <link rel="stylesheet" href="<?= $base_url ?>/assets/css/chart_builder_modal.css">
+    
+    <link rel="stylesheet" href="<?= $base_url ?>/assets/css/page_actions.css">
+    
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/8.2.1/gridstack.min.css" rel="stylesheet"/>
@@ -56,9 +59,16 @@
                 <input type="date" id="modalEndDate">
                 <button id="modalFilterBtn" title="Apply Date Filter"><span class="material-icons">filter_alt</span></button>
                 <button id="modalClearBtn" title="Clear Date Filter"><span class="material-icons">clear</span></button>
-                <button id="editChartFromModalBtn" title="Edit Chart" style="background-color: #e8eaf6; color: #3949ab; margin-left: 1rem;"><span class="material-icons">edit</span></button>
-                <button id="hideChartFromModalBtn" title="Hide Chart" style="background-color: #fffde7; color: #f57f17; margin-left: 0.5rem;"><span class="material-icons">visibility_off</span></button>
-                <button id="deleteChartFromModalBtn" title="Delete Chart" style="background-color: #ffebee; color: #c62828; margin-left: 0.5rem;"><span class_name"material-icons">delete_forever</span></button>
+                
+                <button id="editChartFromModalBtn" class="action-btn btn-edit" title="Edit Chart" style="margin-left: 1rem;">
+                    <span class="material-icons">edit</span>
+                </button>
+                <button id="hideChartFromModalBtn" class="action-btn btn-hide" title="Hide Chart">
+                    <span class="material-icons">visibility_off</span>
+                </button>
+                <button id="deleteChartFromModalBtn" class="action-btn btn-delete" title="Delete Chart">
+                    <span class="material-icons">delete_forever</span>
+                </button>
             </div>
         </div>
         <div class="modal-grid">
