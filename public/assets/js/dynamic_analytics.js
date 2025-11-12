@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Once the DOM is ready AND Google Charts is loaded, initialize the dashboard.
     window.googleChartsPromise.then(() => {
         initializeDynamicDashboard();
+        initializeAnalyticsModal(); // <-- NEW: Initialize the tab/progress logic for the info modal
     });
 
     // Modal Closing Logic for all modals
@@ -21,6 +22,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         window.addEventListener('click', (event) => {
+            // <-- FIX: Close detail modal properly
+            if (event.target.id === 'analytics-resident-detail-modal') {
+                 event.target.style.display = 'none';
+                 return;
+            }
+            // ---
             if (event.target === modal) {
                 modal.style.display = 'none';
             }
@@ -32,6 +39,49 @@ const basePath = '/iCensus-ent/public';
 let grid;
 let currentResidentList = [];
 let currentSort = { column: 'first_name', order: 'asc' };
+
+/**
+ * NEW: Initializes the tab switching and progress bar for the analytics resident detail modal.
+ * This is a self-contained version of the logic from resident_modal.js.
+ */
+function initializeAnalyticsModal() {
+    const modal = document.getElementById('analytics-resident-detail-modal');
+    if (!modal) return;
+
+    const tabButtons = modal.querySelectorAll('.tab-button');
+    const tabContents = modal.querySelectorAll('.tab-content');
+    const form = document.getElementById('analyticsResidentForm');
+    const requiredFields = Array.from(form.querySelectorAll('[required]'));
+    const totalRequired = requiredFields.length;
+    const progressBar = document.getElementById('analyticsFormProgressBar');
+    const progressLabel = document.getElementById('analyticsFormProgressLabel');
+
+    // Tab switching logic
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            button.classList.add('active');
+            modal.querySelector(`#tab-${button.dataset.tab}`).classList.add('active');
+        });
+    });
+
+    // Progress bar logic
+    const updateAnalyticsProgress = () => {
+        if (!progressBar || !progressLabel) return;
+        let completedCount = 0;
+        requiredFields.forEach(field => {
+            if (field.value.trim() !== '') completedCount++;
+        });
+        const percentage = totalRequired > 0 ? (completedCount / totalRequired) * 100 : 0;
+        progressBar.style.width = percentage + '%';
+        progressLabel.textContent = `Completeness: ${Math.round(percentage)}% (${completedCount} of ${totalRequired} required fields)`;
+    };
+
+    // Expose the update function so it can be called when data is loaded
+    modal.updateProgress = updateAnalyticsProgress;
+}
+
 
 function initializeDynamicDashboard() {
     const autoFillEnabled = JSON.parse(localStorage.getItem('autoFillCharts')) ?? true;
@@ -437,57 +487,49 @@ function showChartDetailModal(chartId, updatedChartDef = null) {
     modal.style.display = 'flex';
 }
 
+/**
+ * REWRITTEN: This function now populates the new tabbed modal.
+ */
 async function openResidentDetailsModal(residentId) {
     const modal = document.getElementById('analytics-resident-detail-modal');
-    const modalContent = modal.querySelector('.modal-content');
-    modalContent.innerHTML = 'Loading...';
+    const form = document.getElementById('analyticsResidentForm');
+    const modalTitle = document.getElementById('analyticsModalTitle');
+    
+    form.reset();
+    modalTitle.textContent = 'Loading...';
     modal.style.display = 'flex';
 
     try {
         const response = await fetch(`${basePath}/residents/process?action=get&resident_id=${residentId}`);
         const result = await response.json();
 
-        if (result.status === 'success' && result.resident) {
-            const r = result.resident;
-            const booleanCheck = (value) => value == 1 ? 'Yes' : 'No';
-            const fullName = `${r.first_name || ''} ${r.middle_name || ''} ${r.last_name || ''} ${r.suffix || ''}`.trim();
-
-            modalContent.innerHTML = `
-                <span class="close-btn material-icons">close</span>
-                <h3 style="text-align: left; margin-top: 0;">Details for ${fullName}</h3>
-                <div class="resident-details-grid">
-                    <div class="detail-group">
-                        <h4><span class="material-icons">person</span>Personal Info</h4>
-                        <div class="detail-item"><strong>Date of Birth:</strong> <span>${r.dob}</span></div>
-                        <div class="detail-item"><strong>Gender:</strong> <span>${r.gender}</span></div>
-                        <div class="detail-item"><strong>Civil Status:</strong> <span>${r.civil_status || 'N/A'}</span></div>
-                        <div class="detail-item"><strong>Nationality:</strong> <span>${r.nationality || 'N/A'}</span></div>
-                    </div>
-                    <div class="detail-group">
-                        <h4><span class="material-icons">home</span>Address & Household</h4>
-                        <div class="detail-item"><strong>Address:</strong> <span>${r.house_no || ''} ${r.street || ''}, Purok ${r.purok || ''}</span></div>
-                        <div class="detail-item"><strong>Head of Household:</strong> <span>${r.head_of_household || 'N/A'}</span></div>
-                        <div class="detail-item"><strong>Relationship:</strong> <span>${r.relationship || 'N/A'}</span></div>
-                    </div>
-                    <div class="detail-group">
-                        <h4><span class="material-icons">contact_phone</span>Contact & Health</h4>
-                        <div class="detail-item"><strong>Contact No:</strong> <span>${r.contact_number || 'N/A'}</span></div>
-                        <div class="detail-item"><strong>Blood Type:</strong> <span>${r.blood_type || 'N/A'}</span></div>
-                    </div>
-                    <div class="detail-group">
-                        <h4><span class="material-icons">admin_panel_settings</span>Administrative</h4>
-                        <div class="detail-item"><strong>Resident Status:</strong> <span>${r.status}</span></div>
-                        <div class="detail-item"><strong>Registered Voter:</strong> <span>${booleanCheck(r.is_registered_voter)}</span></div>
-                    </div>
-                </div>`;
-        } else {
-            modalContent.innerHTML = 'Error: Could not fetch resident details.';
+        if (result.status !== 'success' || !result.resident) {
+            modalTitle.textContent = 'Error';
+            console.error('Could not fetch resident details.');
+            return;
         }
+
+        const r = result.resident;
+        modalTitle.textContent = `Details for ${r.first_name || ''} ${r.last_name || ''}`.trim();
+
+        // Populate the form
+        Object.keys(r).forEach(key => {
+            const el = form.elements[key];
+            if (el) el.value = r[key];
+        });
+
+        // Set all fields to read-only
+        form.querySelectorAll('input, select').forEach(input => input.disabled = true);
+
+        // Update the progress bar
+        if (modal.updateProgress) modal.updateProgress();
+
     } catch (error) {
-        console.error("Error fetching resident details:", error);
-        modalContent.innerHTML = 'An error occurred while fetching details.';
+        console.error('Failed to fetch resident data:', error);
+        modalTitle.textContent = 'Error';
     }
 }
+
 
 document.addEventListener('click', function(event) {
     const chartContainer = event.target.closest('.chart-container');
