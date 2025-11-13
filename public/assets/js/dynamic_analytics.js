@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Once the DOM is ready AND Google Charts is loaded, initialize the dashboard.
     window.googleChartsPromise.then(() => {
         initializeDynamicDashboard();
-        initializeAnalyticsModal(); // <-- NEW: Initialize the tab/progress logic for the info modal
+        initializeAnalyticsModal(); 
     });
 
     // Modal Closing Logic for all modals
@@ -22,12 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         window.addEventListener('click', (event) => {
-            // <-- FIX: Close detail modal properly
+            // Close detail modal properly
             if (event.target.id === 'analytics-resident-detail-modal') {
                  event.target.style.display = 'none';
                  return;
             }
-            // ---
             if (event.target === modal) {
                 modal.style.display = 'none';
             }
@@ -41,20 +40,17 @@ let currentResidentList = [];
 let currentSort = { column: 'first_name', order: 'asc' };
 
 /**
- * NEW: Initializes the tab switching and progress bar for the analytics resident detail modal.
- * This is a self-contained version of the logic from resident_modal.js.
+ * Initializes the tab switching and progress bar for the analytics resident detail modal.
  */
 function initializeAnalyticsModal() {
     const modal = document.getElementById('analytics-resident-detail-modal');
     if (!modal) return;
 
+    // FIX: Check if the form exists before proceeding to prevent console errors.
+    const form = document.getElementById('analyticsResidentForm');
+    
     const tabButtons = modal.querySelectorAll('.tab-button');
     const tabContents = modal.querySelectorAll('.tab-content');
-    const form = document.getElementById('analyticsResidentForm');
-    const requiredFields = Array.from(form.querySelectorAll('[required]'));
-    const totalRequired = requiredFields.length;
-    const progressBar = document.getElementById('analyticsFormProgressBar');
-    const progressLabel = document.getElementById('analyticsFormProgressLabel');
 
     // Tab switching logic
     tabButtons.forEach(button => {
@@ -66,22 +62,28 @@ function initializeAnalyticsModal() {
         });
     });
 
-    // Progress bar logic
-    const updateAnalyticsProgress = () => {
-        if (!progressBar || !progressLabel) return;
-        let completedCount = 0;
-        requiredFields.forEach(field => {
-            if (field.value.trim() !== '') completedCount++;
-        });
-        const percentage = totalRequired > 0 ? (completedCount / totalRequired) * 100 : 0;
-        progressBar.style.width = percentage + '%';
-        progressLabel.textContent = `Completeness: ${Math.round(percentage)}% (${completedCount} of ${totalRequired} required fields)`;
-    };
+    // Progress bar logic (Only if form exists)
+    if (form) {
+        const requiredFields = Array.from(form.querySelectorAll('[required]'));
+        const totalRequired = requiredFields.length;
+        const progressBar = document.getElementById('analyticsFormProgressBar');
+        const progressLabel = document.getElementById('analyticsFormProgressLabel');
 
-    // Expose the update function so it can be called when data is loaded
-    modal.updateProgress = updateAnalyticsProgress;
+        const updateAnalyticsProgress = () => {
+            if (!progressBar || !progressLabel) return;
+            let completedCount = 0;
+            requiredFields.forEach(field => {
+                if (field.value.trim() !== '') completedCount++;
+            });
+            const percentage = totalRequired > 0 ? (completedCount / totalRequired) * 100 : 0;
+            progressBar.style.width = percentage + '%';
+            progressLabel.textContent = `Completeness: ${Math.round(percentage)}% (${completedCount} of ${totalRequired} required fields)`;
+        };
+
+        // Expose the update function so it can be called when data is loaded
+        modal.updateProgress = updateAnalyticsProgress;
+    }
 }
-
 
 function initializeDynamicDashboard() {
     const autoFillEnabled = JSON.parse(localStorage.getItem('autoFillCharts')) ?? true;
@@ -93,45 +95,52 @@ function initializeDynamicDashboard() {
     });
 
     const autoFillSwitch = document.getElementById('autoFillSwitch');
-    autoFillSwitch.checked = autoFillEnabled;
+    if(autoFillSwitch) {
+        autoFillSwitch.checked = autoFillEnabled;
+        autoFillSwitch.addEventListener('change', async (e) => {
+            const isEnabled = e.target.checked;
+            grid.float(isEnabled);
+            if (isEnabled) {
+                grid.compact();
+            }
+            localStorage.setItem('autoFillCharts', isEnabled);
 
-    autoFillSwitch.addEventListener('change', async (e) => {
-        const isEnabled = e.target.checked;
-        grid.float(isEnabled);
-        if (isEnabled) {
-            grid.compact();
-        }
-        localStorage.setItem('autoFillCharts', isEnabled);
-
-        try {
-            const formData = new FormData();
-            formData.append('autoFill', isEnabled);
-            
-            await fetch(`${basePath}/analytics/preferences/save`, {
-                method: 'POST',
-                body: formData
-            });
-        } catch (error) {
-            console.error('Failed to save auto-fill preference:', error);
-        }
-    });
+            try {
+                const formData = new FormData();
+                formData.append('autoFill', isEnabled);
+                
+                await fetch(`${basePath}/analytics/preferences/save`, {
+                    method: 'POST',
+                    body: formData
+                });
+            } catch (error) {
+                console.error('Failed to save auto-fill preference:', error);
+            }
+        });
+    }
 
     loadUserCharts();
 
-    document.getElementById('save-layout-btn').addEventListener('click', saveLayout);
-    document.getElementById('reset-layout-btn').addEventListener('click', () => {
-        if(confirm('Are you sure you want to reset the layout? This will clear all chart settings, including saved date ranges.')) {
-            localStorage.removeItem('chartLayout');
-            localStorage.removeItem('visibleChartIds');
-            localStorage.removeItem('autoFillCharts');
-            Object.keys(localStorage).forEach(key => {
-                if (key.startsWith('chartDateRange_')) {
-                    localStorage.removeItem(key);
-                }
-            });
-            location.reload();
-        }
-    });
+    // FIX: Explicitly pass false so the alert shows only when clicking the button
+    const saveBtn = document.getElementById('save-layout-btn');
+    if(saveBtn) saveBtn.addEventListener('click', () => saveLayout(false));
+    
+    const resetBtn = document.getElementById('reset-layout-btn');
+    if(resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            if(confirm('Are you sure you want to reset the layout? This will clear all chart settings, including saved date ranges.')) {
+                localStorage.removeItem('chartLayout');
+                localStorage.removeItem('visibleChartIds');
+                localStorage.removeItem('autoFillCharts');
+                Object.keys(localStorage).forEach(key => {
+                    if (key.startsWith('chartDateRange_')) {
+                        localStorage.removeItem(key);
+                    }
+                });
+                location.reload();
+            }
+        });
+    }
 }
 
 async function loadUserCharts() {
@@ -233,11 +242,33 @@ function drawChart(chartId, chartType, chartData) {
     return { chart, dataTable };
 }
 
-function saveLayout() {
+// FIX: Updated to save to both LocalStorage and Database
+function saveLayout(silent = false) {
+    // 1. Save grid positions to LocalStorage
     const serializedData = grid.save(true, true).children;
     const layout = serializedData.map(d => ({ id: d.id, x: d.x, y: d.y, w: d.w, h: d.h }));
     localStorage.setItem('chartLayout', JSON.stringify(layout));
-    alert('Layout Saved!');
+
+    // 2. Save to Database
+    fetch(`${basePath}/analytics/layout/save`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(layout)
+    })
+    .then(res => res.json())
+    .then(result => {
+        if (result.status === 'success') {
+            if (!silent) alert('Layout Saved!');
+        } else {
+            if (!silent) alert('Error saving layout to server.');
+        }
+    })
+    .catch(err => {
+        console.error("Save layout failed:", err);
+        if (!silent) alert('Error saving layout.');
+    });
 }
 
 function renderResidentList() {
@@ -487,9 +518,6 @@ function showChartDetailModal(chartId, updatedChartDef = null) {
     modal.style.display = 'flex';
 }
 
-/**
- * REWRITTEN: This function now populates the new tabbed modal.
- */
 async function openResidentDetailsModal(residentId) {
     const modal = document.getElementById('analytics-resident-detail-modal');
     const form = document.getElementById('analyticsResidentForm');
@@ -598,9 +626,8 @@ async function openChartBuilderForEdit(chartId) {
     }
 }
 
-// ✅ START: FIX - Make this function globally accessible
+// Globally accessible function to add chart to dashboard
 window.addChartToDashboard = async function(chartDef) {
-// ✅ END: FIX
     const chartId = chartDef.id.toString();
     try {
         await window.googleChartsPromise;
@@ -623,6 +650,17 @@ window.addChartToDashboard = async function(chartDef) {
             newChartDiv.chartType = dataResult.type;
             
             drawChart(chartId, dataResult.type, dataResult.data);
+            
+            // FIX: Add the new chart to the visible list immediately
+            let visibleChartIds = JSON.parse(localStorage.getItem('visibleChartIds')) || [];
+            const chartIdStr = chartId.toString();
+            if (!visibleChartIds.includes(chartIdStr)) {
+                visibleChartIds.push(chartIdStr);
+                localStorage.setItem('visibleChartIds', JSON.stringify(visibleChartIds));
+            }
+
+            // FIX: Trigger autosave to persist the new layout
+            saveLayout(true);
         } else {
             alert('Could not dynamically add chart. Please refresh the page.');
         }
@@ -684,6 +722,5 @@ if (reportModal && generateReportBtn) {
     if (closeBtn) closeBtn.addEventListener('click', () => reportModal.style.display = 'none');
     window.addEventListener('click', (event) => {
         if (event.target === reportModal) reportModal.style.display = 'none';
-    }
-    );
+    });
 }
