@@ -1,5 +1,20 @@
 <?php
 // core/init.php
+
+// --- NEW: Load Composer Autoloader & Environment Variables ---
+// This must be done first so $_ENV is populated for the rest of the app.
+require_once __DIR__ . '/../vendor/autoload.php';
+
+try {
+    // Load .env file from the project root (one level up from /core)
+    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+    $dotenv->safeLoad(); // safeLoad() prevents crashing if .env is missing
+} catch (Exception $e) {
+    // Handle errors if .env cannot be parsed (optional)
+    error_log("Dotenv could not be loaded: " . $e->getMessage());
+}
+// -------------------------------------------------------------
+
 session_start();
 
 // --- CRITICAL BASE_URL FIX FOR LOCALHOST EMAIL LINKS ---
