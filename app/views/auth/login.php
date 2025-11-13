@@ -45,6 +45,8 @@ $usernameValue = $data['usernameValue'] ?? '';
             ?>
 
             <form id="loginForm" method="POST" action="<?= $base_url ?>/login">
+                <?= Csrf::getField(); ?>
+
                 <div class="input-wrapper mb-3">
                     <input type="text" name="username" id="usernameInput" class="form-control <?= $error ? 'error' : '' ?>" placeholder="Username" value="<?= $usernameValue ?>" autofocus>
                     <span class="material-icons input-icon">person</span>
@@ -70,7 +72,6 @@ $usernameValue = $data['usernameValue'] ?? '';
         <p class="text-muted">A 6-digit code has been sent to your registered email.</p>
         
         <form id="otpForm" action="<?= $base_url ?>/verify-otp" method="POST" style="margin-top: 1.5rem; margin-bottom: 1rem;">
-            
             <div class="otp-container" id="otpLoginContainer">
                 <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
                 <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">

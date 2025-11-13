@@ -46,12 +46,10 @@ class SettingsController {
         $this->checkAuthAndInit();
         header('Content-Type: application/json');
         
-        // --- NEW: CSRF Check ---
         if (!Csrf::verify($_POST['csrf_token'] ?? '')) {
             echo json_encode(['status' => 'error', 'message' => 'CSRF Error. Reload page.']);
             exit;
         }
-        // -----------------------
         
         $userId = $_SESSION['user']['id'];
         $oldUsername = $_SESSION['user']['username'];
@@ -71,12 +69,10 @@ class SettingsController {
         $this->checkAuthAndInit();
         header('Content-Type: application/json');
 
-        // --- NEW: CSRF Check ---
         if (!Csrf::verify($_POST['csrf_token'] ?? '')) {
             echo json_encode(['status' => 'error', 'message' => 'CSRF Error. Reload page.']);
             exit;
         }
-        // -----------------------
 
         $userId = $_SESSION['user']['id'];
         $oldEmail = $_SESSION['user']['email'] ?? '';
@@ -127,12 +123,10 @@ class SettingsController {
         $this->checkAuthAndInit();
         header('Content-Type: application/json');
 
-        // --- NEW: CSRF Check ---
         if (!Csrf::verify($_POST['csrf_token'] ?? '')) {
             echo json_encode(['status' => 'error', 'message' => 'CSRF Error. Reload page.']);
             exit;
         }
-        // -----------------------
 
         $userId = $_SESSION['user']['id'];
         $submittedOtp = trim($_POST['otp'] ?? '');
@@ -206,12 +200,10 @@ class SettingsController {
         $this->checkAuthAndInit();
         header('Content-Type: application/json');
 
-        // --- NEW: CSRF Check ---
         if (!Csrf::verify($_POST['csrf_token'] ?? '')) {
             echo json_encode(['status' => 'error', 'message' => 'CSRF Error. Reload page.']);
             exit;
         }
-        // -----------------------
 
         $userId = $_SESSION['user']['id'];
         $role = $_SESSION['user']['role_name'];
@@ -338,6 +330,13 @@ class SettingsController {
         $this->checkAuthAndInit();
         header('Content-Type: application/json');
         
+        // --- NEW: CSRF Check Added ---
+        if (!Csrf::verify($_POST['csrf_token'] ?? '')) {
+            echo json_encode(['status' => 'error', 'message' => 'Security Token Error. Reload page.']);
+            exit;
+        }
+        // -----------------------------
+        
         $userId = $_SESSION['user']['id'];
         $currentTwoFA = $_SESSION['user']['two_fa'] ?? 0;
         $targetTwoFA = (int)($_POST['target_two_fa'] ?? 0); 
@@ -389,12 +388,10 @@ class SettingsController {
         $this->checkAuthAndInit();
         header('Content-Type: application/json');
 
-        // --- NEW: CSRF Check ---
         if (!Csrf::verify($_POST['csrf_token'] ?? '')) {
             echo json_encode(['status' => 'error', 'message' => 'CSRF Error. Reload page.']);
             exit;
         }
-        // -----------------------
 
         if (!isset($_SESSION['2fa_toggle_pending']) || !$_SESSION['2fa_toggle_pending']) {
             echo json_encode(['status' => 'error', 'message' => 'Invalid session for OTP verification.']);
@@ -469,12 +466,10 @@ class SettingsController {
         $this->checkAuthAndInit();
         header('Content-Type: application/json');
 
-        // --- NEW: CSRF Check ---
         if (!Csrf::verify($_POST['csrf_token'] ?? '')) {
             echo json_encode(['status' => 'error', 'message' => 'CSRF Error. Reload page.']);
             exit;
         }
-        // -----------------------
 
         if (!isset($_SESSION['unbind_otp_pending']) || !$_SESSION['unbind_otp_pending']) {
             echo json_encode(['status' => 'error', 'message' => 'Invalid session. Please request a new OTP.']);

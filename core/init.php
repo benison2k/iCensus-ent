@@ -44,10 +44,9 @@ $allowed_pages = [
     '', // Root path
     'verify-otp',
     'resend-otp',
-    // --- ADDED FOR PASSWORD RESET ---
     'password/forgot',
-    'password/reset'
-    // --- END ADDED ---
+    'password/reset',  // <--- MAKE SURE THIS COMMA IS HERE
+    'debug_csrf.php'   // The new line you added
 ];
 
 // Check for pages allowed without full login

@@ -82,7 +82,6 @@ class SysadminController {
         $is_ajax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
 
         try {
-            // Remove CSRF token from POST data
             unset($_POST['csrf_token']);
 
             if ($action === 'save') {
@@ -189,9 +188,13 @@ class SysadminController {
     public function processDbTools() {
         $this->requireSysadmin();
         
-        // Note: Since this is a POST form from db_tools.php, ideally we add CSRF check here too.
-        // However, db_tools.php view wasn't requested to be modified in the prompt, 
-        // but it's good practice. I'll add the check here, assuming you'll add the token to that view later.
+        // --- NEW: CSRF Check Added ---
+        if (!Csrf::verify($_POST['csrf_token'] ?? '')) {
+            $_SESSION['modal'] = ['message' => 'Security Token Expired.', 'type' => 'error'];
+            header("Location: /iCensus-ent/public/sysadmin/db-tools");
+            exit;
+        }
+        // -----------------------------
         
         $config = require __DIR__ . '/../../config/database.php';
         $db = new Database($config);

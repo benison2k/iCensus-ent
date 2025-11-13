@@ -3,7 +3,6 @@
     
     <form id="passwordForm" method="POST">
         <?= Csrf::getField(); ?>
-
         <div class="form-group">
             <label for="current_password">Current Password</label>
             <input type="password" name="current_password" id="current_password" placeholder="Enter current password" required>
@@ -46,7 +45,6 @@
     <h4 style="font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem;">Email & Recovery</h4>
     <form id="emailForm" method="POST">
         <?= Csrf::getField(); ?>
-
         <div class="form-group">
             <label for="email">Email Address (for 2FA & Password Reset)</label>
             <input type="email" name="email" id="email" value="<?= htmlspecialchars($user['email'] ?? ''); ?>" placeholder="Enter email address" required>
@@ -75,6 +73,7 @@
                 Enable 2FA via email for an extra layer of security on login.
             </p>
             <form id="twoFaForm">
+                <?= Csrf::getField(); ?>
                 <div style="display:flex; align-items:center; gap:1rem;">
                     <label class="switch">
                         <input type="checkbox" id="twoFaSwitch" <?= $user['two_fa'] == 1 ? 'checked' : ''; ?>>
@@ -92,17 +91,14 @@
         <span class="close" id="closeOtpUnbindModal">&times;</span>
         <h3 style="margin-top: 0; text-align: center;">Confirm Email Removal</h3>
         <p class="text-muted" style="text-align: center;">Enter the 6-digit code sent to your email to confirm you want to unbind your email.</p>
-        
         <form id="otpUnbindForm" action="<?= $base_url ?>/settings/confirm-unbind-email" method="POST" style="margin-top: 1.5rem;">
             <?= Csrf::getField(); ?>
-
             <div class="input-wrapper mb-3" style="display: flex; justify-content: center;">
                 <input type="text" name="otp" id="otpUnbindInput" class="form-control" placeholder="______" required autofocus maxlength="6" pattern="\d{6}" inputmode="numeric">
             </div>
             <div class="error-text" id="otpUnbindError" style="margin-bottom: 1rem;"></div>
             <button type="submit" class="btn btn-primary w-100 mb-3" id="otpUnbindVerifyBtn" style="background-color: #dc3545;">Confirm Unbind</button>
         </form>
-        
         <a href="#" id="resendUnbindOtpBtn" class="small text-decoration-none" style="display: block; text-align: center;">Resend Code</a>
         <span id="cooldownUnbindTimer" class="small text-muted" style="margin-top: 5px; display: none; text-align: center;"></span>
     </div>
@@ -113,17 +109,14 @@
         <span class="close" id="closeOtpToggleModal">&times;</span>
         <h3 style="margin-top: 0; text-align: center;">Confirm Disable 2FA</h3>
         <p class="text-muted" style="text-align: center;">Enter the 6-digit code sent to your email to confirm you want to disable Two-Factor Authentication.</p>
-        
         <form id="otpToggleForm" action="<?= $base_url ?>/settings/verify-2fa-toggle-otp" method="POST" style="margin-top: 1.5rem;">
             <?= Csrf::getField(); ?>
-
             <div class="input-wrapper mb-3" style="display: flex; justify-content: center;">
                 <input type="text" name="otp" id="otpToggleInput" class="form-control" placeholder="______" required autofocus maxlength="6" pattern="\d{6}" inputmode="numeric">
             </div>
             <div class="error-text" id="otpToggleError" style="margin-bottom: 1rem;"></div>
             <button type="submit" class="btn btn-primary w-100 mb-3" id="otpToggleVerifyBtn">Confirm Disable</button>
         </form>
-        
         <a href="#" id="resendToggleOtpBtn" class="small text-decoration-none" style="display: block; text-align: center;">Resend Code</a>
         <span id="cooldownToggleTimer" class="small text-muted" style="margin-top: 5px; display: none; text-align: center;"></span>
     </div>
@@ -134,10 +127,8 @@
         <span class="close" id="closeOtpBindModal">&times;</span>
         <h3 style="margin-top: 0; text-align: center;">Confirm New Email</h3>
         <p class="text-muted" style="text-align: center;">Enter the 6-digit code sent to your <strong>new</strong> email address to confirm the change.</p>
-        
         <form id="otpBindForm" action="<?= $base_url ?>/settings/confirm-bind-email" method="POST" style="margin-top: 1.5rem; margin-bottom: 1rem;">
             <?= Csrf::getField(); ?>
-            
             <div class="otp-container" id="otpBindContainer">
                 <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
                 <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
@@ -150,7 +141,6 @@
             <div class="error-text" id="otpBindError" style="margin-bottom: 1rem;"></div>
             <button type="submit" class="btn btn-primary w-100 mb-3" id="otpBindVerifyBtn">Confirm Email</button>
         </form>
-        
         <a href="#" id="resendBindOtpBtn" class="small text-decoration-none" style="display: block; text-align: center;">Resend Code</a>
         <span id="cooldownBindTimer" class="small text-muted" style="margin-top: 5px; display: none; text-align: center;"></span>
     </div>
