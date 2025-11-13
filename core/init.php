@@ -17,6 +17,11 @@ try {
 
 session_start();
 
+// --- NEW: CSRF Protection Initialization ---
+require_once __DIR__ . '/Csrf.php';
+Csrf::generate(); // Ensure a token exists for every session
+// --------------------------------------------
+
 // --- CRITICAL BASE_URL FIX FOR LOCALHOST EMAIL LINKS ---
 // Dynamically determine the scheme and host.
 $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
@@ -39,10 +44,9 @@ $allowed_pages = [
     '', // Root path
     'verify-otp',
     'resend-otp',
-    // --- ADDED FOR PASSWORD RESET ---
     'password/forgot',
-    'password/reset'
-    // --- END ADDED ---
+    'password/reset',  // <--- MAKE SURE THIS COMMA IS HERE
+    'debug_csrf.php'   // The new line you added
 ];
 
 // Check for pages allowed without full login

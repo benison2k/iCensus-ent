@@ -49,7 +49,7 @@ export function initSecurityTab(helpers) {
             }
             
             const btn = this.querySelector('button[type="submit"]');
-            setButtonLoading(btn, true, 'Sending OTP...'); // <-- UPDATED
+            setButtonLoading(btn, true, 'Sending OTP...');
 
             let otpModalOpened = false; // Flag
             try {
@@ -72,7 +72,7 @@ export function initSecurityTab(helpers) {
                             resendUrl: BASE_URL + '/settings/resend-bind-otp',
                             resendBody: new URLSearchParams(), // No body needed, email is in session
                             onSuccessReload: true, // Reload on success to update email value
-                            onCloseCallback: () => setButtonLoading(btn, false) // <-- NEW: Reset button on modal close
+                            onCloseCallback: () => setButtonLoading(btn, false)
                         }, result.message, COOLDOWN_DURATION);
                     }
                 } else {
@@ -81,7 +81,7 @@ export function initSecurityTab(helpers) {
             } catch (error) {
                 showAjaxResult('A network error occurred. Please try again.', 'error');
             } finally {
-                if (!otpModalOpened) { // <-- UPDATED: Only re-enable if modal isn't opening
+                if (!otpModalOpened) {
                     setButtonLoading(btn, false);
                 }
             }
@@ -310,8 +310,23 @@ function init2FAToggle(helpers) {
             return;
         }
 
+        // --- NEW: Retrieve CSRF token from the form ---
+        const form = document.getElementById('twoFaForm');
+        let csrfToken = '';
+        if (form) {
+            const tokenInput = form.querySelector('input[name="csrf_token"]');
+            if (tokenInput) {
+                csrfToken = tokenInput.value;
+            }
+        }
+
         this.disabled = true;
-        const data = new URLSearchParams({ target_two_fa: targetTwoFA });
+        
+        // --- NEW: Include token in params ---
+        const data = new URLSearchParams({ 
+            target_two_fa: targetTwoFA,
+            csrf_token: csrfToken
+        });
         
         try {
             const response = await fetch(BASE_URL + '/settings/toggleTwoFA', {
@@ -330,7 +345,7 @@ function init2FAToggle(helpers) {
                 initOtpModal('otpToggleModal', {
                     ...helpers, 
                     resendUrl: BASE_URL + '/settings/toggleTwoFA',
-                    resendBody: new URLSearchParams({ target_two_fa: 0 }),
+                    resendBody: new URLSearchParams({ target_two_fa: 0, csrf_token: csrfToken }), // Re-send token on retry
                     onCloseReload: true
                 }, result.message, COOLDOWN_DURATION);
             } else if (result.status === 'cooldown') {
@@ -338,7 +353,7 @@ function init2FAToggle(helpers) {
                 initOtpModal('otpToggleModal', {
                     ...helpers, 
                     resendUrl: BASE_URL + '/settings/toggleTwoFA',
-                    resendBody: new URLSearchParams({ target_two_fa: 0 }),
+                    resendBody: new URLSearchParams({ target_two_fa: 0, csrf_token: csrfToken }), // Re-send token on retry
                     onCloseReload: true
                 }, result.message, result.cooldown_remaining);
             } else {
@@ -363,12 +378,12 @@ function initUnbindEmail(helpers) {
 
     unbindEmailBtn.addEventListener('click', async function() {
         const btn = this;
-        setButtonLoading(btn, true, 'Sending OTP...'); // <-- UPDATED
+        setButtonLoading(btn, true, 'Sending OTP...');
 
         const twoFaSwitch = document.getElementById('twoFaSwitch');
         if (twoFaSwitch && twoFaSwitch.checked) { 
             showAjaxResult('You must disable Two-Factor Authentication before removing your email.', 'error');
-            setButtonLoading(btn, false); // <-- UPDATED
+            setButtonLoading(btn, false);
             return;
         }
         
@@ -384,7 +399,7 @@ function initUnbindEmail(helpers) {
                     resendUrl: BASE_URL + '/settings/request-unbind-otp',
                     resendBody: new URLSearchParams(),
                     onSuccessReload: true,
-                    onCloseCallback: () => setButtonLoading(btn, false) // <-- NEW: Reset button on modal close
+                    onCloseCallback: () => setButtonLoading(btn, false)
                 }, result.message, result.cooldown_remaining || COOLDOWN_DURATION);
             } else {
                 showAjaxResult(result.message || 'An error occurred.', 'error');
@@ -392,7 +407,7 @@ function initUnbindEmail(helpers) {
         } catch (error) {
              showAjaxResult('A network error occurred.', 'error');
         } finally {
-            if (!otpModalOpened) { // <-- UPDATED
+            if (!otpModalOpened) {
                 setButtonLoading(btn, false);
             }
         }
@@ -406,7 +421,7 @@ function initOtpModal(modalId, helpers, message, cooldown) {
         showAjaxResult, BASE_URL, COOLDOWN_DURATION, 
         resendUrl, resendBody, 
         onSuccessReload, onCloseReload,
-        onCloseCallback // <-- NEW: Get the callback
+        onCloseCallback
     } = helpers;
     
     const modal = document.getElementById(modalId);
@@ -501,7 +516,7 @@ function initOtpModal(modalId, helpers, message, cooldown) {
         closeBtn.onclick = () => {
             clearInterval(otpCooldownInterval);
             modal.style.display = 'none';
-            if (onCloseCallback) onCloseCallback(); // <-- UPDATED: Run callback
+            if (onCloseCallback) onCloseCallback();
             if (onCloseReload) window.location.reload();
         };
         

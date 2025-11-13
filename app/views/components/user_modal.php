@@ -6,6 +6,8 @@
         </div>
         
         <form id="userForm" method="POST" action="<?= htmlspecialchars($form_action ?? '/iCensus-ent/public/sysadmin/users/process') ?>">
+            <?= Csrf::getField(); ?>
+
             <div class="modal-modern-body">
                 <input type="hidden" name="user_id" id="user_id">
                 

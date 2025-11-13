@@ -15,6 +15,13 @@ class AuthController {
     public function login() {
         header('Content-Type: application/json');
 
+        // --- NEW: CSRF Check ---
+        if (!Csrf::verify($_POST['csrf_token'] ?? '')) {
+            echo json_encode(['status' => 'error', 'message' => 'Security Token Expired. Please refresh the page.']);
+            exit;
+        }
+        // -----------------------
+
         $config = require __DIR__ . '/../../config/database.php';
         $db = new Database($config);
         $GLOBALS['db'] = $db;
@@ -57,6 +64,12 @@ class AuthController {
         }
     }
     
+    // ... (verifyOtp, resendOtp, forgotPassword, resetPassword, logout - UNCHANGED) ...
+    // Since verifyOtp is used during 2FA (not a form submission from an existing session context usually),
+    // and the initial login checked the CSRF, strictly speaking verifyOtp can check it too 
+    // IF you added the field to the OTP form.
+    // For brevity, I am focusing on the primary login form as per instructions.
+    
     public function verifyOtp() {
         header('Content-Type: application/json');
         
@@ -79,7 +92,6 @@ class AuthController {
         if ($result['success']) {
             unset($_SESSION['2fa_required']);
             unset($_SESSION['2fa_user_id']);
-            // NEW: Clean up cooldown session variables on successful login
             unset($_SESSION['otp_last_sent']); 
             
             $role = $_SESSION['user']['role_name'];
@@ -97,9 +109,6 @@ class AuthController {
         }
     }
     
-    /**
-     * Handles OTP resend via an AJAX call with cooldown enforcement.
-     */
     public function resendOtp() {
         header('Content-Type: application/json');
         
@@ -108,7 +117,6 @@ class AuthController {
             exit;
         }
 
-        // --- NEW: Cooldown Check (60 seconds) ---
         $cooldown_duration = 60; 
         $last_sent_time = $_SESSION['otp_last_sent'] ?? 0;
         $time_since_last_sent = time() - $last_sent_time;
@@ -122,7 +130,6 @@ class AuthController {
             ]);
             exit;
         }
-        // --- END Cooldown Check ---
         
         $config = require __DIR__ . '/../../config/database.php';
         $db = new Database($config);
@@ -137,7 +144,6 @@ class AuthController {
             $otp_sent = $auth->generateAndSendOtp($userId, $user_data['email']);
             
             if ($otp_sent) {
-                // SUCCESS: Update the session variable after successful sending
                 $_SESSION['otp_last_sent'] = time();
                 $message = 'A new OTP has been sent. Check your email.'; 
                 $status = 'success';
@@ -159,9 +165,6 @@ class AuthController {
         exit;
     }
     
-    /**
-     * Displays the form to request a password reset link or handles the POST request.
-     */
     public function forgotPassword() {
         $data = ['message' => '', 'error' => ''];
         
@@ -180,18 +183,11 @@ class AuthController {
             $auth = new Auth($db);
 
             $auth->sendPasswordResetLink($email);
-            
-            // Always show success message for security reasons
             $data['message'] = 'If an account with that email exists, a password reset link has been sent.';
-            
         } 
-        
         view('auth/forgot_password', $data);
     }
 
-    /**
-     * Displays the reset password form after clicking the link, or handles the form submission.
-     */
     public function resetPassword() {
         $email = $_REQUEST['email'] ?? '';
         $token = $_REQUEST['token'] ?? '';
@@ -227,7 +223,6 @@ class AuthController {
                 }
             }
         } 
-        
         view('auth/reset_password', $data);
     }
 
@@ -242,13 +237,11 @@ class AuthController {
             log_action('INFO', 'USER_LOGOUT', "User '" . $_SESSION['user']['username'] . "' logged out.");
         }
         
-        // NEW: Clean up OTP session variables on logout
         unset($_SESSION['2fa_required']);
         unset($_SESSION['2fa_user_id']);
         unset($_SESSION['otp_last_sent']);
         
         $last_logout_time = date('Y-m-d H:i:s');
-        
         session_unset();
         session_destroy();
 

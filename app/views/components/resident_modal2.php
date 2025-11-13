@@ -5,6 +5,8 @@
             <span class="close" style="font-size:1.8rem; cursor:pointer;"><span class="material-icons">close</span></span>
         </div>
         <form id="residentForm" method="POST" action="/iCensus-ent/public/residents/process" style="display: contents;">
+            <?= Csrf::getField(); ?>
+
             <div class="modal-modern-body">
                 <div class="modal-tabs">
                     <button type="button" class="tab-button active" data-tab="personal"><span class="material-icons">person</span> Personal</button>
@@ -17,9 +19,7 @@
                     <input type="hidden" name="resident_id" id="resident_id">
 
                     <div style="padding: 0 2rem;">
-                        
                         <p class="progress-label" id="formProgressLabel">Required Information Completeness:</p>
-                        
                         <div class="progress-container">
                             <div class="progress-bar" id="formProgressBar"></div>
                         </div>

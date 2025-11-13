@@ -2,6 +2,8 @@
     <h3>Account Information</h3>
     
     <form id="usernameForm" method="POST">
+        <?= Csrf::getField(); ?>
+        
         <div class="form-group">
             <label for="username">Username</label>
             <input type="text" name="username" id="username" value="<?= htmlspecialchars($user['username'] ?? ''); ?>" required>

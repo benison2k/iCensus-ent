@@ -28,6 +28,7 @@ endif; ?>
         <h3 class="card-title">Database Backup</h3>
         <p>Create a full backup of the system database.</p>
         <form action="/iCensus-ent/public/sysadmin/db-tools/process" method="POST">
+            <?= Csrf::getField(); ?>
             <button type="submit" name="action" value="backup_db">
                 <span class="material-icons">download</span> Run Backup
             </button>

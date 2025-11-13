@@ -9,10 +9,6 @@ require_once __DIR__ . '/../../core/Database.php';
 
 class SysadminController {
 
-    /**
-     * Bouncer: Checks if the user is a logged-in System Admin.
-     * Redirects to login page if not authorized.
-     */
     private function requireSysadmin() {
         if (!isset($_SESSION['user']) || $_SESSION['user']['role_name'] !== 'System Admin') {
             header("Location: /iCensus-ent/public/login");
@@ -20,9 +16,6 @@ class SysadminController {
         }
     }
 
-    /**
-     * Display the System Admin dashboard.
-     */
     public function dashboard() {
         $this->requireSysadmin();
 
@@ -30,7 +23,6 @@ class SysadminController {
         $db = new Database($config);
         $logModel = new Log($db);
         
-        // Get unseen log count from the database
         $new_log_count = $logModel->getUnseenLogCount();
 
         $data = [
@@ -66,8 +58,20 @@ class SysadminController {
     }
 
     public function processUser() {
-        // ✅ FIX: Was $this.requireSysadmin();
         $this->requireSysadmin();
+        
+        // --- NEW: CSRF Check ---
+        if (!Csrf::verify($_POST['csrf_token'] ?? '')) {
+            if (!empty($_SERVER['HTTP_X_REQUESTED_WITH'])) {
+                header('Content-Type: application/json');
+                echo json_encode(['status' => 'error', 'message' => 'Security Token Error.']);
+                exit;
+            }
+            $_SESSION['modal'] = ['message' => 'Security Token Expired.', 'type' => 'error'];
+            header("Location: /iCensus-ent/public/sysadmin/users");
+            exit;
+        }
+        // -----------------------
         
         $config = require __DIR__ . '/../../config/database.php';
         $db = new Database($config);
@@ -78,6 +82,8 @@ class SysadminController {
         $is_ajax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
 
         try {
+            unset($_POST['csrf_token']);
+
             if ($action === 'save') {
                 $is_new_user = empty($_POST['user_id']);
 
@@ -153,7 +159,6 @@ class SysadminController {
     }
 
     public function getUser() {
-        // ✅ FIX: Was $this.requireSysadmin();
         $this->requireSysadmin();
         header('Content-Type: application/json');
 
@@ -167,7 +172,6 @@ class SysadminController {
     }    
 
     public function dbTools() {
-        // ✅ FIX: Was $this.requireSysadmin();
         $this->requireSysadmin();
     
         $data = [
@@ -182,8 +186,15 @@ class SysadminController {
     }
     
     public function processDbTools() {
-        // ✅ FIX: Was $this.requireSysadmin();
         $this->requireSysadmin();
+        
+        // --- NEW: CSRF Check Added ---
+        if (!Csrf::verify($_POST['csrf_token'] ?? '')) {
+            $_SESSION['modal'] = ['message' => 'Security Token Expired.', 'type' => 'error'];
+            header("Location: /iCensus-ent/public/sysadmin/db-tools");
+            exit;
+        }
+        // -----------------------------
         
         $config = require __DIR__ . '/../../config/database.php';
         $db = new Database($config);
@@ -231,7 +242,6 @@ class SysadminController {
     }
 
     public function systemLogs() {
-        // ✅ FIX: Was $this.requireSysadmin();
         $this->requireSysadmin();
     
         $config = require __DIR__ . '/../../config/database.php';

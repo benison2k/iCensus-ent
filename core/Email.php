@@ -4,7 +4,7 @@
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-// Load Composer's autoloader (Required if this file is used standalone, though init.php handles it mostly)
+// Load Composer's autoloader
 require_once __DIR__ . '/../vendor/autoload.php';
 
 class Email {
@@ -24,7 +24,6 @@ class Email {
             $mail->Password   = $_ENV['OTP_PASSWORD']; 
             
             // Handle SMTP Secure setting
-            // Note: .env might contain the string "PHPMailer::ENCRYPTION_STARTTLS", so we map it or default to 'tls'
             $secure_env = $_ENV['SMTP_SECURE'] ?? 'tls';
             if ($secure_env === 'PHPMailer::ENCRYPTION_STARTTLS') {
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
