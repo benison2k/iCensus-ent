@@ -47,7 +47,7 @@ class ResidentController {
             'relationships' => $residentModel->getDistinctValues('relationship'),
             'educations' => $residentModel->getDistinctValues('educational_attainment'),
             'occupations' => $residentModel->getDistinctValues('occupation'),
-            'ownership_statuses' => $residentModel->getDistinctValues('ownership_status'), // <-- ADDED THIS LINE
+            'ownership_statuses' => $residentModel->getDistinctValues('ownership_status'),
             'isPendingView' => $isPendingView,
             'pending_count' => ($user_role === 'Barangay Admin') ? $residentModel->getPendingCount() : 0,
             'modalMessage' => $_SESSION['modal']['message'] ?? '',
@@ -67,6 +67,7 @@ class ResidentController {
     }
     
     public function findByAddress() {
+        // No CSRF check needed for GET requests typically
         header('Content-Type: application/json');
         $house_no = $_GET['house_no'] ?? '';
         $street = $_GET['street'] ?? '';
@@ -89,6 +90,13 @@ class ResidentController {
     public function process() {
         header('Content-Type: application/json');
         
+        // --- NEW: CSRF Check ---
+        if (!Csrf::verify($_POST['csrf_token'] ?? '')) {
+            echo json_encode(['status' => 'error', 'message' => 'Security Token Invalid. Please reload.']);
+            exit;
+        }
+        // -----------------------
+        
         if (!isset($_SESSION['user'])) {
             echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
             exit;
@@ -104,6 +112,7 @@ class ResidentController {
         try {
             switch ($action) {
                 case 'get':
+                    // GET action typically doesn't require CSRF if it's just reading data for the modal
                     $resident = $residentModel->find($_GET['resident_id']);
                     echo json_encode(['status' => 'success', 'resident' => $resident]);
                     break;
@@ -117,6 +126,9 @@ class ResidentController {
                         $_POST['encoded_by'] = $_SESSION['user']['id'];
                     }
                     
+                    // Remove csrf_token from POST data before saving
+                    unset($_POST['csrf_token']);
+
                     $residentId = $residentModel->save($_POST);
                     $full_name = htmlspecialchars($_POST['first_name'] . ' ' . $_POST['last_name']);
 

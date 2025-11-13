@@ -17,6 +17,11 @@ try {
 
 session_start();
 
+// --- NEW: CSRF Protection Initialization ---
+require_once __DIR__ . '/Csrf.php';
+Csrf::generate(); // Ensure a token exists for every session
+// --------------------------------------------
+
 // --- CRITICAL BASE_URL FIX FOR LOCALHOST EMAIL LINKS ---
 // Dynamically determine the scheme and host.
 $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
