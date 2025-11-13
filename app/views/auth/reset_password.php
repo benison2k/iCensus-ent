@@ -63,64 +63,8 @@ $base_url = '/iCensus-ent/public';
     </div>
 </div>
 
-<script>
-// Particle animation script here (copy from login.php for visual consistency)
-const canvas = document.getElementById('particleCanvas');
-const ctx = canvas.getContext('2d');
-let particlesArray = [];
-function resizeCanvas(){ canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; }
-window.addEventListener('resize', () => { resizeCanvas(); initParticles(); });
-class Particle {
-    constructor() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
-        this.size = Math.random() * 3 + 1;
-        this.speedX = Math.random() * 1 - 0.5;
-        this.speedY = Math.random() * 1 - 0.5;
-    }
-    update() {
-        this.x += this.speedX; this.y += this.speedY;
-        if(this.x < 0 || this.x > canvas.width) this.speedX *= -1;
-        if(this.y < 0 || this.y > canvas.height) this.speedY *= -1;
-    }
-    draw() {
-        ctx.fillStyle = 'rgba(255,255,255,0.4)';
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
-    }
-}
-function initParticles(){ particlesArray = []; for(let i=0;i<60;i++){ particlesArray.push(new Particle()); } }
-function animateParticles(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    particlesArray.forEach(p => { p.update(); p.draw(); });
-    requestAnimationFrame(animateParticles);
-}
-resizeCanvas();
-initParticles();
-animateParticles();
-
-// Password Toggle Logic
-const passwordField = document.getElementById('passwordField');
-const confirmPasswordField = document.getElementById('confirmPasswordField');
-const togglePassword1 = document.getElementById('togglePassword1');
-const togglePassword2 = document.getElementById('togglePassword2');
-
-if (togglePassword1) {
-    togglePassword1.addEventListener('click', () => {
-        const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
-        passwordField.setAttribute('type', type);
-        togglePassword1.textContent = type === 'password' ? 'visibility_off' : 'visibility';
-    });
-}
-if (togglePassword2) {
-    togglePassword2.addEventListener('click', () => {
-        const type = confirmPasswordField.getAttribute('type') === 'password' ? 'text' : 'password';
-        confirmPasswordField.setAttribute('type', type);
-        togglePassword2.textContent = type === 'password' ? 'visibility_off' : 'visibility';
-    });
-}
-</script>
+<script src="<?= $base_url ?>/assets/js/particle_animation.js"></script>
+<script src="<?= $base_url ?>/assets/js/reset_password.js"></script>
 
 </body>
 </html>
