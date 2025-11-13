@@ -1,0 +1,23 @@
+# Security: Never commit environment variables with real credentials
+.env
+
+# Dependencies: Composer manages these, so don't commit them
+/vendor/
+
+# Database Backups: Don't commit huge SQL dumps
+/backups/
+*.sql
+
+# OS Generated Files: Junk files from Mac/Windows
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# IDE Configuration: Your personal editor settings
+.idea/
+.vscode/
+*.swp
+
+# Logs (Optional, if you add a logs folder later)
+/logs/
+error.log

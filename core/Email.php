@@ -4,7 +4,7 @@
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-// Load Composer's autoloader
+// Load Composer's autoloader (Required if this file is used standalone, though init.php handles it mostly)
 require_once __DIR__ . '/../vendor/autoload.php';
 
 class Email {
@@ -15,17 +15,28 @@ class Email {
         $mail = new PHPMailer(true);
         
         try {
-            // Server settings (using user-provided Gmail credentials)
+            // Server settings
             $mail->isSMTP();
-            $mail->Host       = 'smtp.gmail.com'; 
+            $mail->Host       = $_ENV['SMTP_HOST'] ?? 'smtp.gmail.com'; 
             $mail->SMTPAuth   = true;
-            $mail->Username   = 'jbgl2263@gmail.com'; 
-            $mail->Password   = 'eclf hpww hozr ghry'; // This is your App Password
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; 
-            $mail->Port       = 587;
+            // Use OTP-specific credentials from .env
+            $mail->Username   = $_ENV['OTP_USERNAME']; 
+            $mail->Password   = $_ENV['OTP_PASSWORD']; 
+            
+            // Handle SMTP Secure setting
+            // Note: .env might contain the string "PHPMailer::ENCRYPTION_STARTTLS", so we map it or default to 'tls'
+            $secure_env = $_ENV['SMTP_SECURE'] ?? 'tls';
+            if ($secure_env === 'PHPMailer::ENCRYPTION_STARTTLS') {
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            } else {
+                $mail->SMTPSecure = $secure_env;
+            }
+            
+            $mail->Port       = $_ENV['SMTP_PORT'] ?? 587;
             
             // Recipients
-            $mail->setFrom('no-reply@icensus.com', 'iCensus OTP');
+            $fromEmail = $_ENV['EMAIL_DEFAULT_FROM'] ?? 'no-reply@icensus.com';
+            $mail->setFrom($fromEmail, 'iCensus OTP');
             $mail->addAddress($recipientEmail);
             
             // Content
@@ -58,17 +69,26 @@ class Email {
         $mail = new PHPMailer(true);
         
         try {
-            // Server settings (use your configured SMTP settings here)
+            // Server settings
             $mail->isSMTP();
-            $mail->Host       = 'smtp.gmail.com'; 
+            $mail->Host       = $_ENV['SMTP_HOST'] ?? 'smtp.gmail.com'; 
             $mail->SMTPAuth   = true;
-            $mail->Username   = 'icensussystem@gmail.com'; 
-            $mail->Password   = 'kivw svln bcym qnxy'; // Your App Password
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; 
-            $mail->Port       = 587;
+            // Use Reset-specific credentials from .env
+            $mail->Username   = $_ENV['RESET_USERNAME']; 
+            $mail->Password   = $_ENV['RESET_PASSWORD'];
+            
+            $secure_env = $_ENV['SMTP_SECURE'] ?? 'tls';
+            if ($secure_env === 'PHPMailer::ENCRYPTION_STARTTLS') {
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            } else {
+                $mail->SMTPSecure = $secure_env;
+            }
+            
+            $mail->Port       = $_ENV['SMTP_PORT'] ?? 587;
             
             // Recipients
-            $mail->setFrom('no-reply@icensus.com', 'iCensus Password Reset');
+            $fromEmail = $_ENV['EMAIL_DEFAULT_FROM'] ?? 'no-reply@icensus.com';
+            $mail->setFrom($fromEmail, 'iCensus Password Reset');
             $mail->addAddress($recipientEmail, $username);
             
             // Content
