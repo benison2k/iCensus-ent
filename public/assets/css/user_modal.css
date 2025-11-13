@@ -1,0 +1,104 @@
+/* public/assets/css/user_modal.css */
+
+/* Modern Modal Styles (scoped for user modal) */
+#userModal.modal-modern {
+    display: none;
+    position: fixed; 
+    z-index: 1000; 
+    left: 0; 
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: hidden;
+    background: rgba(0,0,0,0.6); 
+    backdrop-filter: blur(5px);
+    align-items: center;
+    justify-content: center;
+}
+#userModal .modal-modern-content {
+    background: #fff;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 500px; /* User modal is simpler, so it can be narrower */
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    animation: fadeIn 0.3s ease-out;
+    overflow: hidden;
+}
+#userModal .modal-modern-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e0e0e0;
+    flex-shrink: 0;
+}
+#userModal .modal-modern-header h3 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+#userModal .modal-modern-header .close {
+    font-size: 1.8rem; 
+    cursor: pointer;
+    color: #888;
+    transition: color 0.2s;
+}
+#userModal .modal-modern-header .close:hover { color: #000; }
+
+#userModal .modal-modern-body {
+    padding: 1.5rem 2rem 2rem 2rem;
+    overflow-y: auto;
+}
+#userModal .form-group { display: flex; flex-direction: column; margin-bottom: 1rem; }
+#userModal .form-group label { margin-bottom: 0.3rem; font-size: 0.85rem; font-weight: 500; color: #666; }
+#userModal .form-group input, #userModal .form-group select {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 0.95rem;
+}
+#userModal .form-group small {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 4px;
+}
+
+#userModal .modal-modern-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e0e0e0;
+    flex-shrink: 0;
+}
+#userModal .modal-footer-btn { 
+    padding: 0.6rem 1.2rem; 
+    border-radius: 8px; 
+    border: none; 
+    cursor: pointer; 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 0.5rem; 
+    text-decoration: none; 
+}
+#userModal .btn-save { background-color: #4caf50; color: #fff; }
+#userModal .btn-save:disabled { background-color: #aaa; }
+
+/* Dark Mode */
+body.dark-mode #userModal .modal-modern-content { background: #2C3E50; }
+body.dark-mode #userModal .modal-modern-header, 
+body.dark-mode #userModal .modal-modern-footer { border-color: #4a5a6a; }
+body.dark-mode #userModal .modal-modern-header h3 { color: #fff; }
+body.dark-mode #userModal .modal-modern-header .close { color: #ccc; }
+body.dark-mode #userModal .modal-modern-header .close:hover { color: #fff; }
+body.dark-mode #userModal .form-group label { color: #bbb; }
+body.dark-mode #userModal .form-group small { color: #999; }
+body.dark-mode #userModal .form-group input, 
+body.dark-mode #userModal .form-group select { 
+    background-color: #1e1e2f; border-color: #555; color: #fff; 
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
