@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/residents_table.css">
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/residents_filters.css"> 
 <link rel="stylesheet" href="<?= $base_url ?>/assets/css/users.css">
+<link rel="stylesheet" href="<?= $base_url ?>/assets/css/user_modal.css">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body class="<?= $theme==='dark'?'dark-mode':'light-mode'; ?>">
