@@ -15,40 +15,59 @@
 
 <div class="welcome">
     <h2>Welcome, <?= htmlspecialchars($user['full_name']); ?>!</h2>
+    <p style="opacity: 0.7; margin-top: 0.5rem;">Here is your activity overview for today.</p>
 </div>
 
-<main class="dashboard" style="flex-direction: column; gap: 2rem; padding-top: 1rem;">
+<main class="dashboard encoder-dashboard">
     
-    <div class="card" style="max-width: 900px; width: 90%; padding: 2rem;">
-        <h3 class="card-title" style="text-align: left; margin-bottom: 2rem; font-size: 1.3rem;">Your Activity Summary</h3>
-        <div style="display: flex; justify-content: space-around; text-align: center; gap: 1rem;">
-            
-            <div>
-                <span class="material-icons card-icon" style="font-size: 3rem;">today</span>
-                <p style="font-size: 2.5rem; font-weight: 600; margin: 0.5rem 0; line-height: 1;"><?= $stats['today'] ?? 0 ?></p>
-                <p class="card-desc">Entries Today</p>
+    <div class="stats-grid">
+        
+        <div class="card stat-card">
+            <div class="stat-icon-wrapper bg-blue">
+                <span class="material-icons">today</span>
             </div>
-
-            <div>
-                <span class="material-icons card-icon" style="font-size: 3rem;">hourglass_top</span>
-                <p style="font-size: 2.5rem; font-weight: 600; margin: 0.5rem 0; line-height: 1;"><?= $stats['pending'] ?? 0 ?></p>
-                <p class="card-desc">Pending Approval</p>
+            <div class="stat-content">
+                <h3 class="stat-number"><?= $stats['today'] ?? 0 ?></h3>
+                <p class="stat-label">Entries Today</p>
             </div>
-
-            <div>
-                <span class="material-icons card-icon" style="font-size: 3rem;">check_circle</span>
-                <p style="font-size: 2.5rem; font-weight: 600; margin: 0.5rem 0; line-height: 1;"><?= $stats['approved'] ?? 0 ?></p>
-                <p class="card-desc">Total Approved</p>
-            </div>
-
         </div>
+
+        <div class="card stat-card">
+            <div class="stat-icon-wrapper bg-orange">
+                <span class="material-icons">hourglass_top</span>
+            </div>
+            <div class="stat-content">
+                <h3 class="stat-number"><?= $stats['pending'] ?? 0 ?></h3>
+                <p class="stat-label">Pending Approval</p>
+            </div>
+        </div>
+
+        <div class="card stat-card">
+            <div class="stat-icon-wrapper bg-green">
+                <span class="material-icons">check_circle</span>
+            </div>
+            <div class="stat-content">
+                <h3 class="stat-number"><?= $stats['approved'] ?? 0 ?></h3>
+                <p class="stat-label">Total Approved</p>
+            </div>
+        </div>
+
     </div>
     
-    <a href="/iCensus-ent/public/residents" class="card clickable-card" style="max-width: 900px; width: 90%;">
-        <span class="material-icons card-icon">groups</span>
-        <h3 class="card-title">Manage Residents</h3>
-        <p class="card-desc">Add, search, and update resident information.</p>
-    </a>
+    <div class="actions-grid">
+        <a href="/iCensus-ent/public/residents" class="card action-card clickable-card">
+            <div class="action-icon-box">
+                <span class="material-icons">groups</span>
+            </div>
+            <div class="action-details">
+                <h3 class="action-title">Manage Residents</h3>
+                <p class="action-desc">Add new records, search database, and update resident information.</p>
+            </div>
+            <div class="action-arrow">
+                <span class="material-icons">arrow_forward</span>
+            </div>
+        </a>
+    </div>
 
 </main>
 
