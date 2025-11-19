@@ -351,4 +351,25 @@ class Resident {
 
         return $stats;
     }
+    
+    /**
+     * NEW: Gets the most recent submission activity for a specific encoder.
+     * @param int $encoderId The ID of the encoder.
+     * @param int $limit The maximum number of entries to return.
+     * @return array
+     */
+    public function getRecentByEncoder($encoderId, $limit = 5) {
+        $sql = "SELECT first_name, last_name, created_at, approval_status 
+                FROM residents 
+                WHERE encoded_by = :encoder_id 
+                ORDER BY created_at DESC 
+                LIMIT :limit";
+        
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(':encoder_id', $encoderId);
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

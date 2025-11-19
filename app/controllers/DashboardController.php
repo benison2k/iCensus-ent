@@ -45,25 +45,30 @@ class DashboardController {
     public function encoderDashboard() {
         $this->requireAuthAndRefresh('Encoder');
         
-        // Add logic to get stats
         require_once __DIR__ . '/../models/Residents.php';
         $db = new Database(require __DIR__ . '/../../config/database.php');
         $residentModel = new Resident($db);
         
         $encoderId = $_SESSION['user']['id'];
+        
+        // Fetch stats
         $encoderStats = $residentModel->getStatsForEncoder($encoderId);
+        
+        // NEW: Fetch recent activity (requires getRecentByEncoder method in the model)
+        $recentActivity = $residentModel->getRecentByEncoder($encoderId);
     
         $data = [
             'user' => $_SESSION['user'],
             'theme' => $_SESSION['user']['theme'] ?? 'light',
-            'stats' => $encoderStats // Pass stats to the view
+            'stats' => $encoderStats, // Pass stats to the view
+            'recent_activity' => $recentActivity // Pass recent activity to the view
         ];
         view('dashboard/encoder', $data);
     }
 
-        /**
-         * NEW: Display the page for reviewing pending resident entries.
-         */    
+    /**
+     * NEW: Display the page for reviewing pending resident entries.
+     */    
     public function review() {
         $this->requireAuthAndRefresh('Barangay Admin');
         
