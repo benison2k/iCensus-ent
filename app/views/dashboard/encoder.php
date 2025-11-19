@@ -1,6 +1,16 @@
 <?php
 // Define the base URL for assets and links
 $base_url = '/iCensus-ent/public'; 
+
+// Safely determine the first name for the greeting to fix the 'Undefined array key' warning
+$greetingName = 'Encoder';
+if (isset($user['full_name'])) {
+    // Split the full name and take the first part
+    $parts = explode(' ', $user['full_name']);
+    $greetingName = $parts[0];
+} elseif (isset($user['first_name'])) {
+    $greetingName = $user['first_name'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -18,13 +28,19 @@ $base_url = '/iCensus-ent/public';
 
 <?php include __DIR__ . '/../components/header.php'; ?>
 
-<div class="welcome">
-    <h2>Welcome, <?= htmlspecialchars($user['full_name']); ?>!</h2>
-    <p style="opacity: 0.7; margin-top: 0.5rem;">Here is your activity overview for today.</p>
-</div>
-
 <main class="dashboard encoder-dashboard">
     
+    <div class="dashboard-hero">
+        <div class="hero-content">
+            <h1>Hello, <?= htmlspecialchars($greetingName); ?>!</h1>
+            <p>Have a productive day recording census data.</p>
+        </div>
+        <div class="hero-date">
+            <span class="material-icons">calendar_today</span>
+            <span><?= date('l, F j, Y') ?></span>
+        </div>
+    </div>
+
     <div class="stats-grid">
         
         <div class="card stat-card">
@@ -59,19 +75,66 @@ $base_url = '/iCensus-ent/public';
 
     </div>
     
-    <div class="actions-grid">
-        <a href="<?= $base_url ?>/residents" class="card action-card clickable-card">
-            <div class="action-icon-box">
-                <span class="material-icons">groups</span>
+    <div class="content-split">
+        
+        <div class="card recent-activity-card">
+            <div class="card-header-flex">
+                <h3>Recent Submissions</h3>
+                <span class="material-icons" style="opacity:0.5;">history</span>
             </div>
-            <div class="action-details">
-                <h3 class="action-title">Manage Residents</h3>
-                <p class="action-desc">Add new records, search database, and update resident information.</p>
+            
+            <div class="activity-list">
+                <?php if (empty($recent_activity)): ?>
+                    <div class="empty-state">
+                        <p>No recent activity recorded.</p>
+                    </div>
+                <?php else: ?>
+                    <?php foreach ($recent_activity as $activity): ?>
+                        <div class="activity-item">
+                            <div class="activity-icon <?= $activity['approval_status'] == 'approved' ? 'success' : 'pending' ?>">
+                                <span class="material-icons">person</span>
+                            </div>
+                            <div class="activity-info">
+                                <span class="activity-name">
+                                    <?= htmlspecialchars($activity['first_name'] . ' ' . $activity['last_name']) ?>
+                                </span>
+                                <span class="activity-time">
+                                    <?= date('M j, g:i a', strtotime($activity['created_at'])) ?>
+                                </span>
+                            </div>
+                            <div class="activity-status">
+                                <?php if($activity['approval_status'] == 'approved'): ?>
+                                    <span class="status-badge success">Approved</span>
+                                <?php else: ?>
+                                    <span class="status-badge pending">Pending</span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
-            <div class="action-arrow">
-                <span class="material-icons">arrow_forward</span>
+        </div>
+
+        <div class="actions-column">
+            <a href="<?= $base_url ?>/residents" class="card action-card clickable-card">
+                <div class="action-icon-box">
+                    <span class="material-icons">person_add</span>
+                </div>
+                <div class="action-details">
+                    <h3 class="action-title">Manage Residents</h3>
+                    <p class="action-desc">Add, search, and update records.</p>
+                </div>
+                <div class="action-arrow">
+                    <span class="material-icons">arrow_forward</span>
+                </div>
+            </a>
+            
+            <div class="card info-card">
+                <span class="material-icons info-icon">lightbulb</span>
+                <p><strong>Tip:</strong> Ensure all required fields are filled before submitting to speed up approval.</p>
             </div>
-        </a>
+        </div>
+
     </div>
 
 </main>
