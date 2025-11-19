@@ -1,11 +1,16 @@
+<?php
+// Define the base URL for assets and links
+$base_url = '/iCensus-ent/public'; 
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>iCensus - Encoder Dashboard</title>
-<link rel="stylesheet" href="/iCensus-ent/public/assets/css/style.css">
-<link rel="stylesheet" href="/iCensus-ent/public/assets/css/dashboard.css">
+<link rel="icon" type="image/png" href="<?= $base_url ?>/assets/img/iCensusLogoOnly2.png">
+<link rel="stylesheet" href="<?= $base_url ?>/assets/css/style.css">
+<link rel="stylesheet" href="<?= $base_url ?>/assets/css/dashboard.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
@@ -55,7 +60,7 @@
     </div>
     
     <div class="actions-grid">
-        <a href="/iCensus-ent/public/residents" class="card action-card clickable-card">
+        <a href="<?= $base_url ?>/residents" class="card action-card clickable-card">
             <div class="action-icon-box">
                 <span class="material-icons">groups</span>
             </div>
