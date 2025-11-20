@@ -1,6 +1,9 @@
 <?php
 // app/controllers/DashboardController.php
+
 require_once __DIR__ . '/../../core/Auth.php';
+// FIX: Ensure this path correctly points to the file containing get_greeting_name() and time_elapsed_string()
+require_once __DIR__ . '/../../core/functions.php'; 
 
 class DashboardController {
 
@@ -34,7 +37,7 @@ class DashboardController {
         $data = [
             'user' => $_SESSION['user'],
             'theme' => $_SESSION['user']['theme'] ?? 'light',
-            'pending_count' => $pending_count // <-- Pass the count to the view
+            'pending_count' => $pending_count
         ];
         view('dashboard/barangay_admin', $data);
     }
@@ -54,20 +57,22 @@ class DashboardController {
         // Fetch stats
         $encoderStats = $residentModel->getStatsForEncoder($encoderId);
         
-        // NEW: Fetch recent activity (requires getRecentByEncoder method in the model)
+        // Fetch recent activity
         $recentActivity = $residentModel->getRecentByEncoder($encoderId);
     
         $data = [
             'user' => $_SESSION['user'],
             'theme' => $_SESSION['user']['theme'] ?? 'light',
-            'stats' => $encoderStats, // Pass stats to the view
-            'recent_activity' => $recentActivity // Pass recent activity to the view
+            'stats' => $encoderStats, 
+            'recent_activity' => $recentActivity, 
+            // The fatal error happens here. The fix relies on the require_once above.
+            'greeting_name' => get_greeting_name($_SESSION['user']) 
         ];
         view('dashboard/encoder', $data);
     }
 
     /**
-     * NEW: Display the page for reviewing pending resident entries.
+     * Display the page for reviewing pending resident entries.
      */    
     public function review() {
         $this->requireAuthAndRefresh('Barangay Admin');
@@ -86,12 +91,11 @@ class DashboardController {
         ];
         unset($_SESSION['modal']);
         
-        // We will create this new view file in a later step
         view('dashboard/review', $data);
     }
 
     /**
-     * NEW: Process the approval of a resident.
+     * Process the approval of a resident.
      */
     public function approveResident() {
         $this->requireAuthAndRefresh('Barangay Admin');
@@ -113,7 +117,7 @@ class DashboardController {
     }
 
     /**
-     * NEW: Process the rejection of a resident.
+     * Process the rejection of a resident.
      */
     public function rejectResident() {
         $this->requireAuthAndRefresh('Barangay Admin');

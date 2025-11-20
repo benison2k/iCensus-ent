@@ -2,15 +2,8 @@
 // Define the base URL for assets and links
 $base_url = '/iCensus-ent/public'; 
 
-// Safely determine the first name for the greeting to fix the 'Undefined array key' warning
-$greetingName = 'Encoder';
-if (isset($user['full_name'])) {
-    // Split the full name and take the first part
-    $parts = explode(' ', $user['full_name']);
-    $greetingName = $parts[0];
-} elseif (isset($user['first_name'])) {
-    $greetingName = $user['first_name'];
-}
+// NOTE: The greeting_name is now passed from the controller, cleaning up the view logic.
+$greetingName = $greeting_name ?? 'Encoder'; 
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -53,7 +46,7 @@ if (isset($user['full_name'])) {
             </div>
         </div>
 
-        <div class="card stat-card">
+        <a href="<?= $base_url ?>/residents?filter_status=pending&filter_encoder=<?= $user['id'] ?>" class="card stat-card clickable-card">
             <div class="stat-icon-wrapper bg-orange">
                 <span class="material-icons">hourglass_top</span>
             </div>
@@ -61,7 +54,7 @@ if (isset($user['full_name'])) {
                 <h3 class="stat-number"><?= $stats['pending'] ?? 0 ?></h3>
                 <p class="stat-label">Pending Approval</p>
             </div>
-        </div>
+        </a>
 
         <div class="card stat-card">
             <div class="stat-icon-wrapper bg-green">
@@ -99,7 +92,7 @@ if (isset($user['full_name'])) {
                                     <?= htmlspecialchars($activity['first_name'] . ' ' . $activity['last_name']) ?>
                                 </span>
                                 <span class="activity-time">
-                                    <?= date('M j, g:i a', strtotime($activity['created_at'])) ?>
+                                    <?= time_elapsed_string($activity['created_at']) ?>
                                 </span>
                             </div>
                             <div class="activity-status">
