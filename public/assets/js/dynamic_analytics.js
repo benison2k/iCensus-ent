@@ -15,20 +15,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Modal Closing Logic for all modals
     document.querySelectorAll('.modal').forEach(modal => {
+        // Handle generic close buttons
         const closeBtn = modal.querySelector('.close-btn');
         if (closeBtn) {
             closeBtn.addEventListener('click', () => {
                 modal.style.display = 'none';
             });
         }
+
+        // FIX: Handle the specific close button structure in resident_modal2.php
+        const residentClose = modal.querySelector('.close');
+        if (residentClose && modal.id === 'residentModal') {
+            residentClose.addEventListener('click', () => {
+                 modal.style.display = 'none';
+                 const form = modal.querySelector('#residentForm'); 
+                 if (form) {
+                    form.querySelectorAll('input, select, textarea').forEach(input => input.disabled = false);
+                 }
+            });
+        }
+
+        // Handle clicking outside the modal to close
         window.addEventListener('click', (event) => {
-            // Close detail modal properly
-            if (event.target.id === 'analytics-resident-detail-modal') {
-                 event.target.style.display = 'none';
-                 return;
-            }
             if (event.target === modal) {
                 modal.style.display = 'none';
+                
+                // Re-enable form fields if it was the resident modal
+                if (modal.id === 'residentModal') {
+                     const form = modal.querySelector('#residentForm'); 
+                     if (form) {
+                        form.querySelectorAll('input, select, textarea').forEach(input => input.disabled = false);
+                     }
+                }
             }
         });
     });
@@ -43,12 +61,11 @@ let currentSort = { column: 'first_name', order: 'asc' };
  * Initializes the tab switching and progress bar for the analytics resident detail modal.
  */
 function initializeAnalyticsModal() {
-    const modal = document.getElementById('analytics-resident-detail-modal');
+    // Target the component's ID directly
+    const modal = document.getElementById('residentModal');
     if (!modal) return;
 
-    // FIX: Check if the form exists before proceeding to prevent console errors.
-    const form = document.getElementById('analyticsResidentForm');
-    
+    const form = modal.querySelector('#residentForm'); 
     const tabButtons = modal.querySelectorAll('.tab-button');
     const tabContents = modal.querySelectorAll('.tab-content');
 
@@ -58,7 +75,9 @@ function initializeAnalyticsModal() {
             tabButtons.forEach(btn => btn.classList.remove('active'));
             tabContents.forEach(content => content.classList.remove('active'));
             button.classList.add('active');
-            modal.querySelector(`#tab-${button.dataset.tab}`).classList.add('active');
+            // The component uses IDs like #tab-personal, #tab-household
+            const targetTab = modal.querySelector(`#tab-${button.dataset.tab}`);
+            if (targetTab) targetTab.classList.add('active');
         });
     });
 
@@ -66,8 +85,8 @@ function initializeAnalyticsModal() {
     if (form) {
         const requiredFields = Array.from(form.querySelectorAll('[required]'));
         const totalRequired = requiredFields.length;
-        const progressBar = document.getElementById('analyticsFormProgressBar');
-        const progressLabel = document.getElementById('analyticsFormProgressLabel');
+        const progressBar = modal.querySelector('#formProgressBar'); 
+        const progressLabel = modal.querySelector('#formProgressLabel'); 
 
         const updateAnalyticsProgress = () => {
             if (!progressBar || !progressLabel) return;
@@ -121,7 +140,6 @@ function initializeDynamicDashboard() {
 
     loadUserCharts();
 
-    // FIX: Explicitly pass false so the alert shows only when clicking the button
     const saveBtn = document.getElementById('save-layout-btn');
     if(saveBtn) saveBtn.addEventListener('click', () => saveLayout(false));
     
@@ -242,19 +260,14 @@ function drawChart(chartId, chartType, chartData) {
     return { chart, dataTable };
 }
 
-// FIX: Updated to save to both LocalStorage and Database
 function saveLayout(silent = false) {
-    // 1. Save grid positions to LocalStorage
     const serializedData = grid.save(true, true).children;
     const layout = serializedData.map(d => ({ id: d.id, x: d.x, y: d.y, w: d.w, h: d.h }));
     localStorage.setItem('chartLayout', JSON.stringify(layout));
 
-    // 2. Save to Database
     fetch(`${basePath}/analytics/layout/save`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(layout)
     })
     .then(res => res.json())
@@ -519,96 +532,79 @@ function showChartDetailModal(chartId, updatedChartDef = null) {
 }
 
 async function openResidentDetailsModal(residentId) {
-    const modal = document.getElementById('analytics-resident-detail-modal');
-    // We target the inner modal-content to dynamically inject the header and content
-    const modalContent = modal ? modal.querySelector('.modal-content') : null;
-
-    if (!modal || !modalContent) {
-         console.error("Resident detail modal structure not found.");
-         return;
+    const modal = document.getElementById('residentModal');
+    if (!modal) {
+        console.error('#residentModal component missing. Check PHP include in analytics/index.php.');
+        return;
     }
+
+    const form = modal.querySelector('#residentForm'); 
+    const modalTitle = modal.querySelector('#modalTitle');
+
+    if (!form || !modalTitle) {
+        console.error('Resident modal content structure is incomplete.');
+        return;
+    }
+
+    // Reset form and set title placeholder
+    form.reset();
+    modalTitle.textContent = 'Loading...';
     
-    // Inject a basic, working structure for the title, close button, and content
-    modalContent.innerHTML = `
-        <span class="close-btn material-icons" style="top: 15px; right: 15px;">close</span>
-        <h3 id="analyticsModalTitleDynamic">Loading...</h3>
-        <div id="detail-modal-content-dynamic"><p>Fetching resident data...</p></div>
-    `;
+    // Reset tabs to the first tab (Personal Info)
+    modal.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    modal.querySelectorAll('.tab-button').forEach((el, index) => {
+        el.classList.remove('active');
+        if (index === 0) el.classList.add('active');
+    });
+    const firstTabContent = modal.querySelector('#tab-personal');
+    if (firstTabContent) firstTabContent.classList.add('active');
 
-    // Re-apply the close listener for the newly injected close-btn
-     modalContent.querySelector('.close-btn').addEventListener('click', () => {
-         modal.style.display = 'none';
-     });
-
-    const modalTitle = document.getElementById('analyticsModalTitleDynamic');
-    const detailContent = document.getElementById('detail-modal-content-dynamic');
-
-    modal.style.display = 'flex';
+    // FIX: Use 'flex' and explicit properties to center the modal
+    modal.style.display = 'flex'; 
+    modal.style.justifyContent = 'center';
+    modal.style.alignItems = 'center';
+    
+    // Ensure the close button inside the component works
+    const componentCloseBtn = modal.querySelector('.close');
+    if (componentCloseBtn) {
+         componentCloseBtn.onclick = () => { modal.style.display = 'none'; };
+    }
 
     try {
-        // Fetch resident data
         const response = await fetch(`${basePath}/residents/process?action=get&resident_id=${residentId}`);
         const result = await response.json();
 
         if (result.status !== 'success' || !result.resident) {
             modalTitle.textContent = 'Error';
-            detailContent.innerHTML = '<p>Error: Could not fetch resident details.</p>';
             console.error('Could not fetch resident details.');
             return;
         }
 
         const r = result.resident;
         modalTitle.textContent = `Details for ${r.first_name || ''} ${r.last_name || ''}`.trim();
-        
-        const booleanCheck = (value) => value == 1 ? 'Yes' : 'No';
 
-        // Dynamically build the resident detail HTML
-        detailContent.innerHTML = `
-            <div class="detail-group">
-                <h4><span class="material-icons">person</span>Personal Info</h4>
-                <div class="detail-item"><strong>Full Name:</strong> <span>${r.first_name || ''} ${r.middle_name || ''} ${r.last_name || ''} ${r.suffix || ''}</span></div>
-                <div class="detail-item"><strong>Date of Birth:</strong> <span>${r.dob || 'N/A'}</span></div>
-                <div class="detail-item"><strong>Gender:</strong> <span>${r.gender || 'N/A'}</span></div>
-                <div class="detail-item"><strong>Civil Status:</strong> <span>${r.civil_status || 'N/A'}</span></div>
-                <div class="detail-item"><strong>Nationality:</strong> <span>${r.nationality || 'N/A'}</span></div>
-            </div>
-            <div class="detail-group">
-                <h4><span class="material-icons">home</span>Address & Household</h4>
-                <div class="detail-item"><strong>Address:</strong> <span>${r.house_no || ''} ${r.street || ''}, Purok ${r.purok || ''}</span></div>
-                <div class="detail-item"><strong>Household No:</strong> <span>${r.household_no || 'N/A'}</span></div>
-                <div class="detail-item"><strong>Head of Household:</strong> <span>${r.head_of_household || 'N/A'}</span></div>
-                <div class="detail-item"><strong>Relationship:</strong> <span>${r.relationship || 'N/A'}</span></div>
-                <div class="detail-item"><strong>Ownership Status:</strong> <span>${r.ownership_status || 'N/A'}</span></div>
-            </div>
-            <div class="detail-group">
-                <h4><span class="material-icons">contact_phone</span>Contact & Health</h4>
-                <div class="detail-item"><strong>Contact No:</strong> <span>${r.contact_number || 'N/A'}</span></div>
-                <div class="detail-item"><strong>Email:</strong> <span>${r.email || 'N/A'}</span></div>
-                <div class="detail-item"><strong>PhilHealth No:</strong> <span>${r.philhealth_no || 'N/A'}</span></div>
-                <div class="detail-item"><strong>Blood Type:</strong> <span>${r.blood_type || 'N/A'}</span></div>
-            </div>
-             <div class="detail-group">
-                <h4><span class="material-icons">work</span>Education & Occupation</h4>
-                <div class="detail-item"><strong>Education:</strong> <span>${r.educational_attainment || 'N/A'}</span></div>
-                <div class="detail-item"><strong>Occupation:</strong> <span>${r.occupation || 'N/A'}</span></div>
-            </div>
-            <div class="detail-group">
-                <h4><span class="material-icons">admin_panel_settings</span>Administrative</h4>
-                <div class="detail-item"><strong>Resident Status:</strong> <span>${r.status || 'N/A'}</span></div>
-                <div class="detail-item"><strong>Registered Voter:</strong> <span>${booleanCheck(r.is_registered_voter)}</span></div>
-                <div class="detail-item"><strong>PWD:</strong> <span>${booleanCheck(r.is_pwd)}</span></div>
-                <div class="detail-item"><strong>Solo Parent:</strong> <span>${booleanCheck(r.is_solo_parent)}</span></div>
-                <div class="detail-item"><strong>4Ps Member:</strong> <span>${booleanCheck(r.is_4ps_member)}</span></div>
-            </div>
-        `;
+        // Populate the form fields with resident data
+        Object.keys(r).forEach(key => {
+            const el = form.elements[key];
+            if (el) el.value = r[key];
+        });
+
+        // Set fields to read-only/disabled for view mode
+        form.querySelectorAll('input, select, textarea').forEach(input => input.disabled = true);
+        const footer = modal.querySelector('.modal-modern-footer');
+        if (footer) {
+            footer.querySelectorAll('.editBtn, .deleteBtn, #saveBtn').forEach(btn => btn.style.display = 'none');
+            footer.querySelectorAll('#approveBtn, #declineBtn').forEach(btn => btn.style.display = 'none');
+        }
+
+        // Update the progress bar
+        if (modal.updateProgress) modal.updateProgress();
 
     } catch (error) {
         console.error('Failed to fetch resident data:', error);
         modalTitle.textContent = 'Error';
-        detailContent.innerHTML = '<p>An error occurred while fetching details.</p>';
     }
 }
-
 
 document.addEventListener('click', function(event) {
     const chartContainer = event.target.closest('.chart-container');

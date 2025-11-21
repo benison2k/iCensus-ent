@@ -14,6 +14,9 @@
     <link rel="stylesheet" href="<?= $base_url ?>/assets/css/modal.css">
     <link rel="stylesheet" href="<?= $base_url ?>/assets/css/page_actions.css">
     <link rel="stylesheet" href="<?= $base_url ?>/assets/css/manage_charts_modal.css">
+    <link rel="stylesheet" href="<?= $base_url ?>/assets/css/resident_modal.css">
+    <link rel="stylesheet" href="<?= $base_url ?>/assets/css/view_tabs.css">
+    
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/8.2.1/gridstack.min.css" rel="stylesheet"/>
@@ -82,11 +85,7 @@
     </div>
 </div>
 
-
-<div id="analytics-resident-detail-modal" class="modal">
-    <div class="modal-content">
-        </div>
-</div>
+<?php include __DIR__ . '/../components/resident_modal2.php'; ?>
 
 <?php include __DIR__ . '/../components/chart_builder_modal.php'; ?>
 <?php include __DIR__ . '/../components/manage_charts_modal.php'; ?>
