@@ -520,41 +520,92 @@ function showChartDetailModal(chartId, updatedChartDef = null) {
 
 async function openResidentDetailsModal(residentId) {
     const modal = document.getElementById('analytics-resident-detail-modal');
-    const form = document.getElementById('analyticsResidentForm');
-    const modalTitle = document.getElementById('analyticsModalTitle');
+    // We target the inner modal-content to dynamically inject the header and content
+    const modalContent = modal ? modal.querySelector('.modal-content') : null;
+
+    if (!modal || !modalContent) {
+         console.error("Resident detail modal structure not found.");
+         return;
+    }
     
-    form.reset();
-    modalTitle.textContent = 'Loading...';
+    // Inject a basic, working structure for the title, close button, and content
+    modalContent.innerHTML = `
+        <span class="close-btn material-icons" style="top: 15px; right: 15px;">close</span>
+        <h3 id="analyticsModalTitleDynamic">Loading...</h3>
+        <div id="detail-modal-content-dynamic"><p>Fetching resident data...</p></div>
+    `;
+
+    // Re-apply the close listener for the newly injected close-btn
+     modalContent.querySelector('.close-btn').addEventListener('click', () => {
+         modal.style.display = 'none';
+     });
+
+    const modalTitle = document.getElementById('analyticsModalTitleDynamic');
+    const detailContent = document.getElementById('detail-modal-content-dynamic');
+
     modal.style.display = 'flex';
 
     try {
+        // Fetch resident data
         const response = await fetch(`${basePath}/residents/process?action=get&resident_id=${residentId}`);
         const result = await response.json();
 
         if (result.status !== 'success' || !result.resident) {
             modalTitle.textContent = 'Error';
+            detailContent.innerHTML = '<p>Error: Could not fetch resident details.</p>';
             console.error('Could not fetch resident details.');
             return;
         }
 
         const r = result.resident;
         modalTitle.textContent = `Details for ${r.first_name || ''} ${r.last_name || ''}`.trim();
+        
+        const booleanCheck = (value) => value == 1 ? 'Yes' : 'No';
 
-        // Populate the form
-        Object.keys(r).forEach(key => {
-            const el = form.elements[key];
-            if (el) el.value = r[key];
-        });
-
-        // Set all fields to read-only
-        form.querySelectorAll('input, select').forEach(input => input.disabled = true);
-
-        // Update the progress bar
-        if (modal.updateProgress) modal.updateProgress();
+        // Dynamically build the resident detail HTML
+        detailContent.innerHTML = `
+            <div class="detail-group">
+                <h4><span class="material-icons">person</span>Personal Info</h4>
+                <div class="detail-item"><strong>Full Name:</strong> <span>${r.first_name || ''} ${r.middle_name || ''} ${r.last_name || ''} ${r.suffix || ''}</span></div>
+                <div class="detail-item"><strong>Date of Birth:</strong> <span>${r.dob || 'N/A'}</span></div>
+                <div class="detail-item"><strong>Gender:</strong> <span>${r.gender || 'N/A'}</span></div>
+                <div class="detail-item"><strong>Civil Status:</strong> <span>${r.civil_status || 'N/A'}</span></div>
+                <div class="detail-item"><strong>Nationality:</strong> <span>${r.nationality || 'N/A'}</span></div>
+            </div>
+            <div class="detail-group">
+                <h4><span class="material-icons">home</span>Address & Household</h4>
+                <div class="detail-item"><strong>Address:</strong> <span>${r.house_no || ''} ${r.street || ''}, Purok ${r.purok || ''}</span></div>
+                <div class="detail-item"><strong>Household No:</strong> <span>${r.household_no || 'N/A'}</span></div>
+                <div class="detail-item"><strong>Head of Household:</strong> <span>${r.head_of_household || 'N/A'}</span></div>
+                <div class="detail-item"><strong>Relationship:</strong> <span>${r.relationship || 'N/A'}</span></div>
+                <div class="detail-item"><strong>Ownership Status:</strong> <span>${r.ownership_status || 'N/A'}</span></div>
+            </div>
+            <div class="detail-group">
+                <h4><span class="material-icons">contact_phone</span>Contact & Health</h4>
+                <div class="detail-item"><strong>Contact No:</strong> <span>${r.contact_number || 'N/A'}</span></div>
+                <div class="detail-item"><strong>Email:</strong> <span>${r.email || 'N/A'}</span></div>
+                <div class="detail-item"><strong>PhilHealth No:</strong> <span>${r.philhealth_no || 'N/A'}</span></div>
+                <div class="detail-item"><strong>Blood Type:</strong> <span>${r.blood_type || 'N/A'}</span></div>
+            </div>
+             <div class="detail-group">
+                <h4><span class="material-icons">work</span>Education & Occupation</h4>
+                <div class="detail-item"><strong>Education:</strong> <span>${r.educational_attainment || 'N/A'}</span></div>
+                <div class="detail-item"><strong>Occupation:</strong> <span>${r.occupation || 'N/A'}</span></div>
+            </div>
+            <div class="detail-group">
+                <h4><span class="material-icons">admin_panel_settings</span>Administrative</h4>
+                <div class="detail-item"><strong>Resident Status:</strong> <span>${r.status || 'N/A'}</span></div>
+                <div class="detail-item"><strong>Registered Voter:</strong> <span>${booleanCheck(r.is_registered_voter)}</span></div>
+                <div class="detail-item"><strong>PWD:</strong> <span>${booleanCheck(r.is_pwd)}</span></div>
+                <div class="detail-item"><strong>Solo Parent:</strong> <span>${booleanCheck(r.is_solo_parent)}</span></div>
+                <div class="detail-item"><strong>4Ps Member:</strong> <span>${booleanCheck(r.is_4ps_member)}</span></div>
+            </div>
+        `;
 
     } catch (error) {
         console.error('Failed to fetch resident data:', error);
         modalTitle.textContent = 'Error';
+        detailContent.innerHTML = '<p>An error occurred while fetching details.</p>';
     }
 }
 
