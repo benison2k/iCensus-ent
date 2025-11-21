@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to iCensus</title>
     <link rel="icon" type="image/png" href="/iCensus-ent/public/assets/img/iCensusLogoOnly2.png">
-    <link rel="stylesheet" href="assets/css/landing-page.css">
+    
+    <link rel="stylesheet" href="<?= $base_path ?>/assets/css/landing-page.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
@@ -15,12 +16,12 @@
 
     <header class="header" id="header">
         <div class="container header-container">
-            <img src="assets/img/iCensusLogo.png" alt="iCensus Logo" class="logo">
+            <img src="<?= $base_path ?>/assets/img/iCensusLogo.png" alt="iCensus Logo" class="logo">
             <div>
-                <a href="index.php" class="btn-login btn-icon" title="Home">
+                <a href="<?= $base_path ?>" class="btn-login btn-icon" title="Home">
                     <span class="material-icons">home</span>
                 </a>
-                <a href="login" class="btn-login btn-icon" title="Member Login">
+                <a href="<?= $base_path ?>/login" class="btn-login btn-icon" title="Member Login">
                     <span class="material-icons">account_circle</span>
                 </a>
             </div>
@@ -36,20 +37,20 @@
                         <p class="hero-subtitle">
                             Welcome to iCensus. Streamline resident profiling, generate instant reports, and build a better-informed community.
                         </p>
-                        <a href="pages/login.php" class="btn-cta">Access the Portal</a>
+                        <a href="<?= $base_path ?>/login" class="btn-cta">Access the Portal</a>
                     </div>
                     <div class="hero-visual-content">
                         <div class="carousel-wrapper">
                             <div class="carousel-container">
                                 <div class="carousel-slides">
                                     <div class="carousel-slide" data-caption="Dashboard">
-                                        <img src="assets/img/dashboard.png" alt="Dashboard View">
+                                        <img src="<?= $base_path ?>/assets/img/dashboard.png" alt="Dashboard View">
                                     </div>
                                     <div class="carousel-slide" data-caption="Residents Management">
-                                        <img src="assets/img/residents.png" alt="Residents Management View">
+                                        <img src="<?= $base_path ?>/assets/img/residents.png" alt="Residents Management View">
                                     </div>
                                     <div class="carousel-slide" data-caption="Data Analytics">
-                                        <img src="assets/img/analytics.png" alt="Analytics View">
+                                        <img src="<?= $base_path ?>/assets/img/analytics.png" alt="Analytics View">
                                     </div>
                                 </div>
                                 <button class="carousel-btn prev" title="Previous">&#10094;</button>
@@ -139,7 +140,7 @@
             <div class="container">
                 <h2>Ready to Get Started?</h2>
                 <p>Access the secure portal to begin managing your community's census data.</p>
-                <a href="pages/login.php" class="btn-cta">Access the Portal</a>
+                <a href="<?= $base_path ?>/login" class="btn-cta">Access the Portal</a>
             </div>
         </section>
     </main>

@@ -5,14 +5,16 @@
 require_once __DIR__ . '/../core/init.php';
 require_once __DIR__ . '/../core/Database.php'; 
 
-// Helper function to load view files
-function view($path, $data = []) {
-    if (!is_array($data)) {
-        $data = [];
-    }
-    extract($data); 
-    require __DIR__ . "/../app/views/{$path}.php";
-}
+// --- REMOVED: Redundant and conflicting definition of the view() helper function.
+// This function is already defined in core/functions.php (loaded via core/init.php)
+// function view($path, $data = []) {
+//     if (!is_array($data)) {
+//         $data = [];
+//     }
+//     extract($data); 
+//     require __DIR__ . "/../app/views/{$path}.php";
+// }
+
 
 // Autoloader for Controllers and Models
 spl_autoload_register(function ($class_name) {

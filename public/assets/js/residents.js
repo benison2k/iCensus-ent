@@ -1,6 +1,7 @@
 // benison2k/icensus-ent/iCensus-ent-development-branch-MVC-/public/assets/js/residents.js
 
-import { initializeModal, openModalForAdd } from './resident/modalManager.js';
+// FIX 1: Keep the openModalForEdit import, as it is needed by another module (e.g., tableManager.js)
+import { initializeModal, openModalForAdd, openModalForEdit } from './resident/modalManager.js';
 import { initializeForm } from './resident/formHandler.js';
 import { initializeTable, renderTable } from './resident/tableManager.js';
 import { initializeFilters, applyFilters } from './resident/filterManager.js';
@@ -27,8 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeFilters(state);
 
     // --- INITIAL RENDER ---
-    // ✅ FIX: This block now ONLY runs if it's NOT the pending view.
-    // This stops JavaScript from overwriting the PHP-rendered table with the correct buttons.
+    // This block now ONLY runs if it's NOT the pending view.
     if (!state.isPendingView) {
         if (state.allResidents.length >= 0) {
             state.filteredResidents = state.allResidents;
@@ -41,4 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- EVENT LISTENERS ---
     document.getElementById('addResidentBtn').addEventListener('click', () => openModalForAdd(state));
+
+    // REMOVED: The redundant click listener that was causing the error to pop up twice.
 });

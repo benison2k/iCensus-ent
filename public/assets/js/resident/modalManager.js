@@ -1,5 +1,8 @@
 // benison2k/icensus-ent/iCensus-ent-development-branch-MVC-/public/assets/js/resident/modalManager.js
 
+// FIX 1: Add the necessary import for fetchData from the API module
+import { fetchData } from '../api.js'; 
+
 const basePath = '/iCensus-ent/public';
 
 function setFormEditable(editable, state) {
@@ -32,9 +35,21 @@ async function openModalForEdit(id, state, startInEditMode = false) {
 
     form.reset();
     try {
-        const res = await fetch(`${basePath}/residents/process?action=get&resident_id=${id}`);
-        const result = await res.json();
-        if (result.status !== 'success') return alert('Resident not found.');
+        // FIX 2: Use fetchData helper to make the AJAX call. 
+        // This is much safer than raw string concatenation and relies on the helper 
+        // (which is likely robust) to handle the endpoint, action, and ID.
+        const result = await fetchData('residents/process', { action: 'get', resident_id: id });
+        
+        // The previous code was: 
+        // const res = await fetch(`${basePath}/residents/process?action=get&resident_id=${id}`);
+        // const result = await res.json();
+        
+        if (result.status !== 'success' || !result.resident) {
+            // Check for the error message returned from the PHP controller
+            const errorMessage = result.message || 'Resident not found. Please check your PHP logs.';
+            alert(errorMessage);
+            return;
+        }
 
         const data = result.resident;
         Object.keys(data).forEach(key => {
@@ -72,7 +87,8 @@ async function openModalForEdit(id, state, startInEditMode = false) {
             modal.updateProgress();
         }
     } catch (err) {
-        console.error('Failed to fetch resident data:', err);
+        console.error('Failed to fetch resident data (network or JSON parsing error):', err);
+        alert('An unexpected error occurred while loading resident details.');
     }
 };
 
@@ -103,7 +119,8 @@ function openModalForAdd(state) {
 
 function initializeModal(state) {
     const modal = document.getElementById('residentModal');
-    const closeModal = modal.querySelector('.close');
+    // Assuming 'close' is the correct class for the close button
+    const closeModal = modal.querySelector('.close'); 
     const editBtn = modal.querySelector('.editBtn');
     const declineBtn = document.getElementById('declineBtn');
 
