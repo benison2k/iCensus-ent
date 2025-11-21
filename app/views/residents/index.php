@@ -27,7 +27,7 @@
     <main class="dashboard dashboard-management">
         <div style="padding:0 2rem; max-width:1600px; margin:auto; width: 100%;">
 
-            <div class="page-actions-container">
+            <div class="page-actions-container" style="display: flex !important; flex-direction: row !important; justify-content: flex-start !important;">
                 <button id="addResidentBtn" class="action-button-link">
                     <span class="material-icons">person_add</span> Add Resident
                 </button>

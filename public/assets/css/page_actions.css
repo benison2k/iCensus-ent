@@ -89,7 +89,14 @@ body.dark-mode .action-button-link.active-view {
 .toast-notification.info { background-color: #0d6efd; }
 
 /* Icon Button Styles */
-.actions-column { display: flex; gap: 0.5rem; align-items: center; }
+.actions-column { 
+    display: flex !important; /* Force flex container */
+    gap: 0.5rem; 
+    align-items: center; 
+    /* FIX: Explicitly set direction and prevent wrapping for consistent horizontal layout */
+    flex-direction: row !important; 
+    flex-wrap: nowrap !important;
+}
 .action-btn {
     padding: 0.5rem; border-radius: 50%; text-decoration: none;
     display: inline-flex; align-items: center; justify-content: center;
