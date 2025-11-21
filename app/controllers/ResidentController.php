@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../../core/functions.php';
 require_once __DIR__ . '/../../core/Auth.php';
 require_once __DIR__ . '/../models/Residents.php';
+// Note: Csrf class implementation is assumed to be available via init.php or autoload
 
 class ResidentController {
     
@@ -90,12 +91,7 @@ class ResidentController {
     public function process() {
         header('Content-Type: application/json');
         
-        // --- NEW: CSRF Check ---
-        if (!Csrf::verify($_POST['csrf_token'] ?? '')) {
-            echo json_encode(['status' => 'error', 'message' => 'Security Token Invalid. Please reload.']);
-            exit;
-        }
-        // -----------------------
+        // Removed global CSRF check here.
         
         if (!isset($_SESSION['user'])) {
             echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
@@ -112,16 +108,59 @@ class ResidentController {
         try {
             switch ($action) {
                 case 'get':
-                    // GET action typically doesn't require CSRF if it's just reading data for the modal
-                    $resident = $residentModel->find($_GET['resident_id']);
+                    // GET action (Read-only) - NO CSRF CHECK REQUIRED HERE
+                    
+                    // FIX: Use $_REQUEST for robust ID capture (covers GET/POST/id/resident_id)
+                    $resident_id = $_REQUEST['id'] ?? $_REQUEST['resident_id'] ?? null;
+
+                    if (!$resident_id) {
+                        echo json_encode(['status' => 'error', 'message' => 'Resident ID is missing.']);
+                        exit;
+                    }
+                    
+                    // FIX: Explicitly cast ID to integer to prevent type mismatch in model query
+                    $resident_id = (int)$resident_id;
+
+                    // FIX: Use findAnyStatus() method to ensure pending residents are found.
+                    if (method_exists($residentModel, 'findAnyStatus')) {
+                         $resident = $residentModel->findAnyStatus($resident_id);
+                    } else {
+                         // Fallback to the original find() method if the new method is not implemented
+                         $resident = $residentModel->find($resident_id);
+                    }
+
+                    if (!$resident) {
+                        echo json_encode(['status' => 'error', 'message' => 'Resident not found.']);
+                        exit;
+                    }
+
                     echo json_encode(['status' => 'success', 'resident' => $resident]);
                     break;
 
                 case 'save':
-                    $is_new = empty($_POST['resident_id']);
-                    if (!$is_new) {
-                        $old_data = $residentModel->find($_POST['resident_id']);
+                    // FIX: CSRF Check applied only to WRITE operations
+                    if (!class_exists('Csrf') || !Csrf::verify($_POST['csrf_token'] ?? '')) {
+                        echo json_encode(['status' => 'error', 'message' => 'Security Token Invalid. Please reload.']);
+                        exit;
                     }
+                    // END FIX
+
+                    $resident_id_post = $_POST['resident_id'] ?? null;
+                    $is_new = empty($resident_id_post);
+                    
+                    if (!$is_new) {
+                        // FIX: Explicitly cast ID to integer for lookup
+                        $resident_id_post = (int)$resident_id_post;
+
+                        // FIX: Use findAnyStatus when fetching old data for comparison
+                        if (method_exists($residentModel, 'findAnyStatus')) {
+                             $old_data = $residentModel->findAnyStatus($resident_id_post);
+                        } else {
+                             $old_data = $residentModel->find($resident_id_post);
+                        }
+                        $_POST['resident_id'] = $resident_id_post; // Restore casted ID
+                    }
+                    
                     if ($is_new) {
                         $_POST['encoded_by'] = $_SESSION['user']['id'];
                     }
@@ -136,7 +175,16 @@ class ResidentController {
                         log_action('INFO', 'RESIDENT_CREATE', "New resident record created: {$full_name} (ID#{$residentId}).");
                         $message = 'New resident added successfully!';
                     } else {
-                        $new_data = $residentModel->find($residentId);
+                        // FIX: Explicitly cast ID to integer for lookup
+                        $residentId = (int)$residentId; 
+
+                        // FIX: Use findAnyStatus when fetching new data for comparison
+                        if (method_exists($residentModel, 'findAnyStatus')) {
+                             $new_data = $residentModel->findAnyStatus($residentId);
+                        } else {
+                             $new_data = $residentModel->find($residentId);
+                        }
+                        
                         $changes = array_diff_assoc($new_data, $old_data);
                         $log_details = "Updated resident ID#{$residentId}.";
                         if (!empty($changes)) {
@@ -151,21 +199,37 @@ class ResidentController {
                         $message = 'Resident updated successfully!';
                     }
                     
-                    $savedResident = $residentModel->find($residentId);
+                    // FIX: Use findAnyStatus to get the final saved resident data
+                    if (method_exists($residentModel, 'findAnyStatus')) {
+                         $savedResident = $residentModel->findAnyStatus($residentId);
+                    } else {
+                         $savedResident = $residentModel->find($residentId);
+                    }
 
                     echo json_encode(['status' => 'success', 'message' => $message, 'resident' => $savedResident, 'is_new' => $is_new]);
                     break;
                 
                 case 'delete':
+                    // FIX: CSRF Check applied only to WRITE operations
+                    if (!class_exists('Csrf') || !Csrf::verify($_POST['csrf_token'] ?? '')) {
+                        echo json_encode(['status' => 'error', 'message' => 'Security Token Invalid. Please reload.']);
+                        exit;
+                    }
+                    // END FIX
+
                     if ($_SESSION['user']['role_name'] === 'Encoder') {
                         echo json_encode(['status' => 'error', 'message' => 'You do not have permission to delete residents.']);
                         exit;
                     }
-                    $resident_to_delete = $residentModel->find($_POST['id']);
+                    // FIX: Explicitly cast ID to integer for lookup
+                    $id_to_delete = (int)($_POST['id'] ?? 0);
+
+                    // Use findAnyStatus here if deleting unapproved records is allowed
+                    $resident_to_delete = $residentModel->find($id_to_delete);
                     if($resident_to_delete) {
-                        $residentModel->delete($_POST['id']);
+                        $residentModel->delete($id_to_delete);
                         $full_name = htmlspecialchars($resident_to_delete['first_name'] . ' ' . $resident_to_delete['last_name']);
-                        log_action('INFO', 'RESIDENT_DELETE', "Resident record for {$full_name} (ID#{$_POST['id']}) was deleted.");
+                        log_action('INFO', 'RESIDENT_DELETE', "Resident record for {$full_name} (ID#{$id_to_delete}) was deleted.");
                     }
                     echo json_encode(['status' => 'success', 'message' => 'Resident deleted successfully.']);
                     break;
@@ -185,7 +249,9 @@ class ResidentController {
         $GLOBALS['db'] = $db;
         $residentModel = new Resident($db);
 
-        $residentId = $_GET['id'] ?? null;
+        // FIX: Explicitly cast ID to integer for lookup
+        $residentId = (int)($_GET['id'] ?? 0);
+        
         if ($residentId) {
             $residentModel->approve($residentId, $_SESSION['user']['id']);
             log_action('INFO', 'RESIDENT_APPROVED', "Admin approved resident entry ID#{$residentId}.");
@@ -217,7 +283,9 @@ class ResidentController {
         $GLOBALS['db'] = $db;
         $residentModel = new Resident($db);
         
-        $residentId = $_GET['id'] ?? null;
+        // FIX: Explicitly cast ID to integer for lookup
+        $residentId = (int)($_GET['id'] ?? 0);
+        
         if ($residentId) {
             $residentModel->reject($residentId);
             log_action('INFO', 'RESIDENT_REJECTED', "Admin rejected pending resident entry ID#{$residentId}.");

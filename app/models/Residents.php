@@ -132,6 +132,18 @@ class Resident {
     }
 
     /**
+     * FIX: New method to find a resident regardless of approval status.
+     * This is required for the modal to view/edit pending entries without error.
+     * @param int $id
+     * @return mixed
+     */
+    public function findAnyStatus($id) {
+        $stmt = $this->pdo->prepare("SELECT * FROM residents WHERE id = ?");
+        $stmt->execute([$id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
      * Saves a resident's data (creates or updates). (No changes needed here)
      * @param array $data
      * @return int The ID of the saved resident.
