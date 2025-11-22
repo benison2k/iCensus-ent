@@ -15,6 +15,13 @@
     align-items: center;
     justify-content: center;
 }
+
+/* Force Flexbox for centering */
+.modal-modern[style*="display: block"],
+.modal-modern[style*="display:block"] {
+    display: flex !important;
+}
+
 .modal-modern-content {
     background: #fff;
     border-radius: 16px;
@@ -28,6 +35,8 @@
     animation: fadeIn 0.3s ease-out;
     overflow: hidden;
 }
+
+/* --- HEADER STYLES --- */
 .modal-modern-header {
     display: flex;
     justify-content: space-between;
@@ -35,51 +44,66 @@
     padding: 1rem 1.5rem;
     border-bottom: 1px solid #e0e0e0;
     flex-shrink: 0;
+    background-color: #fff; /* White Background */
 }
+
 .modal-modern-header h3 {
     margin: 0;
     font-size: 1.4rem;
     font-weight: 600;
+    color: #333;
 }
 
-/* --- ✅ MODIFIED: Progress Bar Styles --- */
+/* FIX: Force Close Button & Header Icons to BLACK to stand out on white */
+.modal-modern-header .close,
+.modal-modern-header .close-btn,
+.modal-modern-header .material-icons {
+    color: #000000 !important;
+    opacity: 1 !important;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* --- PROGRESS BAR --- */
 .progress-label {
     font-size: 0.85rem;
     font-weight: 500;
-    color: #555;
-    margin-bottom: 0.5rem; /* Add space above the bar */
+    color: #000; /* Darker label */
+    margin-bottom: 0.5rem;
 }
 
 .progress-container {
     width: 100%;
     background-color: #e0e0e0;
     border-radius: 8px;
-    margin: 0 0 1.5rem 0; /* Adjusted margin */
-    height: 8px; /* <-- Made slimmer */
-    overflow: hidden; /* <-- Added overflow hidden */
+    margin: 0 0 1.5rem 0;
+    height: 8px;
+    overflow: hidden;
 }
 
 .progress-bar {
     width: 0%;
-    height: 8px; /* <-- Made slimmer */
-    background: linear-gradient(90deg, #4caf50, #81c784);
+    height: 8px;
+    background: linear-gradient(90deg, #00796b, #4db6ac); /* Teal Gradient */
     border-radius: 8px;
     transition: width 0.4s ease-out;
-    /* <-- Removed all text-align, line-height, color, font-size, etc. */
 }
-/* --- End Modification --- */
-
 
 .modal-modern-body {
     display: flex;
     flex-grow: 1;
     min-height: 0;
+    background-color: #fff;
 }
+
+/* --- TABS (SIDEBAR) --- */
 .modal-tabs {
     flex: 0 0 200px;
     border-right: 1px solid #e0e0e0;
     padding: 1.5rem 0;
+    background-color: #fff; /* White Background */
 }
+
 .tab-button {
     display: flex;
     align-items: center;
@@ -92,17 +116,29 @@
     cursor: pointer;
     font-size: 0.95rem;
     font-weight: 500;
-    color: #555;
+    color: #333; /* Darker Text */
     border-right: 3px solid transparent;
     transition: all 0.2s ease;
 }
-.tab-button:hover { background-color: #f4f6f8; }
-.tab-button.active {
-    background-color: #e3f2fd;
-    color: #0d6efd;
-    font-weight: 600;
-    border-right-color: #0d6efd;
+
+/* FIX: Force Tab Icons to be PURE BLACK */
+.tab-button .material-icons {
+    color: #000000 !important;
+    font-size: 1.2rem;
 }
+
+.tab-button:hover { 
+    background-color: #f4f6f8;
+    color: #00796b; 
+}
+
+.tab-button.active {
+    background-color: #e0f2f1; 
+    color: #00796b;            
+    font-weight: 600;
+    border-right-color: #00796b;
+}
+
 .tab-content {
     display: none;
     padding: 0 2rem 1.5rem 2rem;
@@ -110,28 +146,42 @@
     flex-grow: 1;
 }
 .tab-content.active { display: block; }
+
 .tab-content h4 {
     margin-top: 0;
     margin-bottom: 1.5rem;
     font-size: 1.2rem;
-    color: #333;
+    color: #000; /* Black Header */
 }
+
 .form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1rem 1.5rem;
 }
+
 .form-group { display: flex; flex-direction: column; }
-.form-group label { margin-bottom: 0.3rem; font-size: 0.85rem; font-weight: 500; color: #666; }
+.form-group label { margin-bottom: 0.3rem; font-size: 0.85rem; font-weight: 600; color: #444; }
 .form-group label .required-asterisk { color: #dc3545; font-weight: 700; margin-left: 2px; }
+
 .form-group input, .form-group select {
     width: 100%;
     padding: 0.6rem 0.8rem;
     border-radius: 6px;
     border: 1px solid #ccc;
     font-size: 0.95rem;
+    color: #000; /* Input text black */
 }
+
+.form-group input:focus, .form-group select:focus {
+    outline: none;
+    border-color: #00796b;
+    box-shadow: 0 0 0 3px rgba(0, 121, 107, 0.1);
+}
+
 .form-group.full-width { grid-column: 1 / -1; }
+
+/* --- FOOTER BUTTONS --- */
 .modal-modern-footer {
     display: flex;
     justify-content: flex-end;
@@ -139,24 +189,81 @@
     padding: 1rem 1.5rem;
     border-top: 1px solid #e0e0e0;
     flex-shrink: 0;
+    background-color: #f9fafb;
 }
-.modal-footer-btn { padding: 0.6rem 1.2rem; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; }
-.btn-edit { background-color: #2196f3; color: #fff; }
-.btn-delete { background-color: #f44336; color: #fff; }
-.btn-save { background-color: #4caf50; color: #fff; }
 
-/* Dark Mode */
+.modal-footer-btn { 
+    padding: 0.6rem 1.2rem; 
+    border-radius: 8px; 
+    border: none; 
+    cursor: pointer; 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 0.5rem; 
+    text-decoration: none; 
+    font-weight: 600;
+}
+
+/* FIX: Force Footer Button Icons to PURE BLACK */
+.modal-footer-btn .material-icons {
+    color: #000000 !important;
+}
+
+/* Edit Button (Teal) */
+.btn-edit { 
+    background-color: #00796b; 
+    color: #fff; 
+}
+.btn-edit:hover { background-color: #00695c; }
+
+/* Delete Button (Red) */
+.btn-delete { 
+    background-color: #d32f2f; 
+    color: #fff; 
+}
+.btn-delete:hover { background-color: #b71c1c; }
+
+/* Save Button (Green) */
+.btn-save { 
+    background-color: #2e7d32; 
+    color: #fff; 
+}
+.btn-save:hover { background-color: #1b5e20; }
+
+/* Dark Mode Support */
 body.dark-mode .modal-modern-content { background: #2C3E50; }
+body.dark-mode .modal-modern-body { background: #2C3E50; }
 body.dark-mode .progress-container { background-color: #1e1e2f; }
-/* ✅ NEW: Added dark mode style for the label */
 body.dark-mode .progress-label { color: #bbb; }
-body.dark-mode .modal-modern-header, body.dark-mode .modal-tabs, body.dark-mode .modal-modern-footer { border-color: #4a5a6a; }
+body.dark-mode .modal-modern-header, 
+body.dark-mode .modal-tabs, 
+body.dark-mode .modal-modern-footer { 
+    border-color: #4a5a6a; 
+    background-color: #2C3E50;
+}
 body.dark-mode .modal-modern-header h3 { color: #fff; }
+
+body.dark-mode .modal-modern-header .material-icons { color: #fff !important; } /* White icons in dark mode */
+
 body.dark-mode .tab-button { color: #ccc; }
+body.dark-mode .tab-button .material-icons { color: #ccc !important; } /* Light icons in dark mode */
+
 body.dark-mode .tab-button:hover { background-color: #34495e; }
-body.dark-mode .tab-button.active { background-color: #1e1e2f; border-right-color: #4da3ff; color: #4da3ff; }
+body.dark-mode .tab-button.active { 
+    background-color: #1e1e2f; 
+    border-right-color: #80cbc4; 
+    color: #80cbc4; 
+}
 body.dark-mode .tab-content h4 { color: #fff; }
 body.dark-mode .form-group label { color: #bbb; }
-body.dark-mode .form-group input, body.dark-mode .form-group select { background-color: #1e1e2f; border-color: #555; color: #fff; }
+body.dark-mode .form-group input, 
+body.dark-mode .form-group select { 
+    background-color: #1e1e2f; 
+    border-color: #555; 
+    color: #fff; 
+}
 
-@keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+@keyframes fadeIn { 
+    from { opacity: 0; transform: scale(0.95); } 
+    to { opacity: 1; transform: scale(1); } 
+}
