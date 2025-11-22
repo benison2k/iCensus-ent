@@ -1,0 +1,164 @@
+/* public/assets/css/sidebar.css */
+
+/* Overlay Backdrop */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s;
+    backdrop-filter: blur(2px);
+}
+
+.sidebar-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Sidebar Container */
+.sidebar-menu {
+    position: fixed;
+    top: 0;
+    left: -280px; /* Hidden by default */
+    width: 280px;
+    height: 100vh;
+    background: #ffffff;
+    z-index: 999;
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-menu.active {
+    left: 0;
+}
+
+/* Dark Mode Support */
+body.dark-mode .sidebar-menu {
+    background: #1e1e2f;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Header inside Sidebar */
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+body.dark-mode .sidebar-header {
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-logo {
+    height: 40px;
+    width: auto;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    padding: 5px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.close-btn:hover {
+    background: rgba(0,0,0,0.05);
+}
+
+body.dark-mode .close-btn {
+    color: #aaa;
+}
+body.dark-mode .close-btn:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+/* Navigation Links */
+.sidebar-nav {
+    flex: 1;
+    padding: 1.5rem 1rem;
+    overflow-y: auto;
+}
+
+.sidebar-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-nav li {
+    margin-bottom: 0.5rem;
+}
+
+.sidebar-nav a {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.8rem 1rem;
+    color: #444;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.sidebar-nav .material-icons {
+    font-size: 1.5rem;
+    color: #777;
+}
+
+/* Hover & Active States */
+.sidebar-nav a:hover {
+    background-color: #f0f4ff;
+    color: #4285f4;
+}
+
+.sidebar-nav a:hover .material-icons {
+    color: #4285f4;
+}
+
+/* Dark Mode Links */
+body.dark-mode .sidebar-nav a {
+    color: #ccc;
+}
+body.dark-mode .sidebar-nav .material-icons {
+    color: #888;
+}
+body.dark-mode .sidebar-nav a:hover {
+    background-color: rgba(66, 133, 244, 0.15);
+    color: #4285f4;
+}
+
+/* Logout specific style */
+.sidebar-logout {
+    margin-top: 2rem;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    padding-top: 1rem;
+}
+body.dark-mode .sidebar-logout {
+    border-top-color: rgba(255,255,255,0.05);
+}
+.sidebar-logout a {
+    color: #d32f2f;
+}
+.sidebar-logout .material-icons {
+    color: #d32f2f;
+}
+.sidebar-logout a:hover {
+    background-color: #ffebee;
+    color: #d32f2f;
+}

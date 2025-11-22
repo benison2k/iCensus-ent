@@ -18,34 +18,37 @@ $parentUrl = $dashboardLink;
 if (strpos($requestUri, '/sysadmin/') !== false && !$isDashboardPage) {
     $parentUrl = $base_url . '/sysadmin/dashboard';
 }
-
 ?>
 
 <head>
     <link rel="icon" type="image/png" href="<?= $base_url ?>/assets/img/iCensusLogoOnly2.png">
     <link rel="stylesheet" href="<?= $base_url ?>/assets/css/header2.css">
+    <link rel="stylesheet" href="<?= $base_url ?>/assets/css/sidebar.css">
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
     <?php if ($isUserLoggedIn): ?>
     <script>
-        // The session timeout is set to 1800 seconds (30 minutes) on the server.
-        // We'll set a JavaScript timer for the same duration.
         const SESSION_TIMEOUT_MS = 1801 * 1000;
-
-        // When the timer finishes, reload the page. The server-side code in 'init.php'
-        // will see that the session has expired and will handle the redirect to the login page.
         setTimeout(() => {
-            // You can optionally alert the user before reloading
-            // alert("Your session has expired due to inactivity. You will be redirected to the login page.");
             window.location.reload();
         }, SESSION_TIMEOUT_MS);
     </script>
     <?php endif; ?>
+    
+    <script src="<?= $base_url ?>/assets/js/sidebar.js" defer></script>
 </head>
 
 <header class="header">
-    <?php if (!$isDashboardPage): ?>
+    <?php if (!$isDashboardPage && $isUserLoggedIn): ?>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <button id="sidebarToggleBtn" class="back-button" title="Open Menu" style="border:none; background:none; cursor:pointer;">
+                <span class="material-icons">menu</span>
+            </button>
+            
+            </div>
+    <?php elseif (!$isDashboardPage): ?>
         <a href="<?= $parentUrl ?>" class="back-button" title="Go Back">
             <span class="material-icons">arrow_back</span>
         </a>
@@ -64,4 +67,11 @@ if (strpos($requestUri, '/sysadmin/') !== false && !$isDashboardPage) {
     </button>
 </header>
 
-<?php include __DIR__ . "/LogOutModal.php"; ?>
+<?php 
+// Only include the sidebar component if we are NOT on the dashboard
+if (!$isDashboardPage && $isUserLoggedIn) {
+    include __DIR__ . "/sidebar.php"; 
+}
+
+include __DIR__ . "/LogOutModal.php"; 
+?>
