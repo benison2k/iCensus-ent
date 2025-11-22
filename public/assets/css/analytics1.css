@@ -17,382 +17,313 @@
     text-rendering: optimizeLegibility;
     -moz-osx-font-smoothing: grayscale;
     font-feature-settings: 'liga';
-  }
+}
   
-  /* --- Main Dashboard Container --- */
-  .dashboard-card {
-      background-color: rgba(255, 255, 255, 0.7);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(0, 0, 0, 0.05);
-      padding: 2rem;
-      border-radius: 24px;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.1);
-      width: 95%;
-      max-width: 1800px;
-  }
+/* --- Main Dashboard Container --- */
+.dashboard-card {
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 2rem;
+    border-radius: 24px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.1);
+    width: 95%;
+    max-width: 1800px;
+}
   
-  /* --- Controls Area --- */
-  .controls-wrapper {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-      padding: 0 0.5rem;
-  }
+/* --- Controls Area --- */
+.controls-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0 0.5rem;
+}
   
-  .buttons-container button {
-      border: none;
-      padding: 10px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 500;
-      transition: all 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-  }
+.buttons-container button {
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
   
-  #reset-layout-btn { background-color: #ffebee; color: #c62828; }
-  #reset-layout-btn:hover { background-color: #ffcdd2; transform: translateY(-2px); }
+#reset-layout-btn { background-color: #ffebee; color: #c62828; }
+#reset-layout-btn:hover { background-color: #ffcdd2; transform: translateY(-2px); }
   
-  #save-layout-btn { background-color: #e8eaf6; color: #3949ab; }
-  #save-layout-btn:hover { background-color: #c5cae9; transform: translateY(-2px); }
+#save-layout-btn { background-color: #e8eaf6; color: #3949ab; }
+#save-layout-btn:hover { background-color: #c5cae9; transform: translateY(-2px); }
   
-  #addChartBtn, #manageChartsBtn, #generate-report-btn {
-      background-color: #e3f2fd;
-      color: #0d6efd;
-  }
-  #addChartBtn:hover, #manageChartsBtn:hover, #generate-report-btn:hover {
-      background-color: #bbdefb;
-      transform: translateY(-2px);
-  }
+#addChartBtn, #manageChartsBtn, #generate-report-btn {
+    background-color: #e3f2fd;
+    color: #0d6efd;
+}
+#addChartBtn:hover, #manageChartsBtn:hover, #generate-report-btn:hover {
+    background-color: #bbdefb;
+    transform: translateY(-2px);
+}
 
-  .separator-line {
-      border: 0;
-      height: 1px;
-      background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0));
-      margin: 1rem 0 2rem 0;
-  }
+.separator-line {
+    border: 0;
+    height: 1px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0));
+    margin: 1rem 0 2rem 0;
+}
+  
+/* --- Chart Widget Design --- */
+.grid-stack-item-content {
+    background-color: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+    padding: 1.25rem 1.5rem;
+    overflow: hidden !important;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+  
+.grid-stack-item-content:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.07);
+    border-color: #c5cae9;
+}
+  
+.chart-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-align: center;
+    color: #37474f;
+    margin-bottom: 1rem;
+    flex-shrink: 0;
+}
+  
+.chart-div {
+    flex-grow: 1;
+    width: 100%;
+    min-height: 0;
+}
+  
+/* --- KPI Card Styles --- */
+.kpi-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    text-align: center;
+}
+.kpi-value {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: #3949ab;
+    line-height: 1.1;
+}
+  
+/* --- Chart Error Styles --- */
+.chart-error {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: #c62828;
+    font-style: italic;
+    background-color: #ffebee;
+    border-radius: 8px;
+}
+  
+/* --- DARK MODE DASHBOARD --- */
+body.dark-mode .dashboard-card {
+    background-color: rgba(28, 42, 56, 0.7);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+}
+body.dark-mode .grid-stack-item-content {
+    background-color: #263238;
+    border-color: #37474f;
+}
+body.dark-mode .grid-stack-item-content:hover { border-color: #7986cb; }
+body.dark-mode .chart-title { color: #eceff1; }
+body.dark-mode .kpi-value { color: #9fa8da; }
+body.dark-mode .separator-line {
+        background-image: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
+}
+body.dark-mode #reset-layout-btn { background-color: #3e2723; color: #ef9a9a; }
+body.dark-mode #reset-layout-btn:hover { background-color: #4e342e; }
+body.dark-mode #save-layout-btn { background-color: #283593; color: #e8eaf6; }
+body.dark-mode #save-layout-btn:hover { background-color: #303f9f; }
+body.dark-mode #addChartBtn, body.dark-mode #manageChartsBtn, body.dark-mode #generate-report-btn {
+    background-color: #0d47a1;
+    color: #bbdefb;
+}
+body.dark-mode #addChartBtn:hover, body.dark-mode #manageChartsBtn:hover, body.dark-mode #generate-report-btn:hover {
+    background-color: #1565c0;
+}
+body.dark-mode .chart-error { background-color: #3e2723; color: #ef9a9a; }
   
   
-  /* --- Chart Widget Design --- */
-  .grid-stack-item-content {
-      background-color: #ffffff;
-      border-radius: 16px;
-      border: 1px solid #e0e0e0;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-      display: flex;
-      flex-direction: column;
-      padding: 1.25rem 1.5rem;
-      overflow: hidden !important;
-      height: 100%;
-      width: 100%;
-      box-sizing: border-box;
-      transition: all 0.3s ease;
-      cursor: pointer;
-  }
+/* --- MODAL STYLES --- */
+.modal {
+    display: none; 
+    position: fixed;
+    z-index: 1001;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
   
-  .grid-stack-item-content:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.07);
-      border-color: #c5cae9;
-  }
+.modal-content.large {
+    background-color: #ffffff;
+    color: #333;
+    width: 90vw;
+    max-width: 1400px;
+    height: 90vh;
+    max-height: 800px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 2.5rem;
+}
   
-  .chart-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      text-align: center;
-      color: #37474f;
-      margin-bottom: 1rem;
-      flex-shrink: 0;
-  }
+.modal .close-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #aaa;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.modal .close-btn:hover { color: #000; }
   
-  .chart-div {
-      flex-grow: 1;
-      width: 100%;
-      min-height: 0;
-  }
+#chartDetailTitle {
+    margin-top: 0;
+    margin-bottom: 0; 
+    font-size: 1.8rem;
+    text-align: left;
+}
   
-  /* --- KPI Card Styles --- */
-  .kpi-content {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100%;
-      text-align: center;
-  }
-  .kpi-value {
-      font-size: 3.5rem;
-      font-weight: 700;
-      color: #3949ab;
-      line-height: 1.1;
-  }
+.modal-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2.5rem;
+    flex-grow: 1; 
+    min-height: 0; 
+}
   
-  /* --- Chart Error Styles --- */
-  .chart-error {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100%;
-      color: #c62828;
-      font-style: italic;
-      background-color: #ffebee;
-      border-radius: 8px;
-  }
+#residentListContainer {
+    border-left: 1px solid #e0e0e0;
+    padding-left: 2.5rem;
+    overflow-y: auto;
+}
   
-  /* --- DARK MODE --- */
-  body.dark-mode .dashboard-card {
-      background-color: rgba(28, 42, 56, 0.7);
-      border-color: rgba(255, 255, 255, 0.1);
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
-  }
-  body.dark-mode .grid-stack-item-content {
-      background-color: #263238;
-      border-color: #37474f;
-  }
-  body.dark-mode .grid-stack-item-content:hover { border-color: #7986cb; }
-  body.dark-mode .chart-title { color: #eceff1; }
-  body.dark-mode .kpi-value { color: #9fa8da; }
-  body.dark-mode .separator-line {
-       background-image: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
-  }
-  body.dark-mode #reset-layout-btn { background-color: #3e2723; color: #ef9a9a; }
-  body.dark-mode #reset-layout-btn:hover { background-color: #4e342e; }
-  body.dark-mode #save-layout-btn { background-color: #283593; color: #e8eaf6; }
-  body.dark-mode #save-layout-btn:hover { background-color: #303f9f; }
-  body.dark-mode #addChartBtn, body.dark-mode #manageChartsBtn, body.dark-mode #generate-report-btn {
-      background-color: #0d47a1;
-      color: #bbdefb;
-  }
-  body.dark-mode #addChartBtn:hover, body.dark-mode #manageChartsBtn:hover, body.dark-mode #generate-report-btn:hover {
-      background-color: #1565c0;
-  }
-  body.dark-mode .chart-error { background-color: #3e2723; color: #ef9a9a; }
+.list-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #6c757d;
+    text-align: center;
+}
   
+#residentListContainer table {
+    width: 100%;
+    border-collapse: collapse;
+}
   
-  /* --- MODAL STYLES --- */
-  .modal {
-      display: none; 
-      position: fixed;
-      z-index: 1001;
-      left: 0; top: 0;
-      width: 100%; height: 100%;
-      background-color: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(5px);
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-  }
+#residentListContainer th, #residentListContainer td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
   
-  .modal-content.large {
-      background-color: #ffffff;
-      color: #333;
-      width: 90vw;
-      max-width: 1400px;
-      height: 90vh;
-      max-height: 800px;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      padding: 2.5rem;
-  }
+.resident-table th {
+    font-weight: 600;
+}
+
+.chart-interaction-tip {
+    margin-top: auto;
+    padding: 1rem;
+    background-color: #e3f2fd;
+    border-left: 4px solid #1e88e5;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-radius: 8px;
+}
   
-  .modal .close-btn {
-      position: absolute;
-      top: 1rem;
-      right: 1.5rem;
-      font-size: 2rem;
-      font-weight: bold;
-      color: #aaa;
-      cursor: pointer;
-      transition: color 0.2s;
-  }
-  .modal .close-btn:hover { color: #000; }
+.chart-interaction-tip .material-icons {
+    color: #1e88e5;
+    font-size: 2rem;
+}
   
-  #chartDetailTitle {
-      margin-top: 0;
-      margin-bottom: 1.5rem;
-      font-size: 1.8rem;
-      text-align: left;
-  }
+.chart-interaction-tip p {
+    margin: 0;
+    color: #1e88e5;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* --- Resident Detail Grid (Cleaned Version) --- */
+#analytics-resident-detail-modal .modal-content {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+}
   
-  .modal-grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 2.5rem;
-      flex-grow: 1; 
-      min-height: 0; 
-  }
+.resident-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    width: 100%;
+    text-align: left;
+}
   
-  #residentListContainer {
-      border-left: 1px solid #e0e0e0;
-      padding-left: 2.5rem;
-      overflow-y: auto;
-  }
+.detail-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
   
-  .list-placeholder {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      color: #6c757d;
-      text-align: center;
-  }
+.detail-group h4 {
+    margin: 0 0 0.5rem 0;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid #e0e0e0;
+    color: #1e88e5;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
   
-  #residentListContainer table {
-      width: 100%;
-      border-collapse: collapse;
-  }
+.detail-item {
+    font-size: 0.95rem;
+}
   
-  #residentListContainer th, #residentListContainer td {
-      padding: 8px;
-      text-align: left;
-      border-bottom: 1px solid #e0e0e0;
-  }
+.detail-item strong {
+    display: block;
+    color: #555;
+    font-size: 0.8rem;
+    margin-bottom: 2px;
+}
   
-  .resident-table th {
-      font-weight: 600;
-  }
-  body.dark-mode .resident-table th, body.dark-mode .resident-table td {
-      border-bottom-color: #37474f;
-  }
-  /* --- END NEW --- */
-  
-  .chart-interaction-tip {
-      margin-top: auto; /* Pushes it to the bottom of the flex container */
-      padding: 1rem;
-      background-color: #e3f2fd;
-      border-left: 4px solid #1e88e5;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      border-radius: 8px;
-  }
-  
-  .chart-interaction-tip .material-icons {
-      color: #1e88e5;
-      font-size: 2rem;
-  }
-  
-  .chart-interaction-tip p {
-      margin: 0;
-      color: #1e88e5;
-      font-size: 0.9rem;
-      font-weight: 500;
-  }
-  
-  body.dark-mode .chart-interaction-tip {
-      background-color: #1c3a4d;
-      border-left-color: #64b5f6;
-  }
-  
-  body.dark-mode .chart-interaction-tip p,
-  body.dark-mode .chart-interaction-tip .material-icons {
-      color: #64b5f6;
-  }
-  
-  .resident-details-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1.5rem;
-      margin-top: 1.5rem;
-  }
-  
-  .detail-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.8rem;
-  }
-  
-  .detail-group h4 {
-      margin: 0 0 0.5rem 0;
-      padding-bottom: 0.3rem;
-      border-bottom: 1px solid #e0e0e0;
-      color: #1e88e5;
-      font-size: 1.1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-  }
-  
-  .detail-item {
-      font-size: 0.95rem;
-  }
-  
-  .detail-item strong {
-      display: block;
-      color: #555;
-      font-size: 0.8rem;
-      margin-bottom: 2px;
-  }
-  
-  /* Dark Mode styles for the new modal */
-  body.dark-mode .resident-details-grid h4 {
-      border-bottom-color: #4a5a6a;
-      color: #64b5f6;
-  }
-  
-  body.dark-mode .detail-item strong {
-      color: #90a4ae;
-  }
-  
-  #analytics-resident-detail-modal .modal-content {
-      /* REMOVED max-width: 800px; */
-      text-align: left; /* Override the default centered text */
-      display: flex;
-      flex-direction: column;
-  }
-  
-  .resident-details-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1.5rem;
-      margin-top: 1.5rem;
-      width: 100%; /* Ensure the grid uses the full width */
-  }
-  
-  .detail-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.8rem;
-  }
-  
-  .detail-group h4 {
-      margin: 0 0 0.5rem 0;
-      padding-bottom: 0.3rem;
-      border-bottom: 1px solid #e0e0e0;
-      color: #1e88e5;
-      font-size: 1.1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-  }
-  
-  .detail-item {
-      font-size: 0.95rem;
-  }
-  
-  .detail-item strong {
-      display: block;
-      color: #555;
-      font-size: 0.8rem;
-      margin-bottom: 2px;
-  }
-  
-  /* Dark Mode styles for the new modal */
-  body.dark-mode .resident-details-grid h4 {
-      border-bottom-color: #4a5a6a;
-      color: #64b5f6;
-  }
-  
-  body.dark-mode .detail-item strong {
-      color: #90a4ae;
-  }
-  
-  #residentListContainer .sortable {
+#residentListContainer .sortable {
     cursor: pointer;
     user-select: none;
 }
@@ -410,87 +341,23 @@
     cursor: pointer;
     font-size: 0.8rem;
 }
-/* --- END NEW --- */
 
-.modal .close-btn {
-    position: absolute;
-    top: 1rem;
-    right: 1.5rem;
-    font-size: 2rem;
-    font-weight: bold;
-    color: #aaa;
-    cursor: pointer;
-    transition: color 0.2s;
-}
-.modal .close-btn:hover { color: #000; }
-
-#chartDetailTitle {
-    margin-top: 0;
-    margin-bottom: 1.5rem;
-    font-size: 1.8rem;
-    text-align: left;
-}
-
-/* --- NEW: Styles for the resident detail modal --- */
-.resident-details-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-top: 1rem;
-    text-align: left;
-}
-.detail-group h4 {
-    margin: 0 0 0.5rem 0;
-    padding-bottom: 0.3rem;
-    border-bottom: 1px solid #e0e0e0;
-    color: #1e88e5;
-    font-size: 1.1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-.detail-item { font-size: 0.95rem; }
-.detail-item strong {
-    display: block;
-    color: #555;
-    font-size: 0.8rem;
-    margin-bottom: 2px;
-}
-/* --- END NEW --- */
-
-
-/* --- Dark Mode Overrides for Modal --- */
-body.dark-mode .modal-content.large { background-color: #2C3E50; color: #fff; }
-body.dark-mode .modal .close-btn { color: #ccc; }
-body.dark-mode .modal .close-btn:hover { color: #fff; }
-body.dark-mode #residentListContainer { border-left-color: #4a5a6a; }
-body.dark-mode #residentListContainer th, body.dark-mode #residentListContainer td { border-bottom-color: #4a5a6a; }
-body.dark-mode #residentListContainer .sortable:hover { background-color: #37474f; }
-
-/* --- NEW: Dark mode detail modal styles --- */
-body.dark-mode .resident-details-grid h4 { border-bottom-color: #4a5a6a; color: #64b5f6; }
-body.dark-mode .detail-item strong { color: #90a4ae; }
+/* ==================================================
+   FIX: Header Controls (Filter, Edit, Hide, Delete)
+   ================================================== */
 
 .modal-header-controls {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1.5rem;
-    flex-wrap: wrap; /* Allows wrapping on smaller screens */
     gap: 1rem;
-}
-
-#chartDetailTitle {
-    margin-top: 0;
-    margin-bottom: 0;
-    font-size: 1.8rem;
-    text-align: left;
 }
 
 .modal-date-filter {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 8px;
 }
 
 .modal-date-filter input[type="date"] {
@@ -498,40 +365,97 @@ body.dark-mode .detail-item strong { color: #90a4ae; }
     padding: 0.4rem;
     border-radius: 6px;
     font-size: 0.9rem;
+    color: #333;
 }
 
-.modal-date-filter button {
-    background: #f0f0f0;
-    border: 1px solid #ccc;
-    padding: 5px;
-    border-radius: 50%;
+/* Target ALL buttons inside the header controls */
+.modal-header-controls button,
+.modal-header-controls .action-btn {
+    background-color: transparent !important;
+    /* FIX: Added visible border */
+    border: 1px solid #ccc !important; 
+    box-shadow: none !important;
+    padding: 8px !important;
+    border-radius: 50% !important; /* Circular shape */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    display: flex;
+    transition: background-color 0.2s ease;
+    min-width: 36px; 
+    min-height: 36px;
 }
-.modal-date-filter button .material-icons {
-    font-size: 20px;
+
+/* Hover Effect: Light Grey Circle */
+.modal-header-controls button:hover,
+.modal-header-controls .action-btn:hover {
+    background-color: #f0f0f0 !important;
+    border-color: #bbb !important; /* Slightly darker border on hover */
+    transform: none !important;
 }
-/* --- END MODIFIED --- */
+
+/* Force ALL Icons inside these buttons to be BLACK */
+.modal-header-controls button .material-icons,
+.modal-header-controls .action-btn .material-icons {
+    color: #000000 !important;
+    font-size: 20px !important;
+}
+
+/* Optional: Delete button icon turns red on hover */
+.modal-header-controls .btn-delete:hover .material-icons {
+    color: #d32f2f !important;
+}
 
 
-/* --- Dark Mode Overrides for Modal --- */
+/* --- DARK MODE OVERRIDES --- */
+
 body.dark-mode .modal-content.large { background-color: #2C3E50; color: #fff; }
 body.dark-mode .modal .close-btn { color: #ccc; }
 body.dark-mode .modal .close-btn:hover { color: #fff; }
+
 body.dark-mode #residentListContainer { border-left-color: #4a5a6a; }
-body.dark-mode #residentListContainer th, body.dark-mode #residentListContainer td { border-bottom-color: #4a5a6a; }
+body.dark-mode #residentListContainer th, 
+body.dark-mode #residentListContainer td { 
+    border-bottom-color: #4a5a6a; 
+}
+body.dark-mode .resident-table th, 
+body.dark-mode .resident-table td {
+    border-bottom-color: #37474f;
+}
 body.dark-mode #residentListContainer .sortable:hover { background-color: #37474f; }
+
+/* Dark mode for resident details */
 body.dark-mode .resident-details-grid h4 { border-bottom-color: #4a5a6a; color: #64b5f6; }
 body.dark-mode .detail-item strong { color: #90a4ae; }
 
-/* --- NEW: Dark mode for modal date filters --- */
+/* Dark mode for interaction tip */
+body.dark-mode .chart-interaction-tip {
+    background-color: #1c3a4d;
+    border-left-color: #64b5f6;
+}
+body.dark-mode .chart-interaction-tip p,
+body.dark-mode .chart-interaction-tip .material-icons {
+    color: #64b5f6;
+}
+
+/* Dark mode for modal header controls */
 body.dark-mode .modal-date-filter input[type="date"] {
-    background-color: #2C3E50;
+    background-color: #1c2a38;
     border-color: #4a5a6a;
     color: #fff;
 }
-body.dark-mode .modal-date-filter button {
-    background-color: #37474f;
-    border-color: #555;
-    color: #fff;
+
+body.dark-mode .modal-header-controls button,
+body.dark-mode .modal-header-controls .action-btn {
+    border-color: #555 !important; /* Darker border for dark mode */
+}
+
+body.dark-mode .modal-header-controls button:hover,
+body.dark-mode .modal-header-controls .action-btn:hover {
+    background-color: #37474f !important;
+}
+
+body.dark-mode .modal-header-controls button .material-icons,
+body.dark-mode .modal-header-controls .action-btn .material-icons {
+    color: #ffffff !important; /* White icons in dark mode */
 }
