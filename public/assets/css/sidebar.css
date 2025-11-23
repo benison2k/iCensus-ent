@@ -1,18 +1,20 @@
 /* public/assets/css/sidebar.css */
 
-/* Overlay Backdrop */
+/* =========================
+   1. Overlay & Animation
+========================= */
 .sidebar-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(4px);
     z-index: 998;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s;
-    backdrop-filter: blur(2px);
+    transition: opacity 0.4s ease, visibility 0.4s;
 }
 
 .sidebar-overlay.active {
@@ -20,77 +22,144 @@
     visibility: visible;
 }
 
-/* Sidebar Container */
+/* =========================
+   2. Sidebar Container (ATTACHED + GLASS)
+========================= */
 .sidebar-menu {
     position: fixed;
     top: 0;
-    left: -280px; /* Hidden by default */
-    width: 280px;
     height: 100vh;
-    background: #ffffff;
+    left: -280px;
+    width: 280px;
+    
+    /* Glassmorphism */
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px); 
+    -webkit-backdrop-filter: blur(10px);
+    
     z-index: 999;
-    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+    border-radius: 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.5);
+    
+    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.05);
     transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 .sidebar-menu.active {
     left: 0;
 }
 
-/* Dark Mode Support */
 body.dark-mode .sidebar-menu {
-    background: #1e1e2f;
+    background: rgba(30, 30, 47, 0.85);
     border-right: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.3);
 }
 
-/* Header inside Sidebar */
-.sidebar-header {
+/* =========================
+   3. Profile Card
+========================= */
+.sidebar-profile-card {
+    position: relative; 
     display: flex;
     align-items: center;
-    justify-content: space-between;
     padding: 1.5rem;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    gap: 12px; 
+    background: linear-gradient(to bottom, rgba(255,255,255,0.4), rgba(255,255,255,0.1));
+    border-bottom: 1px solid rgba(0,0,0,0.05);
 }
 
-body.dark-mode .sidebar-header {
-    border-bottom-color: rgba(255, 255, 255, 0.05);
+body.dark-mode .sidebar-profile-card {
+    background: linear-gradient(to bottom, rgba(255,255,255,0.05), transparent);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
-.sidebar-logo {
+.profile-avatar {
+    width: 40px;
     height: 40px;
-    width: auto;
-}
-
-.close-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #666;
-    padding: 5px;
-    border-radius: 50%;
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-top: 4px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s;
+    font-weight: 700;
+    font-size: 1rem;
+    box-shadow: 0 2px 5px rgba(118, 75, 162, 0.2);
+}
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+    min-width: 0; 
+    padding-right: 30px;
+}
+
+.profile-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #2d3748;
+    white-space: normal; 
+    overflow: visible;
+    word-wrap: break-word;
+    line-height: 1.3;
+    margin-bottom: 2px;
+}
+
+.profile-role {
+    font-size: 0.75rem;
+    color: #718096;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+body.dark-mode .profile-name { color: #e2e8f0; }
+body.dark-mode .profile-role { color: #a0aec0; }
+
+/* Close Button */
+.close-btn {
+    position: absolute;
+    right: 12px; 
+    top: 18px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #a0aec0;
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10; 
 }
 
 .close-btn:hover {
     background: rgba(0,0,0,0.05);
+    color: #4a5568;
 }
 
-body.dark-mode .close-btn {
-    color: #aaa;
-}
 body.dark-mode .close-btn:hover {
     background: rgba(255,255,255,0.1);
+    color: #fff;
 }
 
-/* Navigation Links */
+/* =========================
+   4. Navigation Links (MODERNIZED)
+========================= */
 .sidebar-nav {
     flex: 1;
-    padding: 1.5rem 1rem;
+    padding: 1rem;
     overflow-y: auto;
 }
 
@@ -98,67 +167,128 @@ body.dark-mode .close-btn:hover {
     list-style: none;
     padding: 0;
     margin: 0;
-}
-
-.sidebar-nav li {
-    margin-bottom: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 6px; /* Slight increase in gap for breathability */
 }
 
 .sidebar-nav a {
+    position: relative; /* Essential for the new indicator */
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 0.8rem 1rem;
-    color: #444;
+    gap: 12px;
+    padding: 0.8rem 1rem 0.8rem 1.2rem; /* Slightly more left padding for text alignment */
+    color: #4a5568;
     text-decoration: none;
-    border-radius: 8px;
+    
+    border-radius: 8px; /* Softer radius */
+    
     font-weight: 500;
+    font-size: 0.95rem;
     transition: all 0.2s ease;
+    border: 1px solid transparent;
+    overflow: hidden; /* Ensures the indicator stays inside the rounded corners */
 }
 
 .sidebar-nav .material-icons {
-    font-size: 1.5rem;
-    color: #777;
+    font-size: 1.3rem;
+    color: #a0aec0;
+    transition: color 0.2s;
 }
 
-/* Hover & Active States */
+/* Hover State */
 .sidebar-nav a:hover {
-    background-color: #f0f4ff;
-    color: #4285f4;
+    background-color: rgba(66, 133, 244, 0.08);
+    color: #1a73e8;
 }
 
 .sidebar-nav a:hover .material-icons {
-    color: #4285f4;
+    color: #1a73e8;
 }
 
-/* Dark Mode Links */
-body.dark-mode .sidebar-nav a {
-    color: #ccc;
+/* --- MODERN ACTIVE STATE --- */
+.sidebar-nav a.active {
+    /* Subtle Gradient Background */
+    background: linear-gradient(90deg, rgba(66, 133, 244, 0.15) 0%, rgba(66, 133, 244, 0.02) 100%);
+    color: #1a73e8; /* Google Blue */
+    font-weight: 600;
 }
-body.dark-mode .sidebar-nav .material-icons {
-    color: #888;
+
+.sidebar-nav a.active .material-icons {
+    color: #1a73e8;
+}
+
+/* The Modern "Pill" Indicator */
+.sidebar-nav a.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%); /* Centered vertically */
+    width: 4px;
+    height: 24px; /* Not full height, looks elegant */
+    background-color: #1a73e8;
+    border-radius: 0 4px 4px 0; /* Rounded right side */
+    box-shadow: 2px 0 12px rgba(26, 115, 232, 0.5); /* Glow effect */
+}
+
+/* Dark Mode Styles */
+body.dark-mode .sidebar-nav a {
+    color: #cbd5e0;
 }
 body.dark-mode .sidebar-nav a:hover {
-    background-color: rgba(66, 133, 244, 0.15);
-    color: #4285f4;
+    background-color: rgba(255,255,255,0.1);
+    color: #63b3ed;
+}
+body.dark-mode .sidebar-nav a:hover .material-icons {
+    color: #63b3ed;
 }
 
-/* Logout specific style */
-.sidebar-logout {
-    margin-top: 2rem;
+/* Dark Mode Active State */
+body.dark-mode .sidebar-nav a.active {
+    background: linear-gradient(90deg, rgba(66, 133, 244, 0.25) 0%, rgba(66, 133, 244, 0.05) 100%);
+    color: #63b3ed;
+}
+body.dark-mode .sidebar-nav a.active .material-icons {
+    color: #63b3ed;
+}
+body.dark-mode .sidebar-nav a.active::before {
+    background-color: #63b3ed;
+    box-shadow: 2px 0 12px rgba(99, 179, 237, 0.6); /* Stronger glow in dark mode */
+}
+
+/* =========================
+   5. Footer (Logout)
+========================= */
+.sidebar-footer {
+    padding: 1rem;
     border-top: 1px solid rgba(0,0,0,0.05);
-    padding-top: 1rem;
+    background: rgba(255,255,255,0.3); 
 }
-body.dark-mode .sidebar-logout {
-    border-top-color: rgba(255,255,255,0.05);
+
+body.dark-mode .sidebar-footer {
+    border-top: 1px solid rgba(255,255,255,0.05);
+    background: rgba(0,0,0,0.2);
 }
-.sidebar-logout a {
-    color: #d32f2f;
+
+.logout-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+    width: 100%;
+    padding: 0.8rem;
+    
+    border-radius: 6px;
+    
+    color: #e53e3e;
+    background: rgba(229, 62, 62, 0.08);
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
 }
-.sidebar-logout .material-icons {
-    color: #d32f2f;
-}
-.sidebar-logout a:hover {
-    background-color: #ffebee;
-    color: #d32f2f;
+
+.logout-link:hover {
+    background: rgba(229, 62, 62, 0.9);
+    color: white;
 }
