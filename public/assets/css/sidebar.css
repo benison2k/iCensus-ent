@@ -169,25 +169,25 @@ body.dark-mode .close-btn:hover {
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 6px; /* Slight increase in gap for breathability */
+    gap: 6px; 
 }
 
 .sidebar-nav a {
-    position: relative; /* Essential for the new indicator */
+    position: relative; 
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 0.8rem 1rem 0.8rem 1.2rem; /* Slightly more left padding for text alignment */
+    padding: 0.8rem 1rem 0.8rem 1.2rem; 
     color: #4a5568;
     text-decoration: none;
     
-    border-radius: 8px; /* Softer radius */
+    border-radius: 8px; 
     
     font-weight: 500;
     font-size: 0.95rem;
     transition: all 0.2s ease;
     border: 1px solid transparent;
-    overflow: hidden; /* Ensures the indicator stays inside the rounded corners */
+    overflow: hidden; 
 }
 
 .sidebar-nav .material-icons {
@@ -208,9 +208,8 @@ body.dark-mode .close-btn:hover {
 
 /* --- MODERN ACTIVE STATE --- */
 .sidebar-nav a.active {
-    /* Subtle Gradient Background */
     background: linear-gradient(90deg, rgba(66, 133, 244, 0.15) 0%, rgba(66, 133, 244, 0.02) 100%);
-    color: #1a73e8; /* Google Blue */
+    color: #1a73e8; 
     font-weight: 600;
 }
 
@@ -224,12 +223,12 @@ body.dark-mode .close-btn:hover {
     position: absolute;
     left: 0;
     top: 50%;
-    transform: translateY(-50%); /* Centered vertically */
+    transform: translateY(-50%); 
     width: 4px;
-    height: 24px; /* Not full height, looks elegant */
+    height: 24px; 
     background-color: #1a73e8;
-    border-radius: 0 4px 4px 0; /* Rounded right side */
-    box-shadow: 2px 0 12px rgba(26, 115, 232, 0.5); /* Glow effect */
+    border-radius: 0 4px 4px 0; 
+    box-shadow: 2px 0 12px rgba(26, 115, 232, 0.5); 
 }
 
 /* Dark Mode Styles */
@@ -254,7 +253,7 @@ body.dark-mode .sidebar-nav a.active .material-icons {
 }
 body.dark-mode .sidebar-nav a.active::before {
     background-color: #63b3ed;
-    box-shadow: 2px 0 12px rgba(99, 179, 237, 0.6); /* Stronger glow in dark mode */
+    box-shadow: 2px 0 12px rgba(99, 179, 237, 0.6); 
 }
 
 /* =========================
@@ -291,4 +290,52 @@ body.dark-mode .sidebar-footer {
 .logout-link:hover {
     background: rgba(229, 62, 62, 0.9);
     color: white;
+}
+
+/* =========================
+   PINNED SIDEBAR MODE
+========================= */
+
+/* 1. Force Sidebar to be visible */
+body.sidebar-pinned .sidebar-menu {
+    left: 0 !important; 
+    box-shadow: 1px 0 0 rgba(0,0,0,0.1); 
+    background: rgba(255, 255, 255, 1); 
+}
+body.sidebar-pinned.dark-mode .sidebar-menu {
+    background: #1e1e2f; 
+}
+
+/* 2. Hide Overlay & Close Button */
+body.sidebar-pinned .sidebar-overlay,
+body.sidebar-pinned .close-btn,
+body.sidebar-pinned #sidebarToggleBtn {
+    display: none !important;
+    pointer-events: none;
+}
+
+/* 3. Shift Content to the Right */
+/* Added .welcome to the list so the Page Title moves properly */
+body.sidebar-pinned header.header,
+body.sidebar-pinned main, 
+body.sidebar-pinned .dashboard,
+body.sidebar-pinned .welcome { 
+    margin-left: 280px; 
+    width: calc(100% - 280px);
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 4. Responsive Fallback */
+@media (max-width: 900px) {
+    body.sidebar-pinned .sidebar-menu { left: -280px !important; }
+    body.sidebar-pinned .sidebar-menu.active { left: 0 !important; }
+    
+    body.sidebar-pinned header.header,
+    body.sidebar-pinned main, 
+    body.sidebar-pinned .dashboard,
+    body.sidebar-pinned .welcome {
+        margin-left: 0;
+        width: 100%;
+    }
+    body.sidebar-pinned #sidebarToggleBtn { display: flex !important; }
 }

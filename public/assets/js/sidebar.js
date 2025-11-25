@@ -5,17 +5,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const overlay = document.getElementById('sidebarOverlay');
     const toggleBtn = document.getElementById('sidebarToggleBtn');
     const closeBtn = document.getElementById('closeSidebarBtn');
+    const body = document.body;
+
+    // Helper to check if pinned
+    const isPinned = () => body.classList.contains('sidebar-pinned');
 
     function openSidebar() {
-        sidebar.classList.add('active');
-        overlay.classList.add('active');
-        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        if (isPinned()) return; // Do nothing if pinned
+        
+        if (sidebar) sidebar.classList.add('active');
+        if (overlay) overlay.classList.add('active');
+        body.style.overflow = 'hidden'; // Prevent background scrolling
     }
 
     function closeSidebar() {
-        sidebar.classList.remove('active');
-        overlay.classList.remove('active');
-        document.body.style.overflow = ''; // Restore scrolling
+        if (isPinned()) return; // Do nothing if pinned
+
+        if (sidebar) sidebar.classList.remove('active');
+        if (overlay) overlay.classList.remove('active');
+        body.style.overflow = ''; // Restore scrolling
     }
 
     if (toggleBtn) {
@@ -35,7 +43,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Close on Escape key
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && sidebar.classList.contains('active')) {
+        if (e.key === 'Escape' && sidebar && sidebar.classList.contains('active')) {
+            closeSidebar();
+        }
+    });
+
+    // Handle Window Resize (Close mobile sidebar if expanding to desktop)
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768 && overlay && overlay.classList.contains('active')) {
             closeSidebar();
         }
     });

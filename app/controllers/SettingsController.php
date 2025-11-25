@@ -507,4 +507,28 @@ class SettingsController {
         echo json_encode(['status' => 'success', 'theme' => $theme]);
         exit;
     }
+
+    // Add this method inside the SettingsController class
+
+    public function updateSidebarMode() {
+        $this->checkAuthAndInit();
+        header('Content-Type: application/json');
+
+        // Simple CSRF check (optional but recommended if you are sending tokens)
+        // if (!Csrf::verify($_POST['csrf_token'] ?? '')) { ... }
+
+        $pinned = ($_POST['pinned'] ?? 'false') === 'true' ? 1 : 0;
+        $userId = $_SESSION['user']['id'];
+
+        // Update Database (Assuming you add this method to Auth model, or use raw DB query here)
+        // Since we don't have the full Auth model content, we will use raw DB for safety here:
+        $stmt = $this->db->getPdo()->prepare("UPDATE users SET sidebar_pinned = ? WHERE id = ?");
+        $stmt->execute([$pinned, $userId]);
+
+        // Update Session
+        $_SESSION['user']['sidebar_pinned'] = $pinned;
+
+        echo json_encode(['status' => 'success', 'pinned' => $pinned]);
+        exit;
+    }
 }

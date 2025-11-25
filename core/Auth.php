@@ -71,7 +71,9 @@ class Auth {
             'theme' => $user['theme'] ?? 'light',
             'language' => $user['language'] ?? 'en',
             'two_fa' => $user['two_fa'] ?? 0,
-            'email' => $user['email'] ?? null
+            'email' => $user['email'] ?? null,
+            // UPDATED: Persist sidebar preference
+            'sidebar_pinned' => $user['sidebar_pinned'] ?? 0 
         ];
         // Ensure LAST_ACTIVITY is set for session timeout
         $_SESSION['LAST_ACTIVITY'] = time();
@@ -268,6 +270,8 @@ class Auth {
                 $_SESSION['user']['language'] = $user['language'] ?? 'en';
                 $_SESSION['user']['two_fa'] = $user['two_fa'] ?? 0;
                 $_SESSION['user']['email'] = $user['email'] ?? null;
+                // UPDATED: Persist sidebar preference
+                $_SESSION['user']['sidebar_pinned'] = $user['sidebar_pinned'] ?? 0;
             }
             return $user;
         }
