@@ -200,6 +200,10 @@ switch ($route) {
     case 'settings/confirm-unbind-email':
         (new SettingsController())->confirmUnbindEmail();
         break;
+
+    case 'settings/sidebar-mode':
+        (new SettingsController())->updateSidebarMode();
+        break;
     // --- END Settings Routes ---
 
     // --- System Admin Routes ---
