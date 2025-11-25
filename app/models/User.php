@@ -1,5 +1,5 @@
 <?php
-// /app/models/User.php
+// app/models/User.php
 
 class User {
     private $pdo;
@@ -63,7 +63,8 @@ class User {
     }
 
     public function find($id) {
-        $stmt = $this->pdo->prepare("SELECT id, username, full_name, role_id FROM users WHERE id = ?");
+        // UPDATED: Added sidebar_pinned to the selection
+        $stmt = $this->pdo->prepare("SELECT id, username, full_name, role_id, sidebar_pinned FROM users WHERE id = ?");
         $stmt->execute([$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }

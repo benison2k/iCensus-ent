@@ -21,7 +21,25 @@ if (strpos($requestUri, '/sysadmin/') !== false && !$isDashboardPage) {
     $parentUrl = $base_url . '/sysadmin/dashboard';
 }
 
-// 5. Check "Pinned Sidebar" preference
+// 5. Check "Pinned Sidebar" preference (Force Sync)
+// This block ensures that if the session is stale, we fetch the latest setting from DB.
+if ($isUserLoggedIn && !isset($_SESSION['user']['sidebar_pinned'])) {
+    try {
+        // Quick connection to fetch preference if missing
+        $config = require __DIR__ . '/../../../config/database.php';
+        $db = new Database($config);
+        $conn = $db->getPdo();
+        
+        $stmt = $conn->prepare("SELECT sidebar_pinned FROM users WHERE id = ?");
+        $stmt->execute([$_SESSION['user']['id']]);
+        $res = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        $_SESSION['user']['sidebar_pinned'] = $res['sidebar_pinned'] ?? 0;
+    } catch (Exception $e) {
+        $_SESSION['user']['sidebar_pinned'] = 0;
+    }
+}
+
 $isSidebarPinned = isset($_SESSION['user']['sidebar_pinned']) && $_SESSION['user']['sidebar_pinned'] == 1;
 ?>
 
@@ -29,7 +47,8 @@ $isSidebarPinned = isset($_SESSION['user']['sidebar_pinned']) && $_SESSION['user
     <link rel="icon" type="image/png" href="<?= $base_url ?>/assets/img/iCensusLogoOnly2.png">
     
     <link rel="stylesheet" href="<?= $base_url ?>/assets/css/header2.css">
-    <link rel="stylesheet" href="<?= $base_url ?>/assets/css/sidebar.css"> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="<?= $base_url ?>/assets/css/sidebar.css"> 
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
     <?php if ($isUserLoggedIn): ?>
@@ -46,6 +65,7 @@ $isSidebarPinned = isset($_SESSION['user']['sidebar_pinned']) && $_SESSION['user
 
 <?php if ($isSidebarPinned): ?>
 <script>
+    // Apply immediately to prevent flashing
     document.body.classList.add('sidebar-pinned');
 </script>
 <?php endif; ?>
@@ -81,11 +101,11 @@ $isSidebarPinned = isset($_SESSION['user']['sidebar_pinned']) && $_SESSION['user
 </header>
 
 <?php 
-// Include Sidebar Component (Only if logged in and NOT on dashboard)
-if ($isUserLoggedIn && !$isDashboardPage) {
+// FIX: Include Sidebar if User is Logged In AND (Not on Dashboard OR Sidebar is Pinned)
+if ($isUserLoggedIn && (!$isDashboardPage || $isSidebarPinned)) {
     include __DIR__ . "/sidebar.php"; 
 }
 
-// Include Logout Modal (Always included so it's ready to use)
+// Include Logout Modal
 include __DIR__ . "/LogOutModal.php"; 
 ?>

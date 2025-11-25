@@ -15,12 +15,11 @@ class AuthController {
     public function login() {
         header('Content-Type: application/json');
 
-        // --- NEW: CSRF Check ---
+        // --- CSRF Check ---
         if (!Csrf::verify($_POST['csrf_token'] ?? '')) {
             echo json_encode(['status' => 'error', 'message' => 'Security Token Expired. Please refresh the page.']);
             exit;
         }
-        // -----------------------
 
         $config = require __DIR__ . '/../../config/database.php';
         $db = new Database($config);
@@ -45,6 +44,22 @@ class AuthController {
                 $_SESSION['user']['last_log_view'] = $last_logout;
             }
 
+            // --- FIX: Manually fetch and set sidebar preference to Session ---
+            // This ensures persistence even if Auth class doesn't select the column
+            try {
+                $user_id = $_SESSION['user']['id'];
+                $stmt = $db->getPdo()->prepare("SELECT sidebar_pinned FROM users WHERE id = ?");
+                $stmt->execute([$user_id]);
+                $pref = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                // Force update the session
+                $_SESSION['user']['sidebar_pinned'] = $pref['sidebar_pinned'] ?? 0;
+            } catch (Exception $e) {
+                // Fail silently, default to 0 (unpinned) if DB error
+                $_SESSION['user']['sidebar_pinned'] = 0;
+            }
+            // ----------------------------------------------------------------
+
             $role = $_SESSION['user']['role_name'];
             
             if ($role == 'System Admin') $redirect_to = $base_url . '/sysadmin/dashboard';
@@ -55,7 +70,6 @@ class AuthController {
             echo json_encode(['status' => 'success', 'redirect' => $redirect_to]);
             exit;
         } elseif (isset($result['message']) && $result['message'] === '2FA_REQUIRED') {
-             // Return 2FA required status
              echo json_encode(['status' => '2fa_required']);
              exit;
         } else {
@@ -63,12 +77,6 @@ class AuthController {
             exit;
         }
     }
-    
-    // ... (verifyOtp, resendOtp, forgotPassword, resetPassword, logout - UNCHANGED) ...
-    // Since verifyOtp is used during 2FA (not a form submission from an existing session context usually),
-    // and the initial login checked the CSRF, strictly speaking verifyOtp can check it too 
-    // IF you added the field to the OTP form.
-    // For brevity, I am focusing on the primary login form as per instructions.
     
     public function verifyOtp() {
         header('Content-Type: application/json');
@@ -94,6 +102,17 @@ class AuthController {
             unset($_SESSION['2fa_user_id']);
             unset($_SESSION['otp_last_sent']); 
             
+            // --- FIX: Fetch preference for 2FA users as well ---
+            try {
+                $stmt = $db->getPdo()->prepare("SELECT sidebar_pinned FROM users WHERE id = ?");
+                $stmt->execute([$userId]);
+                $pref = $stmt->fetch(PDO::FETCH_ASSOC);
+                $_SESSION['user']['sidebar_pinned'] = $pref['sidebar_pinned'] ?? 0;
+            } catch (Exception $e) {
+                $_SESSION['user']['sidebar_pinned'] = 0;
+            }
+            // ---------------------------------------------------
+
             $role = $_SESSION['user']['role_name'];
             
             if ($role == 'System Admin') $redirect_to = $base_url . '/sysadmin/dashboard';
