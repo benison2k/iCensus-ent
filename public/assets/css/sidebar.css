@@ -5,10 +5,10 @@
 ========================= */
 .sidebar-overlay {
     position: fixed;
-    top: 0;
+    top: 90px; /* Start below the 90px fixed header */
     left: 0;
     width: 100%;
-    height: 100%;
+    height: calc(100vh - 140px); /* FIX: 100vh - 90px (Header) - 50px (Footer) */
     background: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(4px);
     z-index: 998;
@@ -27,8 +27,8 @@
 ========================= */
 .sidebar-menu {
     position: fixed;
-    top: 0;
-    height: 100vh;
+    top: 90px; /* Start below the 90px fixed header */
+    height: calc(100vh - 140px); /* FIX: 100vh - 90px (Header) - 50px (Footer) */
     left: -280px;
     width: 280px;
     
@@ -316,7 +316,7 @@ body.sidebar-pinned #sidebarToggleBtn {
 
 /* 3. Shift Content to the Right */
 /* Added .welcome to the list so the Page Title moves properly */
-body.sidebar-pinned header.header,
+/* MODIFICATION: Removed 'header.header' from this rule to keep it full-width like the footer. */
 body.sidebar-pinned main, 
 body.sidebar-pinned .dashboard,
 body.sidebar-pinned .welcome { 
@@ -330,7 +330,7 @@ body.sidebar-pinned .welcome {
     body.sidebar-pinned .sidebar-menu { left: -280px !important; }
     body.sidebar-pinned .sidebar-menu.active { left: 0 !important; }
     
-    body.sidebar-pinned header.header,
+    /* MODIFICATION: Removed 'header.header' from this rule. */
     body.sidebar-pinned main, 
     body.sidebar-pinned .dashboard,
     body.sidebar-pinned .welcome {

@@ -32,8 +32,7 @@ h1, h2, h3, h4, h5, h6 {
     line-height: 1.3;
 }
 
-/* --- FOOTER FIX --- */
-/* This ensures the main content area grows to push the footer down */
+/* --- FOOTER FIX: Ensure main content area grows --- */
 main.dashboard {
     flex: 1;
 }
@@ -67,4 +66,38 @@ a:visited {
 a:hover, a:active, a:focus {
     color: inherit;            /* keep consistent */
     text-decoration: none;     /* no underline on hover or focus */
+}
+
+/* === NEW UI FIX: HEADER/FOOTER STACKING ABOVE SIDEBAR === */
+
+/* 1. Set Footer to be fixed and stack above the sidebar (Header fixed position is now in header2.css) */
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    height: 50px; /* Finalized height */
+}
+
+/* 2. Add padding to main content to compensate for fixed header/footer height */
+main.dashboard {
+    /* Inherits flex: 1 from above */
+    padding-top: 90px; /* Space for the fixed header (90px) */
+    padding-bottom: 50px; /* Space for the fixed footer (50px) */
+}
+
+
+/* --- NEW UI FIX: Sidebar Pinned Alignment for Content (Visual Centering) --- */
+body.sidebar-pinned .welcome {
+    text-align: left;
+    padding-left: 30px;
+    margin-top: 2rem;
+    margin-bottom: 0;
+}
+
+body.sidebar-pinned .settings-container {
+    margin-left: 30px !important;
+    margin-right: auto;
+    max-width: 900px;
 }

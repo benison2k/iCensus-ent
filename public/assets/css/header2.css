@@ -6,14 +6,19 @@
     justify-content: space-between;
     align-items: center;
     padding: 1.2rem 1.5rem; /* more vertical padding for taller header */
-    position: sticky;
+    
+    /* === FIX: ENFORCE FIXED POSITIONING AND Z-INDEX === */
+    position: fixed;
     top: 0;
-    z-index: 100;
+    z-index: 1000;
+    width: 100%;
+    /* === END FIX === */
+    
     background-color: #ffffff;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     transition: background-color 0.3s, color 0.3s;
     font-family: 'Inter', sans-serif;
-    height: auto; /* let padding define total height */
+    height: 90px; /* Setting explicit height to avoid thinness */
 }
 
 /* Dark Mode Header */
