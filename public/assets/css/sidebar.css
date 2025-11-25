@@ -5,13 +5,12 @@
 ========================= */
 .sidebar-overlay {
     position: fixed;
-    top: 90px; /* UPDATED: Starts below header (90px) */
+    top: 90px; /* Start below the 90px fixed header */
     left: 0;
     width: 100%;
-    height: calc(100vh - 140px); /* UPDATED: 100vh - 90px (header) - 50px (footer) */
+    height: calc(100vh - 140px); /* FIX: 100vh - 90px (Header) - 50px (Footer) */
     background: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
     z-index: 998;
     opacity: 0;
     visibility: hidden;
@@ -28,8 +27,8 @@
 ========================= */
 .sidebar-menu {
     position: fixed;
-    top: 90px; /* UPDATED: Starts below header (90px) */
-    height: calc(100vh - 140px); /* UPDATED: 100vh - 90px (header) - 50px (footer) */
+    top: 90px; /* Start below the 90px fixed header */
+    height: calc(100vh - 140px); /* FIX: 100vh - 90px (Header) - 50px (Footer) */
     left: -280px;
     width: 280px;
     
@@ -294,16 +293,14 @@ body.dark-mode .sidebar-footer {
 }
 
 /* =========================
-   PINNED SIDEBAR MODE (SHIFTING ENABLED + STYLE FIXES)
+   PINNED SIDEBAR MODE
 ========================= */
 
-/* 1. Force Sidebar to be visible (Solid background to cover content behind it) */
+/* 1. Force Sidebar to be visible */
 body.sidebar-pinned .sidebar-menu {
     left: 0 !important; 
     box-shadow: 1px 0 0 rgba(0,0,0,0.1); 
-    background: rgb(255, 255, 255); /* Solid white */
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+    background: rgba(255, 255, 255, 1); 
 }
 body.sidebar-pinned.dark-mode .sidebar-menu {
     background: #1e1e2f; 
@@ -311,17 +308,15 @@ body.sidebar-pinned.dark-mode .sidebar-menu {
 
 /* 2. Hide Overlay & Close Button */
 body.sidebar-pinned .sidebar-overlay,
-body.sidebar-pinned .close-btn {
+body.sidebar-pinned .close-btn,
+body.sidebar-pinned #sidebarToggleBtn {
     display: none !important;
     pointer-events: none;
 }
-body.sidebar-pinned #sidebarToggleBtn { 
-    display: none !important; /* Ensure the toggle button is hidden in fixed mode */
-}
 
-
-/* 3. Shift Content to the Right (RE-ENABLED) */
-body.sidebar-pinned header.header,
+/* 3. Shift Content to the Right */
+/* Added .welcome to the list so the Page Title moves properly */
+/* MODIFICATION: Removed 'header.header' from this rule to keep it full-width like the footer. */
 body.sidebar-pinned main, 
 body.sidebar-pinned .dashboard,
 body.sidebar-pinned .welcome { 
@@ -330,13 +325,12 @@ body.sidebar-pinned .welcome {
     transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 4. Responsive Fallback (Restores the temporary hide behavior on smaller screens) */
+/* 4. Responsive Fallback */
 @media (max-width: 900px) {
-    /* Restore position on small screens */
     body.sidebar-pinned .sidebar-menu { left: -280px !important; }
     body.sidebar-pinned .sidebar-menu.active { left: 0 !important; }
     
-    body.sidebar-pinned header.header,
+    /* MODIFICATION: Removed 'header.header' from this rule. */
     body.sidebar-pinned main, 
     body.sidebar-pinned .dashboard,
     body.sidebar-pinned .welcome {
