@@ -292,3 +292,56 @@ body.dark-mode .sidebar-footer {
     background: rgba(229, 62, 62, 0.9);
     color: white;
 }
+
+/* =========================
+   PINNED SIDEBAR MODE
+========================= */
+
+/* 1. Force Sidebar to be visible */
+body.sidebar-pinned .sidebar-menu {
+    left: 0 !important; /* Force it on screen */
+    box-shadow: 1px 0 0 rgba(0,0,0,0.1); /* Subtle border instead of shadow */
+    background: rgba(255, 255, 255, 1); /* Remove transparency for pinned mode if desired, or keep glass */
+}
+body.sidebar-pinned.dark-mode .sidebar-menu {
+    background: #1e1e2f; /* Solid dark for pinned mode */
+}
+
+/* 2. Hide the Overlay (User can interact with page) */
+body.sidebar-pinned .sidebar-overlay {
+    display: none !important;
+    pointer-events: none;
+}
+
+/* 3. Hide the Close Button inside Sidebar */
+body.sidebar-pinned .close-btn {
+    display: none !important;
+}
+
+/* 4. Hide the Hamburger Toggle Button in Header */
+body.sidebar-pinned #sidebarToggleBtn {
+    display: none !important;
+}
+
+/* 5. Shift Main Content & Header to the right */
+/* NOTE: You might need to adjust '.dashboard' to whatever your main content container class is */
+body.sidebar-pinned header.header,
+body.sidebar-pinned main, 
+body.sidebar-pinned .dashboard {
+    margin-left: 280px; /* Width of sidebar */
+    width: calc(100% - 280px); /* Adjust width */
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 6. Responsive Fallback: On mobile, disable pinned mode even if set */
+@media (max-width: 900px) {
+    body.sidebar-pinned .sidebar-menu { left: -280px !important; }
+    body.sidebar-pinned .sidebar-menu.active { left: 0 !important; } /* Allow toggle logic to work */
+    body.sidebar-pinned header.header,
+    body.sidebar-pinned main, 
+    body.sidebar-pinned .dashboard {
+        margin-left: 0;
+        width: 100%;
+    }
+    body.sidebar-pinned #sidebarToggleBtn { display: flex !important; }
+}
